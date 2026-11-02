@@ -1,0 +1,220 @@
+{
+  "version": "1.0",
+  "project_id": "fruit-truth-90s",
+  "decisions": [
+    {
+      "decision_id": "d-001",
+      "stage": "proposal",
+      "category": "pipeline_selection",
+      "subject": "Pipeline",
+      "options_considered": [
+        {
+          "option_id": "animation",
+          "label": "animation",
+          "score": 0.9,
+          "reason": "Motion-graphics-first; fruit deconstruction is pure animation"
+        },
+        {
+          "option_id": "animated-explainer",
+          "label": "animated-explainer",
+          "score": 0.6,
+          "reason": "Leans on generated images; no image providers configured",
+          "rejected_because": "image_generation 0/29 configured"
+        }
+      ],
+      "selected": "animation",
+      "reason": "Zero-key motion-led short",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-002",
+      "stage": "proposal",
+      "category": "concept_selection",
+      "subject": "Fruit lineup",
+      "options_considered": [
+        {
+          "option_id": "mixed",
+          "label": "Banana, apple, avocado, blueberries, orange, mango",
+          "score": 0.9,
+          "reason": "Familiar, contrasting nutrient profiles"
+        },
+        {
+          "option_id": "fruit_veg",
+          "label": "Fruits + vegetables",
+          "score": 0.7,
+          "reason": "Broader",
+          "rejected_because": "User chose mixed fruits"
+        },
+        {
+          "option_id": "halo",
+          "label": "Health-halo myths",
+          "score": 0.7,
+          "reason": "Contrarian hook",
+          "rejected_because": "User chose mixed fruits"
+        }
+      ],
+      "selected": "mixed",
+      "reason": "User selection",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-003",
+      "stage": "proposal",
+      "category": "render_runtime_selection",
+      "subject": "Composition runtime",
+      "options_considered": [
+        {
+          "option_id": "remotion",
+          "label": "Remotion",
+          "score": 0.85,
+          "reason": "Word-level caption burn + spring physics"
+        },
+        {
+          "option_id": "hyperframes",
+          "label": "HyperFrames",
+          "score": 0.75,
+          "reason": "HTML/GSAP natural for SVG motion",
+          "rejected_because": "No word-level caption parity; user chose Remotion"
+        },
+        {
+          "option_id": "ffmpeg",
+          "label": "FFmpeg",
+          "score": 0.1,
+          "reason": "Stills only",
+          "rejected_because": "Brief requires motion"
+        }
+      ],
+      "selected": "remotion",
+      "reason": "Shorts retention depends on word-level captions",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-004",
+      "stage": "proposal",
+      "category": "composition_mode",
+      "subject": "Authoring mode",
+      "options_considered": [
+        {
+          "option_id": "atelier",
+          "label": "Atelier (hand-authored SVG scenes)",
+          "score": 0.9,
+          "reason": "Bespoke per-fruit deconstruction"
+        },
+        {
+          "option_id": "templated",
+          "label": "Templated stock scenes",
+          "score": 0.3,
+          "reason": "Text/stat cards cannot illustrate fruit",
+          "rejected_because": "Cannot meet illustration brief"
+        }
+      ],
+      "selected": "atelier",
+      "reason": "Illustration-led brief",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-005",
+      "stage": "proposal",
+      "category": "voice_selection",
+      "subject": "Narration TTS provider",
+      "options_considered": [
+        {
+          "option_id": "piper_ryan_high",
+          "label": "Piper en-us-ryan-high (local)",
+          "score": 0.8,
+          "reason": "Free, offline, higher fidelity"
+        },
+        {
+          "option_id": "piper_lessac_medium",
+          "label": "Piper en-us-lessac-medium (local)",
+          "score": 0.6,
+          "reason": "Free, clear",
+          "rejected_because": "User chose Ryan"
+        }
+      ],
+      "selected": "piper_ryan_high",
+      "reason": "User selection; cloud TTS unconfigured",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-006",
+      "stage": "proposal",
+      "category": "music_source",
+      "subject": "Background music",
+      "options_considered": [
+        {
+          "option_id": "none",
+          "label": "No music",
+          "score": 0.5,
+          "reason": "No music provider configured; music_library empty"
+        }
+      ],
+      "selected": "none",
+      "reason": "No zero-key source available",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-007",
+      "stage": "assets",
+      "category": "music_source",
+      "subject": "Background music",
+      "options_considered": [
+        {
+          "option_id": "synth_original",
+          "label": "Original synthesized 112 BPM track",
+          "score": 0.8,
+          "reason": "Copyright-free by construction, zero-key, matches playful tone"
+        },
+        {
+          "option_id": "none",
+          "label": "No music",
+          "score": 0.3,
+          "reason": "Previous choice",
+          "rejected_because": "User asked for background music"
+        },
+        {
+          "option_id": "pixabay_music",
+          "label": "Pixabay music search",
+          "score": 0.5,
+          "reason": "Royalty-free library",
+          "rejected_because": "PIXABAY_API_KEY not configured"
+        }
+      ],
+      "selected": "synth_original",
+      "reason": "User requested copyright-free music; only zero-key path",
+      "user_visible": true,
+      "user_approved": true
+    },
+    {
+      "decision_id": "d-008",
+      "stage": "proposal",
+      "category": "concept_selection",
+      "subject": "Fruit lineup",
+      "options_considered": [
+        {
+          "option_id": "v3_four",
+          "label": "Banana, Mango, Orange juice (villain), Blueberries",
+          "score": 0.9,
+          "reason": "Real BAD verdict creates conflict; 57s runtime; cold open on mango"
+        },
+        {
+          "option_id": "mixed",
+          "label": "6 mixed fruits",
+          "score": 0.5,
+          "reason": "v1/v2 lineup",
+          "rejected_because": "No bad item, 88s too long, repetitive template"
+        }
+      ],
+      "selected": "v3_four",
+      "reason": "User approved all critique fixes for v3",
+      "user_visible": true,
+      "user_approved": true
+    }
+  ]
+}

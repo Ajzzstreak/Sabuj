@@ -1,0 +1,704 @@
+{
+  "fps": 30,
+  "durationInFrames": 1054,
+  "segments": [
+    {
+      "id": "q",
+      "kind": "q",
+      "start": 0.15,
+      "end": 1.543,
+      "sentences": [
+        {
+          "text": "Could Jack have fit on that door?",
+          "start": 0.15,
+          "end": 1.543
+        }
+      ]
+    },
+    {
+      "id": "scene",
+      "kind": "scene",
+      "start": 2.143,
+      "end": 9.772,
+      "sentences": [
+        {
+          "text": "Rose survives on a floating piece of wood. Jack stays in the freezing water.",
+          "start": 2.143,
+          "end": 6.586
+        },
+        {
+          "text": "Fans have argued about it for almost thirty years.",
+          "start": 6.986,
+          "end": 9.772
+        }
+      ]
+    },
+    {
+      "id": "test",
+      "kind": "test",
+      "start": 10.372,
+      "end": 17.829,
+      "sentences": [
+        {
+          "text": "Is the door big enough for two? Probably.",
+          "start": 10.372,
+          "end": 12.446
+        },
+        {
+          "text": "But size isn't the real problem. Buoyancy is. With two people on it, it starts to sink.",
+          "start": 12.846,
+          "end": 17.829
+        }
+      ]
+    },
+    {
+      "id": "exp",
+      "kind": "exp",
+      "start": 18.429,
+      "end": 25.891,
+      "sentences": [
+        {
+          "text": "In twenty twenty three, the director ran a hypothermia experiment with stunt doubles.",
+          "start": 18.429,
+          "end": 22.853
+        },
+        {
+          "text": "His conclusion? Jack might have survived. Maybe.",
+          "start": 23.253,
+          "end": 25.891
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "start": 26.491,
+      "end": 34.334,
+      "sentences": [
+        {
+          "text": "So, fit or no fit? Comment below.",
+          "start": 26.491,
+          "end": 29.006
+        },
+        {
+          "text": "The full story of the two hundred million dollar bet is on the channel.",
+          "start": 29.406,
+          "end": 32.529
+        },
+        {
+          "text": "Now, back to that door.",
+          "start": 32.929,
+          "end": 34.334
+        }
+      ]
+    }
+  ],
+  "words": [
+    {
+      "text": "Could",
+      "start": 0.15,
+      "end": 0.398,
+      "seg": "q"
+    },
+    {
+      "text": "Jack",
+      "start": 0.398,
+      "end": 0.608,
+      "seg": "q"
+    },
+    {
+      "text": "have",
+      "start": 0.608,
+      "end": 0.818,
+      "seg": "q"
+    },
+    {
+      "text": "fit",
+      "start": 0.818,
+      "end": 0.99,
+      "seg": "q"
+    },
+    {
+      "text": "on",
+      "start": 0.99,
+      "end": 1.123,
+      "seg": "q"
+    },
+    {
+      "text": "that",
+      "start": 1.123,
+      "end": 1.333,
+      "seg": "q"
+    },
+    {
+      "text": "door?",
+      "start": 1.333,
+      "end": 1.543,
+      "seg": "q"
+    },
+    {
+      "text": "Rose",
+      "start": 2.143,
+      "end": 2.441,
+      "seg": "scene"
+    },
+    {
+      "text": "survives",
+      "start": 2.441,
+      "end": 2.956,
+      "seg": "scene"
+    },
+    {
+      "text": "on",
+      "start": 2.956,
+      "end": 3.146,
+      "seg": "scene"
+    },
+    {
+      "text": "a",
+      "start": 3.146,
+      "end": 3.281,
+      "seg": "scene"
+    },
+    {
+      "text": "floating",
+      "start": 3.281,
+      "end": 3.796,
+      "seg": "scene"
+    },
+    {
+      "text": "piece",
+      "start": 3.796,
+      "end": 4.148,
+      "seg": "scene"
+    },
+    {
+      "text": "of",
+      "start": 4.148,
+      "end": 4.337,
+      "seg": "scene"
+    },
+    {
+      "text": "wood.",
+      "start": 4.337,
+      "end": 4.635,
+      "seg": "scene"
+    },
+    {
+      "text": "Jack",
+      "start": 4.635,
+      "end": 4.933,
+      "seg": "scene"
+    },
+    {
+      "text": "stays",
+      "start": 4.933,
+      "end": 5.285,
+      "seg": "scene"
+    },
+    {
+      "text": "in",
+      "start": 5.285,
+      "end": 5.475,
+      "seg": "scene"
+    },
+    {
+      "text": "the",
+      "start": 5.475,
+      "end": 5.719,
+      "seg": "scene"
+    },
+    {
+      "text": "freezing",
+      "start": 5.719,
+      "end": 6.233,
+      "seg": "scene"
+    },
+    {
+      "text": "water.",
+      "start": 6.233,
+      "end": 6.586,
+      "seg": "scene"
+    },
+    {
+      "text": "Fans",
+      "start": 6.986,
+      "end": 7.267,
+      "seg": "scene"
+    },
+    {
+      "text": "have",
+      "start": 7.267,
+      "end": 7.548,
+      "seg": "scene"
+    },
+    {
+      "text": "argued",
+      "start": 7.548,
+      "end": 7.931,
+      "seg": "scene"
+    },
+    {
+      "text": "about",
+      "start": 7.931,
+      "end": 8.264,
+      "seg": "scene"
+    },
+    {
+      "text": "it",
+      "start": 8.264,
+      "end": 8.443,
+      "seg": "scene"
+    },
+    {
+      "text": "for",
+      "start": 8.443,
+      "end": 8.673,
+      "seg": "scene"
+    },
+    {
+      "text": "almost",
+      "start": 8.673,
+      "end": 9.056,
+      "seg": "scene"
+    },
+    {
+      "text": "thirty",
+      "start": 9.056,
+      "end": 9.44,
+      "seg": "scene"
+    },
+    {
+      "text": "years.",
+      "start": 9.44,
+      "end": 9.772,
+      "seg": "scene"
+    },
+    {
+      "text": "Is",
+      "start": 10.372,
+      "end": 10.537,
+      "seg": "test"
+    },
+    {
+      "text": "the",
+      "start": 10.537,
+      "end": 10.749,
+      "seg": "test"
+    },
+    {
+      "text": "door",
+      "start": 10.749,
+      "end": 11.008,
+      "seg": "test"
+    },
+    {
+      "text": "big",
+      "start": 11.008,
+      "end": 11.22,
+      "seg": "test"
+    },
+    {
+      "text": "enough",
+      "start": 11.22,
+      "end": 11.574,
+      "seg": "test"
+    },
+    {
+      "text": "for",
+      "start": 11.574,
+      "end": 11.786,
+      "seg": "test"
+    },
+    {
+      "text": "two?",
+      "start": 11.786,
+      "end": 11.998,
+      "seg": "test"
+    },
+    {
+      "text": "Probably.",
+      "start": 11.998,
+      "end": 12.446,
+      "seg": "test"
+    },
+    {
+      "text": "But",
+      "start": 12.846,
+      "end": 13.091,
+      "seg": "test"
+    },
+    {
+      "text": "size",
+      "start": 13.091,
+      "end": 13.39,
+      "seg": "test"
+    },
+    {
+      "text": "isn't",
+      "start": 13.39,
+      "end": 13.69,
+      "seg": "test"
+    },
+    {
+      "text": "the",
+      "start": 13.69,
+      "end": 13.935,
+      "seg": "test"
+    },
+    {
+      "text": "real",
+      "start": 13.935,
+      "end": 14.235,
+      "seg": "test"
+    },
+    {
+      "text": "problem.",
+      "start": 14.235,
+      "end": 14.698,
+      "seg": "test"
+    },
+    {
+      "text": "Buoyancy",
+      "start": 14.698,
+      "end": 15.215,
+      "seg": "test"
+    },
+    {
+      "text": "is.",
+      "start": 15.215,
+      "end": 15.406,
+      "seg": "test"
+    },
+    {
+      "text": "With",
+      "start": 15.406,
+      "end": 15.705,
+      "seg": "test"
+    },
+    {
+      "text": "two",
+      "start": 15.705,
+      "end": 15.95,
+      "seg": "test"
+    },
+    {
+      "text": "people",
+      "start": 15.95,
+      "end": 16.359,
+      "seg": "test"
+    },
+    {
+      "text": "on",
+      "start": 16.359,
+      "end": 16.549,
+      "seg": "test"
+    },
+    {
+      "text": "it,",
+      "start": 16.549,
+      "end": 16.74,
+      "seg": "test"
+    },
+    {
+      "text": "it",
+      "start": 16.74,
+      "end": 16.931,
+      "seg": "test"
+    },
+    {
+      "text": "starts",
+      "start": 16.931,
+      "end": 17.339,
+      "seg": "test"
+    },
+    {
+      "text": "to",
+      "start": 17.339,
+      "end": 17.53,
+      "seg": "test"
+    },
+    {
+      "text": "sink.",
+      "start": 17.53,
+      "end": 17.829,
+      "seg": "test"
+    },
+    {
+      "text": "In",
+      "start": 18.429,
+      "end": 18.6,
+      "seg": "exp"
+    },
+    {
+      "text": "twenty",
+      "start": 18.6,
+      "end": 18.967,
+      "seg": "exp"
+    },
+    {
+      "text": "twenty",
+      "start": 18.967,
+      "end": 19.333,
+      "seg": "exp"
+    },
+    {
+      "text": "three,",
+      "start": 19.333,
+      "end": 19.651,
+      "seg": "exp"
+    },
+    {
+      "text": "the",
+      "start": 19.651,
+      "end": 19.871,
+      "seg": "exp"
+    },
+    {
+      "text": "director",
+      "start": 19.871,
+      "end": 20.335,
+      "seg": "exp"
+    },
+    {
+      "text": "ran",
+      "start": 20.335,
+      "end": 20.555,
+      "seg": "exp"
+    },
+    {
+      "text": "a",
+      "start": 20.555,
+      "end": 20.678,
+      "seg": "exp"
+    },
+    {
+      "text": "hypothermia",
+      "start": 20.678,
+      "end": 21.289,
+      "seg": "exp"
+    },
+    {
+      "text": "experiment",
+      "start": 21.289,
+      "end": 21.851,
+      "seg": "exp"
+    },
+    {
+      "text": "with",
+      "start": 21.851,
+      "end": 22.12,
+      "seg": "exp"
+    },
+    {
+      "text": "stunt",
+      "start": 22.12,
+      "end": 22.437,
+      "seg": "exp"
+    },
+    {
+      "text": "doubles.",
+      "start": 22.437,
+      "end": 22.853,
+      "seg": "exp"
+    },
+    {
+      "text": "His",
+      "start": 23.253,
+      "end": 23.493,
+      "seg": "exp"
+    },
+    {
+      "text": "conclusion?",
+      "start": 23.493,
+      "end": 24.105,
+      "seg": "exp"
+    },
+    {
+      "text": "Jack",
+      "start": 24.105,
+      "end": 24.399,
+      "seg": "exp"
+    },
+    {
+      "text": "might",
+      "start": 24.399,
+      "end": 24.745,
+      "seg": "exp"
+    },
+    {
+      "text": "have",
+      "start": 24.745,
+      "end": 25.038,
+      "seg": "exp"
+    },
+    {
+      "text": "survived.",
+      "start": 25.038,
+      "end": 25.544,
+      "seg": "exp"
+    },
+    {
+      "text": "Maybe.",
+      "start": 25.544,
+      "end": 25.891,
+      "seg": "exp"
+    },
+    {
+      "text": "So,",
+      "start": 26.491,
+      "end": 26.746,
+      "seg": "end"
+    },
+    {
+      "text": "fit",
+      "start": 26.746,
+      "end": 27.074,
+      "seg": "end"
+    },
+    {
+      "text": "or",
+      "start": 27.074,
+      "end": 27.329,
+      "seg": "end"
+    },
+    {
+      "text": "no",
+      "start": 27.329,
+      "end": 27.584,
+      "seg": "end"
+    },
+    {
+      "text": "fit?",
+      "start": 27.584,
+      "end": 27.912,
+      "seg": "end"
+    },
+    {
+      "text": "Comment",
+      "start": 27.912,
+      "end": 28.532,
+      "seg": "end"
+    },
+    {
+      "text": "below.",
+      "start": 28.532,
+      "end": 29.006,
+      "seg": "end"
+    },
+    {
+      "text": "The",
+      "start": 29.406,
+      "end": 29.586,
+      "seg": "end"
+    },
+    {
+      "text": "full",
+      "start": 29.586,
+      "end": 29.806,
+      "seg": "end"
+    },
+    {
+      "text": "story",
+      "start": 29.806,
+      "end": 30.067,
+      "seg": "end"
+    },
+    {
+      "text": "of",
+      "start": 30.067,
+      "end": 30.207,
+      "seg": "end"
+    },
+    {
+      "text": "the",
+      "start": 30.207,
+      "end": 30.387,
+      "seg": "end"
+    },
+    {
+      "text": "two",
+      "start": 30.387,
+      "end": 30.567,
+      "seg": "end"
+    },
+    {
+      "text": "hundred",
+      "start": 30.567,
+      "end": 30.907,
+      "seg": "end"
+    },
+    {
+      "text": "million",
+      "start": 30.907,
+      "end": 31.248,
+      "seg": "end"
+    },
+    {
+      "text": "dollar",
+      "start": 31.248,
+      "end": 31.548,
+      "seg": "end"
+    },
+    {
+      "text": "bet",
+      "start": 31.548,
+      "end": 31.728,
+      "seg": "end"
+    },
+    {
+      "text": "is",
+      "start": 31.728,
+      "end": 31.868,
+      "seg": "end"
+    },
+    {
+      "text": "on",
+      "start": 31.868,
+      "end": 32.009,
+      "seg": "end"
+    },
+    {
+      "text": "the",
+      "start": 32.009,
+      "end": 32.189,
+      "seg": "end"
+    },
+    {
+      "text": "channel.",
+      "start": 32.189,
+      "end": 32.529,
+      "seg": "end"
+    },
+    {
+      "text": "Now,",
+      "start": 32.929,
+      "end": 33.187,
+      "seg": "end"
+    },
+    {
+      "text": "back",
+      "start": 33.187,
+      "end": 33.503,
+      "seg": "end"
+    },
+    {
+      "text": "to",
+      "start": 33.503,
+      "end": 33.703,
+      "seg": "end"
+    },
+    {
+      "text": "that",
+      "start": 33.703,
+      "end": 34.019,
+      "seg": "end"
+    },
+    {
+      "text": "door.",
+      "start": 34.019,
+      "end": 34.334,
+      "seg": "end"
+    }
+  ]
+}

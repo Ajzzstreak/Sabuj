@@ -1,0 +1,771 @@
+{
+  "fps": 30,
+  "durationInFrames": 1193,
+  "segments": [
+    {
+      "id": "cold",
+      "kind": "cold",
+      "start": 0.15,
+      "end": 2.971,
+      "sentences": [
+        {
+          "text": "Your morning orange juice might be closer to soda than you think.",
+          "start": 0.15,
+          "end": 2.971
+        }
+      ]
+    },
+    {
+      "id": "sugar",
+      "kind": "sugar",
+      "start": 3.571,
+      "end": 12.176,
+      "sentences": [
+        {
+          "text": "One glass of orange juice. About twenty one grams of sugar.",
+          "start": 3.571,
+          "end": 7.05
+        },
+        {
+          "text": "The same amount of cola. About twenty six grams.",
+          "start": 7.45,
+          "end": 10.36
+        },
+        {
+          "text": "That's only five grams apart.",
+          "start": 10.76,
+          "end": 12.176
+        }
+      ]
+    },
+    {
+      "id": "nutr",
+      "kind": "nutr",
+      "start": 12.776,
+      "end": 21.261,
+      "sentences": [
+        {
+          "text": "To be fair, juice brings vitamin C and potassium. Soda brings nothing.",
+          "start": 12.776,
+          "end": 17.149
+        },
+        {
+          "text": "But both have almost zero fiber, so the sugar hits your blood fast.",
+          "start": 17.549,
+          "end": 21.261
+        }
+      ]
+    },
+    {
+      "id": "orange",
+      "kind": "orange",
+      "start": 21.861,
+      "end": 27.012,
+      "sentences": [
+        {
+          "text": "Now the actual orange. Twelve grams of sugar, three grams of fiber, and it keeps you full.",
+          "start": 21.861,
+          "end": 27.012
+        }
+      ]
+    },
+    {
+      "id": "verdict",
+      "kind": "verdict",
+      "start": 27.612,
+      "end": 34.709,
+      "sentences": [
+        {
+          "text": "Verdict. Soda: bad. Juice: watch out. The orange: good.",
+          "start": 27.612,
+          "end": 31.883
+        },
+        {
+          "text": "And it costs about the same as a glass of juice.",
+          "start": 32.283,
+          "end": 34.709
+        }
+      ]
+    },
+    {
+      "id": "end",
+      "kind": "end",
+      "start": 35.309,
+      "end": 38.951,
+      "sentences": [
+        {
+          "text": "Follow for more good or bad.",
+          "start": 35.309,
+          "end": 36.972
+        },
+        {
+          "text": "Now, back to that glass.",
+          "start": 37.372,
+          "end": 38.951
+        }
+      ]
+    }
+  ],
+  "words": [
+    {
+      "text": "Your",
+      "start": 0.15,
+      "end": 0.369,
+      "seg": "cold"
+    },
+    {
+      "text": "morning",
+      "start": 0.369,
+      "end": 0.706,
+      "seg": "cold"
+    },
+    {
+      "text": "orange",
+      "start": 0.706,
+      "end": 1.004,
+      "seg": "cold"
+    },
+    {
+      "text": "juice",
+      "start": 1.004,
+      "end": 1.263,
+      "seg": "cold"
+    },
+    {
+      "text": "might",
+      "start": 1.263,
+      "end": 1.521,
+      "seg": "cold"
+    },
+    {
+      "text": "be",
+      "start": 1.521,
+      "end": 1.66,
+      "seg": "cold"
+    },
+    {
+      "text": "closer",
+      "start": 1.66,
+      "end": 1.958,
+      "seg": "cold"
+    },
+    {
+      "text": "to",
+      "start": 1.958,
+      "end": 2.097,
+      "seg": "cold"
+    },
+    {
+      "text": "soda",
+      "start": 2.097,
+      "end": 2.316,
+      "seg": "cold"
+    },
+    {
+      "text": "than",
+      "start": 2.316,
+      "end": 2.534,
+      "seg": "cold"
+    },
+    {
+      "text": "you",
+      "start": 2.534,
+      "end": 2.713,
+      "seg": "cold"
+    },
+    {
+      "text": "think.",
+      "start": 2.713,
+      "end": 2.971,
+      "seg": "cold"
+    },
+    {
+      "text": "One",
+      "start": 3.571,
+      "end": 3.818,
+      "seg": "sugar"
+    },
+    {
+      "text": "glass",
+      "start": 3.818,
+      "end": 4.174,
+      "seg": "sugar"
+    },
+    {
+      "text": "of",
+      "start": 4.174,
+      "end": 4.366,
+      "seg": "sugar"
+    },
+    {
+      "text": "orange",
+      "start": 4.366,
+      "end": 4.777,
+      "seg": "sugar"
+    },
+    {
+      "text": "juice.",
+      "start": 4.777,
+      "end": 5.133,
+      "seg": "sugar"
+    },
+    {
+      "text": "About",
+      "start": 5.133,
+      "end": 5.489,
+      "seg": "sugar"
+    },
+    {
+      "text": "twenty",
+      "start": 5.489,
+      "end": 5.9,
+      "seg": "sugar"
+    },
+    {
+      "text": "one",
+      "start": 5.9,
+      "end": 6.146,
+      "seg": "sugar"
+    },
+    {
+      "text": "grams",
+      "start": 6.146,
+      "end": 6.502,
+      "seg": "sugar"
+    },
+    {
+      "text": "of",
+      "start": 6.502,
+      "end": 6.694,
+      "seg": "sugar"
+    },
+    {
+      "text": "sugar.",
+      "start": 6.694,
+      "end": 7.05,
+      "seg": "sugar"
+    },
+    {
+      "text": "The",
+      "start": 7.45,
+      "end": 7.704,
+      "seg": "sugar"
+    },
+    {
+      "text": "same",
+      "start": 7.704,
+      "end": 8.015,
+      "seg": "sugar"
+    },
+    {
+      "text": "amount",
+      "start": 8.015,
+      "end": 8.439,
+      "seg": "sugar"
+    },
+    {
+      "text": "of",
+      "start": 8.439,
+      "end": 8.636,
+      "seg": "sugar"
+    },
+    {
+      "text": "cola.",
+      "start": 8.636,
+      "end": 8.947,
+      "seg": "sugar"
+    },
+    {
+      "text": "About",
+      "start": 8.947,
+      "end": 9.314,
+      "seg": "sugar"
+    },
+    {
+      "text": "twenty",
+      "start": 9.314,
+      "end": 9.738,
+      "seg": "sugar"
+    },
+    {
+      "text": "six",
+      "start": 9.738,
+      "end": 9.992,
+      "seg": "sugar"
+    },
+    {
+      "text": "grams.",
+      "start": 9.992,
+      "end": 10.36,
+      "seg": "sugar"
+    },
+    {
+      "text": "That's",
+      "start": 10.76,
+      "end": 11.062,
+      "seg": "sugar"
+    },
+    {
+      "text": "only",
+      "start": 11.062,
+      "end": 11.317,
+      "seg": "sugar"
+    },
+    {
+      "text": "five",
+      "start": 11.317,
+      "end": 11.572,
+      "seg": "sugar"
+    },
+    {
+      "text": "grams",
+      "start": 11.572,
+      "end": 11.874,
+      "seg": "sugar"
+    },
+    {
+      "text": "apart.",
+      "start": 11.874,
+      "end": 12.176,
+      "seg": "sugar"
+    },
+    {
+      "text": "To",
+      "start": 12.776,
+      "end": 12.983,
+      "seg": "nutr"
+    },
+    {
+      "text": "be",
+      "start": 12.983,
+      "end": 13.19,
+      "seg": "nutr"
+    },
+    {
+      "text": "fair,",
+      "start": 13.19,
+      "end": 13.515,
+      "seg": "nutr"
+    },
+    {
+      "text": "juice",
+      "start": 13.515,
+      "end": 13.899,
+      "seg": "nutr"
+    },
+    {
+      "text": "brings",
+      "start": 13.899,
+      "end": 14.342,
+      "seg": "nutr"
+    },
+    {
+      "text": "vitamin",
+      "start": 14.342,
+      "end": 14.844,
+      "seg": "nutr"
+    },
+    {
+      "text": "C",
+      "start": 14.844,
+      "end": 14.992,
+      "seg": "nutr"
+    },
+    {
+      "text": "and",
+      "start": 14.992,
+      "end": 15.258,
+      "seg": "nutr"
+    },
+    {
+      "text": "potassium.",
+      "start": 15.258,
+      "end": 15.878,
+      "seg": "nutr"
+    },
+    {
+      "text": "Soda",
+      "start": 15.878,
+      "end": 16.203,
+      "seg": "nutr"
+    },
+    {
+      "text": "brings",
+      "start": 16.203,
+      "end": 16.646,
+      "seg": "nutr"
+    },
+    {
+      "text": "nothing.",
+      "start": 16.646,
+      "end": 17.149,
+      "seg": "nutr"
+    },
+    {
+      "text": "But",
+      "start": 17.549,
+      "end": 17.779,
+      "seg": "nutr"
+    },
+    {
+      "text": "both",
+      "start": 17.779,
+      "end": 18.061,
+      "seg": "nutr"
+    },
+    {
+      "text": "have",
+      "start": 18.061,
+      "end": 18.342,
+      "seg": "nutr"
+    },
+    {
+      "text": "almost",
+      "start": 18.342,
+      "end": 18.727,
+      "seg": "nutr"
+    },
+    {
+      "text": "zero",
+      "start": 18.727,
+      "end": 19.008,
+      "seg": "nutr"
+    },
+    {
+      "text": "fiber,",
+      "start": 19.008,
+      "end": 19.341,
+      "seg": "nutr"
+    },
+    {
+      "text": "so",
+      "start": 19.341,
+      "end": 19.52,
+      "seg": "nutr"
+    },
+    {
+      "text": "the",
+      "start": 19.52,
+      "end": 19.751,
+      "seg": "nutr"
+    },
+    {
+      "text": "sugar",
+      "start": 19.751,
+      "end": 20.084,
+      "seg": "nutr"
+    },
+    {
+      "text": "hits",
+      "start": 20.084,
+      "end": 20.365,
+      "seg": "nutr"
+    },
+    {
+      "text": "your",
+      "start": 20.365,
+      "end": 20.647,
+      "seg": "nutr"
+    },
+    {
+      "text": "blood",
+      "start": 20.647,
+      "end": 20.98,
+      "seg": "nutr"
+    },
+    {
+      "text": "fast.",
+      "start": 20.98,
+      "end": 21.261,
+      "seg": "nutr"
+    },
+    {
+      "text": "Now",
+      "start": 21.861,
+      "end": 22.104,
+      "seg": "orange"
+    },
+    {
+      "text": "the",
+      "start": 22.104,
+      "end": 22.347,
+      "seg": "orange"
+    },
+    {
+      "text": "actual",
+      "start": 22.347,
+      "end": 22.751,
+      "seg": "orange"
+    },
+    {
+      "text": "orange.",
+      "start": 22.751,
+      "end": 23.156,
+      "seg": "orange"
+    },
+    {
+      "text": "Twelve",
+      "start": 23.156,
+      "end": 23.56,
+      "seg": "orange"
+    },
+    {
+      "text": "grams",
+      "start": 23.56,
+      "end": 23.911,
+      "seg": "orange"
+    },
+    {
+      "text": "of",
+      "start": 23.911,
+      "end": 24.1,
+      "seg": "orange"
+    },
+    {
+      "text": "sugar,",
+      "start": 24.1,
+      "end": 24.45,
+      "seg": "orange"
+    },
+    {
+      "text": "three",
+      "start": 24.45,
+      "end": 24.801,
+      "seg": "orange"
+    },
+    {
+      "text": "grams",
+      "start": 24.801,
+      "end": 25.151,
+      "seg": "orange"
+    },
+    {
+      "text": "of",
+      "start": 25.151,
+      "end": 25.34,
+      "seg": "orange"
+    },
+    {
+      "text": "fiber,",
+      "start": 25.34,
+      "end": 25.691,
+      "seg": "orange"
+    },
+    {
+      "text": "and",
+      "start": 25.691,
+      "end": 25.933,
+      "seg": "orange"
+    },
+    {
+      "text": "it",
+      "start": 25.933,
+      "end": 26.122,
+      "seg": "orange"
+    },
+    {
+      "text": "keeps",
+      "start": 26.122,
+      "end": 26.473,
+      "seg": "orange"
+    },
+    {
+      "text": "you",
+      "start": 26.473,
+      "end": 26.715,
+      "seg": "orange"
+    },
+    {
+      "text": "full.",
+      "start": 26.715,
+      "end": 27.012,
+      "seg": "orange"
+    },
+    {
+      "text": "Verdict.",
+      "start": 27.612,
+      "end": 28.29,
+      "seg": "verdict"
+    },
+    {
+      "text": "Soda:",
+      "start": 28.29,
+      "end": 28.729,
+      "seg": "verdict"
+    },
+    {
+      "text": "bad.",
+      "start": 28.729,
+      "end": 29.089,
+      "seg": "verdict"
+    },
+    {
+      "text": "Juice:",
+      "start": 29.089,
+      "end": 29.607,
+      "seg": "verdict"
+    },
+    {
+      "text": "watch",
+      "start": 29.607,
+      "end": 30.126,
+      "seg": "verdict"
+    },
+    {
+      "text": "out.",
+      "start": 30.126,
+      "end": 30.486,
+      "seg": "verdict"
+    },
+    {
+      "text": "The",
+      "start": 30.486,
+      "end": 30.845,
+      "seg": "verdict"
+    },
+    {
+      "text": "orange:",
+      "start": 30.845,
+      "end": 31.443,
+      "seg": "verdict"
+    },
+    {
+      "text": "good.",
+      "start": 31.443,
+      "end": 31.883,
+      "seg": "verdict"
+    },
+    {
+      "text": "And",
+      "start": 32.283,
+      "end": 32.487,
+      "seg": "verdict"
+    },
+    {
+      "text": "it",
+      "start": 32.487,
+      "end": 32.645,
+      "seg": "verdict"
+    },
+    {
+      "text": "costs",
+      "start": 32.645,
+      "end": 32.94,
+      "seg": "verdict"
+    },
+    {
+      "text": "about",
+      "start": 32.94,
+      "end": 33.235,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 33.235,
+      "end": 33.439,
+      "seg": "verdict"
+    },
+    {
+      "text": "same",
+      "start": 33.439,
+      "end": 33.689,
+      "seg": "verdict"
+    },
+    {
+      "text": "as",
+      "start": 33.689,
+      "end": 33.847,
+      "seg": "verdict"
+    },
+    {
+      "text": "a",
+      "start": 33.847,
+      "end": 33.961,
+      "seg": "verdict"
+    },
+    {
+      "text": "glass",
+      "start": 33.961,
+      "end": 34.256,
+      "seg": "verdict"
+    },
+    {
+      "text": "of",
+      "start": 34.256,
+      "end": 34.414,
+      "seg": "verdict"
+    },
+    {
+      "text": "juice.",
+      "start": 34.414,
+      "end": 34.709,
+      "seg": "verdict"
+    },
+    {
+      "text": "Follow",
+      "start": 35.309,
+      "end": 35.712,
+      "seg": "end"
+    },
+    {
+      "text": "for",
+      "start": 35.712,
+      "end": 35.953,
+      "seg": "end"
+    },
+    {
+      "text": "more",
+      "start": 35.953,
+      "end": 36.248,
+      "seg": "end"
+    },
+    {
+      "text": "good",
+      "start": 36.248,
+      "end": 36.543,
+      "seg": "end"
+    },
+    {
+      "text": "or",
+      "start": 36.543,
+      "end": 36.731,
+      "seg": "end"
+    },
+    {
+      "text": "bad.",
+      "start": 36.731,
+      "end": 36.972,
+      "seg": "end"
+    },
+    {
+      "text": "Now,",
+      "start": 37.372,
+      "end": 37.651,
+      "seg": "end"
+    },
+    {
+      "text": "back",
+      "start": 37.651,
+      "end": 37.992,
+      "seg": "end"
+    },
+    {
+      "text": "to",
+      "start": 37.992,
+      "end": 38.208,
+      "seg": "end"
+    },
+    {
+      "text": "that",
+      "start": 38.208,
+      "end": 38.549,
+      "seg": "end"
+    },
+    {
+      "text": "glass.",
+      "start": 38.549,
+      "end": 38.951,
+      "seg": "end"
+    }
+  ]
+}

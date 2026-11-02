@@ -1,0 +1,42 @@
+{
+  "title": "Good or Bad? 4 Fruits (v3)",
+  "voice": "piper en-us-ryan-high",
+  "sources_note": "Nutrition: USDA FoodData Central (rounded). Prices: approx. US average retail; vary by region/season.",
+  "segments": [
+    {"id": "cold", "kind": "cold", "sentences": [
+      {"role": "intro", "text": "This mango packs forty five grams of sugar."}]},
+    {"id": "hook", "kind": "hook", "sentences": [
+      {"role": "intro", "text": "Four fruits. Good or bad, and what do they really cost?"}]},
+    {"id": "banana", "kind": "fruit", "name": "Banana", "unit": "1 medium", "kcal": 105, "score": 80, "verdict": "GOOD", "price": "$0.25", "priceUnit": "each",
+     "nutrients": [{"label": "Potassium", "value": "422 mg"}, {"label": "Fiber", "value": "3 g"}, {"label": "Sugar", "value": "14 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Banana."},
+      {"role": "nutr", "text": "A hundred and five calories, three grams of fiber, and over four hundred milligrams of potassium."},
+      {"role": "verdict", "text": "Verdict: good. Perfect fuel before a workout."},
+      {"role": "price", "text": "About twenty five cents."}]},
+    {"id": "mango", "kind": "fruit", "name": "Mango", "unit": "1 whole", "kcal": 200, "score": 55, "verdict": "WATCH OUT", "price": "$1.00", "priceUnit": "each",
+     "nutrients": [{"label": "Vitamin C", "value": "135% DV"}, {"label": "Vitamin A", "value": "25% DV"}, {"label": "Sugar", "value": "45 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Mango."},
+      {"role": "nutr", "text": "Loaded with vitamins A and C, but one whole mango is forty five grams of sugar."},
+      {"role": "verdict", "text": "Verdict: watch out. Stick to one cup."},
+      {"role": "price", "text": "About a dollar each."}]},
+    {"id": "juice", "kind": "fruit", "name": "Orange Juice", "unit": "1 glass, 8 oz", "kcal": 112, "score": 25, "verdict": "BAD", "price": "$0.70", "priceUnit": "per glass",
+     "nutrients": [{"label": "Sugar", "value": "21 g", "warn": true}, {"label": "Fiber", "value": "0.5 g", "warn": true}, {"label": "Vitamin C", "value": "138% DV"}],
+     "sentences": [
+      {"role": "intro", "text": "Orange juice."},
+      {"role": "nutr", "text": "Twenty one grams of sugar a glass, and almost zero fiber. Ounce for ounce, it's nearly as sugary as soda."},
+      {"role": "verdict", "text": "Verdict: bad, as a daily habit. Eat the orange instead."},
+      {"role": "price", "text": "About seventy cents a glass."}]},
+    {"id": "blueberries", "kind": "fruit", "name": "Blueberries", "unit": "1 cup", "kcal": 84, "score": 95, "verdict": "EXCELLENT", "price": "$4.00", "priceUnit": "per pint",
+     "nutrients": [{"label": "Anthocyanins", "value": "antioxidants"}, {"label": "Vitamin K", "value": "24% DV"}, {"label": "Fiber", "value": "3.6 g"}],
+     "sentences": [
+      {"role": "intro", "text": "Blueberries."},
+      {"role": "nutr", "text": "Just eighty four calories a cup, packed with antioxidants for your brain and heart."},
+      {"role": "verdict", "text": "Verdict: excellent. The best on this list."},
+      {"role": "price", "text": "Roughly four dollars a pint."}]},
+    {"id": "outro", "kind": "outro", "sentences": [
+      {"role": "intro", "text": "Follow for part two."},
+      {"role": "loop", "text": "Now, back to that mango."}]}
+  ]
+}

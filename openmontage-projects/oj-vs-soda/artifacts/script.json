@@ -1,0 +1,20 @@
+{"title": "Orange Juice vs Soda (Short)",
+ "facts": "Per 8 fl oz: orange juice ~21 g sugar, ~0.5 g fiber, ~124 mg vit C (~138% DV), ~450 mg potassium; cola ~26 g sugar, 0 nutrients; medium orange ~12 g sugar, ~3 g fiber, ~70 mg vit C. 1 sugar cube ~4 g. Prices approx US.",
+ "segments": [
+ {"id": "cold", "kind": "cold", "sentences": [{"text": "Your morning orange juice might be closer to soda than you think."}]},
+ {"id": "sugar", "kind": "sugar", "sentences": [
+   {"text": "One glass of orange juice. About twenty one grams of sugar."},
+   {"text": "The same amount of cola. About twenty six grams."},
+   {"text": "That's only five grams apart."}]},
+ {"id": "nutr", "kind": "nutr", "sentences": [
+   {"text": "To be fair, juice brings vitamin C and potassium. Soda brings nothing."},
+   {"text": "But both have almost zero fiber, so the sugar hits your blood fast."}]},
+ {"id": "orange", "kind": "orange", "sentences": [
+   {"text": "Now the actual orange. Twelve grams of sugar, three grams of fiber, and it keeps you full."}]},
+ {"id": "verdict", "kind": "verdict", "sentences": [
+   {"text": "Verdict. Soda: bad. Juice: watch out. The orange: good."},
+   {"text": "And it costs about the same as a glass of juice."}]},
+ {"id": "end", "kind": "end", "sentences": [
+   {"text": "Follow for more good or bad."},
+   {"text": "Now, back to that glass."}]}
+]}

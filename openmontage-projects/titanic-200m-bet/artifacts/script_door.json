@@ -1,0 +1,16 @@
+{"title": "Could Jack Fit? (Short)", "segments": [
+ {"id": "q", "kind": "q", "sentences": [{"text": "Could Jack have fit on that door?"}]},
+ {"id": "scene", "kind": "scene", "sentences": [
+   {"text": "Rose survives on a floating piece of wood. Jack stays in the freezing water."},
+   {"text": "Fans have argued about it for almost thirty years."}]},
+ {"id": "test", "kind": "test", "sentences": [
+   {"text": "Is the door big enough for two? Probably."},
+   {"text": "But size isn't the real problem. Buoyancy is. With two people on it, it starts to sink."}]},
+ {"id": "exp", "kind": "exp", "sentences": [
+   {"text": "In twenty twenty three, the director ran a hypothermia experiment with stunt doubles."},
+   {"text": "His conclusion? Jack might have survived. Maybe."}]},
+ {"id": "end", "kind": "end", "sentences": [
+   {"text": "So, fit or no fit? Comment below."},
+   {"text": "The full story of the two hundred million dollar bet is on the channel."},
+   {"text": "Now, back to that door."}]}
+]}

@@ -1,0 +1,56 @@
+{
+  "title": "Good or Bad? 6 Fruits in 90 Seconds",
+  "voice": "piper en-us-ryan-high",
+  "sources_note": "Nutrition per USDA FoodData Central (approx., rounded). Prices: approx. US average retail, USDA ERS fruit price data; vary by region/season.",
+  "segments": [
+    {"id": "hook", "kind": "hook", "sentences": [
+      {"role": "intro", "text": "Six fruits."},
+      {"role": "intro", "text": "Are they good or bad for your body, and what do they really cost?"},
+      {"role": "intro", "text": "Let's crack them open."}]},
+    {"id": "banana", "kind": "fruit", "name": "Banana", "unit": "1 medium", "kcal": 105, "score": 78, "verdict": "GOOD", "price": "$0.25", "priceUnit": "each",
+     "nutrients": [{"label": "Potassium", "value": "422 mg"}, {"label": "Fiber", "value": "3 g"}, {"label": "Vitamin B6", "value": "25% DV"}, {"label": "Sugar", "value": "14 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Banana."},
+      {"role": "nutr", "text": "About a hundred and five calories, three grams of fiber, and over four hundred milligrams of potassium for your muscles and heart."},
+      {"role": "verdict", "text": "Verdict: good. A perfect fuel before a workout."},
+      {"role": "price", "text": "Cost? About twenty five cents each."}]},
+    {"id": "apple", "kind": "fruit", "name": "Apple", "unit": "1 medium", "kcal": 95, "score": 82, "verdict": "GOOD", "price": "$0.90", "priceUnit": "each",
+     "nutrients": [{"label": "Fiber", "value": "4.4 g"}, {"label": "Vitamin C", "value": "9% DV"}, {"label": "Polyphenols", "value": "in the skin"}, {"label": "Sugar", "value": "19 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Apple."},
+      {"role": "nutr", "text": "Ninety five calories and over four grams of fiber, and most of the good stuff lives in the skin, so don't peel it."},
+      {"role": "verdict", "text": "Verdict: good. It keeps you full for hours."},
+      {"role": "price", "text": "Around ninety cents an apple."}]},
+    {"id": "avocado", "kind": "fruit", "name": "Avocado", "unit": "1 whole", "kcal": 230, "score": 72, "verdict": "GOOD IN PORTIONS", "price": "$1.25", "priceUnit": "each",
+     "nutrients": [{"label": "Healthy fats", "value": "21 g"}, {"label": "Fiber", "value": "9 g"}, {"label": "Potassium", "value": "690 mg"}, {"label": "Calories", "value": "230", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Avocado."},
+      {"role": "nutr", "text": "Packed with heart healthy fats and nine grams of fiber. But one whole avocado is over two hundred calories."},
+      {"role": "verdict", "text": "Verdict: good, in portions. Half is plenty."},
+      {"role": "price", "text": "About a dollar twenty five each."}]},
+    {"id": "blueberries", "kind": "fruit", "name": "Blueberries", "unit": "1 cup", "kcal": 84, "score": 95, "verdict": "EXCELLENT", "price": "$4.00", "priceUnit": "per pint",
+     "nutrients": [{"label": "Anthocyanins", "value": "antioxidants"}, {"label": "Vitamin K", "value": "24% DV"}, {"label": "Vitamin C", "value": "16% DV"}, {"label": "Fiber", "value": "3.6 g"}],
+     "sentences": [
+      {"role": "intro", "text": "Blueberries."},
+      {"role": "nutr", "text": "Just eighty four calories a cup, and loaded with antioxidants that help protect your brain and blood vessels."},
+      {"role": "verdict", "text": "Verdict: excellent. The best health value on this list."},
+      {"role": "price", "text": "Roughly four dollars a pint."}]},
+    {"id": "orange", "kind": "fruit", "name": "Orange", "unit": "1 medium", "kcal": 69, "score": 86, "verdict": "GOOD", "price": "$0.75", "priceUnit": "each",
+     "nutrients": [{"label": "Vitamin C", "value": "~90% DV"}, {"label": "Fiber", "value": "3 g"}, {"label": "Folate", "value": "10% DV"}, {"label": "Sugar", "value": "12 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Orange."},
+      {"role": "nutr", "text": "One gives you nearly a full day of vitamin C, plus the fiber that juice throws away."},
+      {"role": "verdict", "text": "Verdict: good. Eat it, don't drink it."},
+      {"role": "price", "text": "About seventy five cents each."}]},
+    {"id": "mango", "kind": "fruit", "name": "Mango", "unit": "1 whole", "kcal": 200, "score": 55, "verdict": "WATCH OUT", "price": "$1.00", "priceUnit": "each",
+     "nutrients": [{"label": "Vitamin C", "value": "135% DV"}, {"label": "Vitamin A", "value": "25% DV"}, {"label": "Fiber", "value": "5 g"}, {"label": "Sugar", "value": "45 g", "warn": true}],
+     "sentences": [
+      {"role": "intro", "text": "Mango."},
+      {"role": "nutr", "text": "Rich in vitamins A and C, but one whole mango carries over forty grams of sugar."},
+      {"role": "verdict", "text": "Verdict: watch out. Stick to one cup."},
+      {"role": "price", "text": "About a dollar each."}]},
+    {"id": "outro", "kind": "outro", "sentences": [
+      {"role": "intro", "text": "Best overall? Blueberries."},
+      {"role": "intro", "text": "Follow for part two: vegetables."}]}
+  ]
+}

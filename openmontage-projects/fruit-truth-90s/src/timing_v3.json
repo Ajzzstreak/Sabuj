@@ -1,0 +1,1160 @@
+{
+  "fps": 30,
+  "durationInFrames": 1711,
+  "segments": [
+    {
+      "id": "cold",
+      "kind": "cold",
+      "start": 0.12,
+      "end": 2.477,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "This mango packs forty five grams of sugar.",
+          "start": 0.12,
+          "end": 2.477
+        }
+      ]
+    },
+    {
+      "id": "hook",
+      "kind": "hook",
+      "start": 3.027,
+      "end": 6.28,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Four fruits. Good or bad, and what do they really cost?",
+          "start": 3.027,
+          "end": 6.28
+        }
+      ]
+    },
+    {
+      "id": "banana",
+      "kind": "fruit",
+      "name": "Banana",
+      "unit": "1 medium",
+      "kcal": 105,
+      "score": 80,
+      "verdict": "GOOD",
+      "price": "$0.25",
+      "priceUnit": "each",
+      "nutrients": [
+        {
+          "label": "Potassium",
+          "value": "422 mg"
+        },
+        {
+          "label": "Fiber",
+          "value": "3 g"
+        },
+        {
+          "label": "Sugar",
+          "value": "14 g",
+          "warn": true
+        }
+      ],
+      "start": 6.83,
+      "end": 18.348,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Banana.",
+          "start": 6.83,
+          "end": 7.33
+        },
+        {
+          "role": "nutr",
+          "text": "A hundred and five calories, three grams of fiber, and over four hundred milligrams of potassium.",
+          "start": 7.61,
+          "end": 13.519
+        },
+        {
+          "role": "verdict",
+          "text": "Verdict: good. Perfect fuel before a workout.",
+          "start": 13.799,
+          "end": 16.674
+        },
+        {
+          "role": "price",
+          "text": "About twenty five cents.",
+          "start": 16.954,
+          "end": 18.348
+        }
+      ]
+    },
+    {
+      "id": "mango",
+      "kind": "fruit",
+      "name": "Mango",
+      "unit": "1 whole",
+      "kcal": 200,
+      "score": 55,
+      "verdict": "WATCH OUT",
+      "price": "$1.00",
+      "priceUnit": "each",
+      "nutrients": [
+        {
+          "label": "Vitamin C",
+          "value": "135% DV"
+        },
+        {
+          "label": "Vitamin A",
+          "value": "25% DV"
+        },
+        {
+          "label": "Sugar",
+          "value": "45 g",
+          "warn": true
+        }
+      ],
+      "start": 18.898,
+      "end": 28.29,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Mango.",
+          "start": 18.898,
+          "end": 19.339
+        },
+        {
+          "role": "nutr",
+          "text": "Loaded with vitamins A and C, but one whole mango is forty five grams of sugar.",
+          "start": 19.619,
+          "end": 24.402
+        },
+        {
+          "role": "verdict",
+          "text": "Verdict: watch out. Stick to one cup.",
+          "start": 24.682,
+          "end": 26.895
+        },
+        {
+          "role": "price",
+          "text": "About a dollar each.",
+          "start": 27.175,
+          "end": 28.29
+        }
+      ]
+    },
+    {
+      "id": "juice",
+      "kind": "fruit",
+      "name": "Orange Juice",
+      "unit": "1 glass, 8 oz",
+      "kcal": 112,
+      "score": 25,
+      "verdict": "BAD",
+      "price": "$0.70",
+      "priceUnit": "per glass",
+      "nutrients": [
+        {
+          "label": "Sugar",
+          "value": "21 g",
+          "warn": true
+        },
+        {
+          "label": "Fiber",
+          "value": "0.5 g",
+          "warn": true
+        },
+        {
+          "label": "Vitamin C",
+          "value": "138% DV"
+        }
+      ],
+      "start": 28.84,
+      "end": 41.92,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Orange juice.",
+          "start": 28.84,
+          "end": 29.839
+        },
+        {
+          "role": "nutr",
+          "text": "Twenty one grams of sugar a glass, and almost zero fiber. Ounce for ounce, it's nearly as sugary as soda.",
+          "start": 30.119,
+          "end": 36.105
+        },
+        {
+          "role": "verdict",
+          "text": "Verdict: bad, as a daily habit. Eat the orange instead.",
+          "start": 36.385,
+          "end": 39.864
+        },
+        {
+          "role": "price",
+          "text": "About seventy cents a glass.",
+          "start": 40.144,
+          "end": 41.92
+        }
+      ]
+    },
+    {
+      "id": "blueberries",
+      "kind": "fruit",
+      "name": "Blueberries",
+      "unit": "1 cup",
+      "kcal": 84,
+      "score": 95,
+      "verdict": "EXCELLENT",
+      "price": "$4.00",
+      "priceUnit": "per pint",
+      "nutrients": [
+        {
+          "label": "Anthocyanins",
+          "value": "antioxidants"
+        },
+        {
+          "label": "Vitamin K",
+          "value": "24% DV"
+        },
+        {
+          "label": "Fiber",
+          "value": "3.6 g"
+        }
+      ],
+      "start": 42.47,
+      "end": 52.478,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Blueberries.",
+          "start": 42.47,
+          "end": 43.144
+        },
+        {
+          "role": "nutr",
+          "text": "Just eighty four calories a cup, packed with antioxidants for your brain and heart.",
+          "start": 43.424,
+          "end": 48.01
+        },
+        {
+          "role": "verdict",
+          "text": "Verdict: excellent. The best on this list.",
+          "start": 48.29,
+          "end": 50.665
+        },
+        {
+          "role": "price",
+          "text": "Roughly four dollars a pint.",
+          "start": 50.945,
+          "end": 52.478
+        }
+      ]
+    },
+    {
+      "id": "outro",
+      "kind": "outro",
+      "start": 53.028,
+      "end": 56.139,
+      "sentences": [
+        {
+          "role": "intro",
+          "text": "Follow for part two.",
+          "start": 53.028,
+          "end": 54.303
+        },
+        {
+          "role": "loop",
+          "text": "Now, back to that mango.",
+          "start": 54.583,
+          "end": 56.139
+        }
+      ]
+    }
+  ],
+  "words": [
+    {
+      "text": "This",
+      "start": 0.12,
+      "end": 0.396,
+      "seg": "cold"
+    },
+    {
+      "text": "mango",
+      "start": 0.396,
+      "end": 0.722,
+      "seg": "cold"
+    },
+    {
+      "text": "packs",
+      "start": 0.722,
+      "end": 1.048,
+      "seg": "cold"
+    },
+    {
+      "text": "forty",
+      "start": 1.048,
+      "end": 1.374,
+      "seg": "cold"
+    },
+    {
+      "text": "five",
+      "start": 1.374,
+      "end": 1.649,
+      "seg": "cold"
+    },
+    {
+      "text": "grams",
+      "start": 1.649,
+      "end": 1.975,
+      "seg": "cold"
+    },
+    {
+      "text": "of",
+      "start": 1.975,
+      "end": 2.151,
+      "seg": "cold"
+    },
+    {
+      "text": "sugar.",
+      "start": 2.151,
+      "end": 2.477,
+      "seg": "cold"
+    },
+    {
+      "text": "Four",
+      "start": 3.027,
+      "end": 3.333,
+      "seg": "hook"
+    },
+    {
+      "text": "fruits.",
+      "start": 3.333,
+      "end": 3.75,
+      "seg": "hook"
+    },
+    {
+      "text": "Good",
+      "start": 3.75,
+      "end": 4.056,
+      "seg": "hook"
+    },
+    {
+      "text": "or",
+      "start": 4.056,
+      "end": 4.25,
+      "seg": "hook"
+    },
+    {
+      "text": "bad,",
+      "start": 4.25,
+      "end": 4.501,
+      "seg": "hook"
+    },
+    {
+      "text": "and",
+      "start": 4.501,
+      "end": 4.751,
+      "seg": "hook"
+    },
+    {
+      "text": "what",
+      "start": 4.751,
+      "end": 5.057,
+      "seg": "hook"
+    },
+    {
+      "text": "do",
+      "start": 5.057,
+      "end": 5.252,
+      "seg": "hook"
+    },
+    {
+      "text": "they",
+      "start": 5.252,
+      "end": 5.557,
+      "seg": "hook"
+    },
+    {
+      "text": "really",
+      "start": 5.557,
+      "end": 5.975,
+      "seg": "hook"
+    },
+    {
+      "text": "cost?",
+      "start": 5.975,
+      "end": 6.28,
+      "seg": "hook"
+    },
+    {
+      "text": "Banana.",
+      "start": 6.83,
+      "end": 7.33,
+      "seg": "banana"
+    },
+    {
+      "text": "A",
+      "start": 7.61,
+      "end": 7.753,
+      "seg": "banana"
+    },
+    {
+      "text": "hundred",
+      "start": 7.753,
+      "end": 8.241,
+      "seg": "banana"
+    },
+    {
+      "text": "and",
+      "start": 8.241,
+      "end": 8.499,
+      "seg": "banana"
+    },
+    {
+      "text": "five",
+      "start": 8.499,
+      "end": 8.815,
+      "seg": "banana"
+    },
+    {
+      "text": "calories,",
+      "start": 8.815,
+      "end": 9.36,
+      "seg": "banana"
+    },
+    {
+      "text": "three",
+      "start": 9.36,
+      "end": 9.733,
+      "seg": "banana"
+    },
+    {
+      "text": "grams",
+      "start": 9.733,
+      "end": 10.106,
+      "seg": "banana"
+    },
+    {
+      "text": "of",
+      "start": 10.106,
+      "end": 10.306,
+      "seg": "banana"
+    },
+    {
+      "text": "fiber,",
+      "start": 10.306,
+      "end": 10.679,
+      "seg": "banana"
+    },
+    {
+      "text": "and",
+      "start": 10.679,
+      "end": 10.937,
+      "seg": "banana"
+    },
+    {
+      "text": "over",
+      "start": 10.937,
+      "end": 11.253,
+      "seg": "banana"
+    },
+    {
+      "text": "four",
+      "start": 11.253,
+      "end": 11.569,
+      "seg": "banana"
+    },
+    {
+      "text": "hundred",
+      "start": 11.569,
+      "end": 12.056,
+      "seg": "banana"
+    },
+    {
+      "text": "milligrams",
+      "start": 12.056,
+      "end": 12.716,
+      "seg": "banana"
+    },
+    {
+      "text": "of",
+      "start": 12.716,
+      "end": 12.917,
+      "seg": "banana"
+    },
+    {
+      "text": "potassium.",
+      "start": 12.917,
+      "end": 13.519,
+      "seg": "banana"
+    },
+    {
+      "text": "Verdict:",
+      "start": 13.799,
+      "end": 14.325,
+      "seg": "banana"
+    },
+    {
+      "text": "good.",
+      "start": 14.325,
+      "end": 14.665,
+      "seg": "banana"
+    },
+    {
+      "text": "Perfect",
+      "start": 14.665,
+      "end": 15.19,
+      "seg": "banana"
+    },
+    {
+      "text": "fuel",
+      "start": 15.19,
+      "end": 15.53,
+      "seg": "banana"
+    },
+    {
+      "text": "before",
+      "start": 15.53,
+      "end": 15.994,
+      "seg": "banana"
+    },
+    {
+      "text": "a",
+      "start": 15.994,
+      "end": 16.149,
+      "seg": "banana"
+    },
+    {
+      "text": "workout.",
+      "start": 16.149,
+      "end": 16.674,
+      "seg": "banana"
+    },
+    {
+      "text": "About",
+      "start": 16.954,
+      "end": 17.303,
+      "seg": "banana"
+    },
+    {
+      "text": "twenty",
+      "start": 17.303,
+      "end": 17.704,
+      "seg": "banana"
+    },
+    {
+      "text": "five",
+      "start": 17.704,
+      "end": 17.999,
+      "seg": "banana"
+    },
+    {
+      "text": "cents.",
+      "start": 17.999,
+      "end": 18.348,
+      "seg": "banana"
+    },
+    {
+      "text": "Mango.",
+      "start": 18.898,
+      "end": 19.339,
+      "seg": "mango"
+    },
+    {
+      "text": "Loaded",
+      "start": 19.619,
+      "end": 20.036,
+      "seg": "mango"
+    },
+    {
+      "text": "with",
+      "start": 20.036,
+      "end": 20.342,
+      "seg": "mango"
+    },
+    {
+      "text": "vitamins",
+      "start": 20.342,
+      "end": 20.87,
+      "seg": "mango"
+    },
+    {
+      "text": "A",
+      "start": 20.87,
+      "end": 21.009,
+      "seg": "mango"
+    },
+    {
+      "text": "and",
+      "start": 21.009,
+      "end": 21.26,
+      "seg": "mango"
+    },
+    {
+      "text": "C,",
+      "start": 21.26,
+      "end": 21.399,
+      "seg": "mango"
+    },
+    {
+      "text": "but",
+      "start": 21.399,
+      "end": 21.649,
+      "seg": "mango"
+    },
+    {
+      "text": "one",
+      "start": 21.649,
+      "end": 21.899,
+      "seg": "mango"
+    },
+    {
+      "text": "whole",
+      "start": 21.899,
+      "end": 22.261,
+      "seg": "mango"
+    },
+    {
+      "text": "mango",
+      "start": 22.261,
+      "end": 22.622,
+      "seg": "mango"
+    },
+    {
+      "text": "is",
+      "start": 22.622,
+      "end": 22.817,
+      "seg": "mango"
+    },
+    {
+      "text": "forty",
+      "start": 22.817,
+      "end": 23.179,
+      "seg": "mango"
+    },
+    {
+      "text": "five",
+      "start": 23.179,
+      "end": 23.484,
+      "seg": "mango"
+    },
+    {
+      "text": "grams",
+      "start": 23.484,
+      "end": 23.846,
+      "seg": "mango"
+    },
+    {
+      "text": "of",
+      "start": 23.846,
+      "end": 24.041,
+      "seg": "mango"
+    },
+    {
+      "text": "sugar.",
+      "start": 24.041,
+      "end": 24.402,
+      "seg": "mango"
+    },
+    {
+      "text": "Verdict:",
+      "start": 24.682,
+      "end": 25.171,
+      "seg": "mango"
+    },
+    {
+      "text": "watch",
+      "start": 25.171,
+      "end": 25.545,
+      "seg": "mango"
+    },
+    {
+      "text": "out.",
+      "start": 25.545,
+      "end": 25.803,
+      "seg": "mango"
+    },
+    {
+      "text": "Stick",
+      "start": 25.803,
+      "end": 26.177,
+      "seg": "mango"
+    },
+    {
+      "text": "to",
+      "start": 26.177,
+      "end": 26.378,
+      "seg": "mango"
+    },
+    {
+      "text": "one",
+      "start": 26.378,
+      "end": 26.637,
+      "seg": "mango"
+    },
+    {
+      "text": "cup.",
+      "start": 26.637,
+      "end": 26.895,
+      "seg": "mango"
+    },
+    {
+      "text": "About",
+      "start": 27.175,
+      "end": 27.505,
+      "seg": "mango"
+    },
+    {
+      "text": "a",
+      "start": 27.505,
+      "end": 27.631,
+      "seg": "mango"
+    },
+    {
+      "text": "dollar",
+      "start": 27.631,
+      "end": 28.011,
+      "seg": "mango"
+    },
+    {
+      "text": "each.",
+      "start": 28.011,
+      "end": 28.29,
+      "seg": "mango"
+    },
+    {
+      "text": "Orange",
+      "start": 28.84,
+      "end": 29.375,
+      "seg": "juice"
+    },
+    {
+      "text": "juice.",
+      "start": 29.375,
+      "end": 29.839,
+      "seg": "juice"
+    },
+    {
+      "text": "Twenty",
+      "start": 30.119,
+      "end": 30.523,
+      "seg": "juice"
+    },
+    {
+      "text": "one",
+      "start": 30.523,
+      "end": 30.766,
+      "seg": "juice"
+    },
+    {
+      "text": "grams",
+      "start": 30.766,
+      "end": 31.116,
+      "seg": "juice"
+    },
+    {
+      "text": "of",
+      "start": 31.116,
+      "end": 31.305,
+      "seg": "juice"
+    },
+    {
+      "text": "sugar",
+      "start": 31.305,
+      "end": 31.656,
+      "seg": "juice"
+    },
+    {
+      "text": "a",
+      "start": 31.656,
+      "end": 31.791,
+      "seg": "juice"
+    },
+    {
+      "text": "glass,",
+      "start": 31.791,
+      "end": 32.141,
+      "seg": "juice"
+    },
+    {
+      "text": "and",
+      "start": 32.141,
+      "end": 32.384,
+      "seg": "juice"
+    },
+    {
+      "text": "almost",
+      "start": 32.384,
+      "end": 32.788,
+      "seg": "juice"
+    },
+    {
+      "text": "zero",
+      "start": 32.788,
+      "end": 33.085,
+      "seg": "juice"
+    },
+    {
+      "text": "fiber.",
+      "start": 33.085,
+      "end": 33.435,
+      "seg": "juice"
+    },
+    {
+      "text": "Ounce",
+      "start": 33.435,
+      "end": 33.786,
+      "seg": "juice"
+    },
+    {
+      "text": "for",
+      "start": 33.786,
+      "end": 34.029,
+      "seg": "juice"
+    },
+    {
+      "text": "ounce,",
+      "start": 34.029,
+      "end": 34.379,
+      "seg": "juice"
+    },
+    {
+      "text": "it's",
+      "start": 34.379,
+      "end": 34.622,
+      "seg": "juice"
+    },
+    {
+      "text": "nearly",
+      "start": 34.622,
+      "end": 35.026,
+      "seg": "juice"
+    },
+    {
+      "text": "as",
+      "start": 35.026,
+      "end": 35.215,
+      "seg": "juice"
+    },
+    {
+      "text": "sugary",
+      "start": 35.215,
+      "end": 35.62,
+      "seg": "juice"
+    },
+    {
+      "text": "as",
+      "start": 35.62,
+      "end": 35.808,
+      "seg": "juice"
+    },
+    {
+      "text": "soda.",
+      "start": 35.808,
+      "end": 36.105,
+      "seg": "juice"
+    },
+    {
+      "text": "Verdict:",
+      "start": 36.385,
+      "end": 36.904,
+      "seg": "juice"
+    },
+    {
+      "text": "bad,",
+      "start": 36.904,
+      "end": 37.178,
+      "seg": "juice"
+    },
+    {
+      "text": "as",
+      "start": 37.178,
+      "end": 37.392,
+      "seg": "juice"
+    },
+    {
+      "text": "a",
+      "start": 37.392,
+      "end": 37.545,
+      "seg": "juice"
+    },
+    {
+      "text": "daily",
+      "start": 37.545,
+      "end": 37.941,
+      "seg": "juice"
+    },
+    {
+      "text": "habit.",
+      "start": 37.941,
+      "end": 38.338,
+      "seg": "juice"
+    },
+    {
+      "text": "Eat",
+      "start": 38.338,
+      "end": 38.613,
+      "seg": "juice"
+    },
+    {
+      "text": "the",
+      "start": 38.613,
+      "end": 38.887,
+      "seg": "juice"
+    },
+    {
+      "text": "orange",
+      "start": 38.887,
+      "end": 39.345,
+      "seg": "juice"
+    },
+    {
+      "text": "instead.",
+      "start": 39.345,
+      "end": 39.864,
+      "seg": "juice"
+    },
+    {
+      "text": "About",
+      "start": 40.144,
+      "end": 40.522,
+      "seg": "juice"
+    },
+    {
+      "text": "seventy",
+      "start": 40.522,
+      "end": 41.017,
+      "seg": "juice"
+    },
+    {
+      "text": "cents",
+      "start": 41.017,
+      "end": 41.396,
+      "seg": "juice"
+    },
+    {
+      "text": "a",
+      "start": 41.396,
+      "end": 41.542,
+      "seg": "juice"
+    },
+    {
+      "text": "glass.",
+      "start": 41.542,
+      "end": 41.92,
+      "seg": "juice"
+    },
+    {
+      "text": "Blueberries.",
+      "start": 42.47,
+      "end": 43.144,
+      "seg": "blueberries"
+    },
+    {
+      "text": "Just",
+      "start": 43.424,
+      "end": 43.707,
+      "seg": "blueberries"
+    },
+    {
+      "text": "eighty",
+      "start": 43.707,
+      "end": 44.093,
+      "seg": "blueberries"
+    },
+    {
+      "text": "four",
+      "start": 44.093,
+      "end": 44.377,
+      "seg": "blueberries"
+    },
+    {
+      "text": "calories",
+      "start": 44.377,
+      "end": 44.866,
+      "seg": "blueberries"
+    },
+    {
+      "text": "a",
+      "start": 44.866,
+      "end": 44.995,
+      "seg": "blueberries"
+    },
+    {
+      "text": "cup,",
+      "start": 44.995,
+      "end": 45.227,
+      "seg": "blueberries"
+    },
+    {
+      "text": "packed",
+      "start": 45.227,
+      "end": 45.614,
+      "seg": "blueberries"
+    },
+    {
+      "text": "with",
+      "start": 45.614,
+      "end": 45.897,
+      "seg": "blueberries"
+    },
+    {
+      "text": "antioxidants",
+      "start": 45.897,
+      "end": 46.593,
+      "seg": "blueberries"
+    },
+    {
+      "text": "for",
+      "start": 46.593,
+      "end": 46.824,
+      "seg": "blueberries"
+    },
+    {
+      "text": "your",
+      "start": 46.824,
+      "end": 47.108,
+      "seg": "blueberries"
+    },
+    {
+      "text": "brain",
+      "start": 47.108,
+      "end": 47.443,
+      "seg": "blueberries"
+    },
+    {
+      "text": "and",
+      "start": 47.443,
+      "end": 47.675,
+      "seg": "blueberries"
+    },
+    {
+      "text": "heart.",
+      "start": 47.675,
+      "end": 48.01,
+      "seg": "blueberries"
+    },
+    {
+      "text": "Verdict:",
+      "start": 48.29,
+      "end": 48.754,
+      "seg": "blueberries"
+    },
+    {
+      "text": "excellent.",
+      "start": 48.754,
+      "end": 49.327,
+      "seg": "blueberries"
+    },
+    {
+      "text": "The",
+      "start": 49.327,
+      "end": 49.573,
+      "seg": "blueberries"
+    },
+    {
+      "text": "best",
+      "start": 49.573,
+      "end": 49.873,
+      "seg": "blueberries"
+    },
+    {
+      "text": "on",
+      "start": 49.873,
+      "end": 50.065,
+      "seg": "blueberries"
+    },
+    {
+      "text": "this",
+      "start": 50.065,
+      "end": 50.365,
+      "seg": "blueberries"
+    },
+    {
+      "text": "list.",
+      "start": 50.365,
+      "end": 50.665,
+      "seg": "blueberries"
+    },
+    {
+      "text": "Roughly",
+      "start": 50.945,
+      "end": 51.372,
+      "seg": "blueberries"
+    },
+    {
+      "text": "four",
+      "start": 51.372,
+      "end": 51.649,
+      "seg": "blueberries"
+    },
+    {
+      "text": "dollars",
+      "start": 51.649,
+      "end": 52.076,
+      "seg": "blueberries"
+    },
+    {
+      "text": "a",
+      "start": 52.076,
+      "end": 52.202,
+      "seg": "blueberries"
+    },
+    {
+      "text": "pint.",
+      "start": 52.202,
+      "end": 52.478,
+      "seg": "blueberries"
+    },
+    {
+      "text": "Follow",
+      "start": 53.028,
+      "end": 53.463,
+      "seg": "outro"
+    },
+    {
+      "text": "for",
+      "start": 53.463,
+      "end": 53.724,
+      "seg": "outro"
+    },
+    {
+      "text": "part",
+      "start": 53.724,
+      "end": 54.043,
+      "seg": "outro"
+    },
+    {
+      "text": "two.",
+      "start": 54.043,
+      "end": 54.303,
+      "seg": "outro"
+    },
+    {
+      "text": "Now,",
+      "start": 54.583,
+      "end": 54.858,
+      "seg": "outro"
+    },
+    {
+      "text": "back",
+      "start": 54.858,
+      "end": 55.194,
+      "seg": "outro"
+    },
+    {
+      "text": "to",
+      "start": 55.194,
+      "end": 55.407,
+      "seg": "outro"
+    },
+    {
+      "text": "that",
+      "start": 55.407,
+      "end": 55.743,
+      "seg": "outro"
+    },
+    {
+      "text": "mango.",
+      "start": 55.743,
+      "end": 56.139,
+      "seg": "outro"
+    }
+  ]
+}

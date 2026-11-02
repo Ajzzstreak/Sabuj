@@ -1,0 +1,8425 @@
+{
+  "fps": 30,
+  "durationInFrames": 15064,
+  "segments": [
+    {
+      "id": "cold",
+      "kind": "cold",
+      "start": 0.3,
+      "end": 21.307,
+      "sentences": [
+        {
+          "text": "In nineteen ninety seven, Hollywood was sure of one thing.",
+          "start": 0.3,
+          "end": 3.946
+        },
+        {
+          "text": "Titanic was going to sink. Twice.",
+          "start": 4.496,
+          "end": 6.697
+        },
+        {
+          "text": "Once on screen, and once at the box office.",
+          "start": 7.247,
+          "end": 10.173
+        },
+        {
+          "text": "Two hundred million dollars. The most expensive movie ever made, about a ship everyone knew would sink.",
+          "start": 10.723,
+          "end": 16.605
+        },
+        {
+          "text": "So was it the worst bet in movie history, or the best? Let's break it down.",
+          "start": 17.155,
+          "end": 21.307
+        }
+      ]
+    },
+    {
+      "id": "t1",
+      "kind": "title",
+      "num": "1",
+      "label": "THE PITCH",
+      "pad": 2.0,
+      "start": 22.307,
+      "end": 23.672,
+      "sentences": [
+        {
+          "text": "Act one. The pitch.",
+          "start": 22.307,
+          "end": 23.672
+        }
+      ]
+    },
+    {
+      "id": "pitch",
+      "kind": "pitch",
+      "start": 26.672,
+      "end": 58.044,
+      "sentences": [
+        {
+          "text": "The director had a strange idea.",
+          "start": 26.672,
+          "end": 28.669
+        },
+        {
+          "text": "Take the most famous disaster of the twentieth century, and turn it into a love story.",
+          "start": 29.219,
+          "end": 34.177
+        },
+        {
+          "text": "Romeo and Juliet, on the Titanic.",
+          "start": 34.727,
+          "end": 36.684
+        },
+        {
+          "text": "The problem? Every person on Earth already knew the ending.",
+          "start": 37.234,
+          "end": 40.422
+        },
+        {
+          "text": "Imagine pitching that today. A three hour period romance, no superheroes, no sequel plan, and a guaranteed sad ending.",
+          "start": 40.972,
+          "end": 48.236
+        },
+        {
+          "text": "Most studios would laugh you out of the room.",
+          "start": 48.786,
+          "end": 50.945
+        },
+        {
+          "text": "The ship hits an iceberg. The ship sinks. No surprise twist.",
+          "start": 51.495,
+          "end": 55.23
+        },
+        {
+          "text": "And yet, the studio said yes.",
+          "start": 55.78,
+          "end": 58.044
+        }
+      ]
+    },
+    {
+      "id": "dive",
+      "kind": "dive",
+      "start": 59.044,
+      "end": 83.287,
+      "sentences": [
+        {
+          "text": "Before a single set was built, the director went to the real wreck.",
+          "start": 59.044,
+          "end": 62.91
+        },
+        {
+          "text": "It lies about twelve thousand five hundred feet down, in the freezing dark of the North Atlantic.",
+          "start": 63.46,
+          "end": 68.731
+        },
+        {
+          "text": "He made twelve dives in a submersible to film it.",
+          "start": 69.281,
+          "end": 72.161
+        },
+        {
+          "text": "Think about that. To make a movie about a shipwreck, he first became one of the few people alive who had actually visited it.",
+          "start": 72.711,
+          "end": 79.208
+        },
+        {
+          "text": "That footage would open the movie. Real ghosts, before the fake ship.",
+          "start": 79.758,
+          "end": 83.287
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "kind": "title",
+      "num": "2",
+      "label": "THE MONEY PIT",
+      "pad": 2.0,
+      "start": 84.287,
+      "end": 85.885,
+      "sentences": [
+        {
+          "text": "Act two. The money pit.",
+          "start": 84.287,
+          "end": 85.885
+        }
+      ]
+    },
+    {
+      "id": "build",
+      "kind": "build",
+      "start": 88.885,
+      "end": 114.789,
+      "sentences": [
+        {
+          "text": "Then the building started, and it never really stopped.",
+          "start": 88.885,
+          "end": 91.788
+        },
+        {
+          "text": "The studio built an entirely new film studio on the coast of Mexico, just for this movie.",
+          "start": 92.338,
+          "end": 97.667
+        },
+        {
+          "text": "Inside, a tank holding around seventeen million gallons of seawater.",
+          "start": 98.217,
+          "end": 102.884
+        },
+        {
+          "text": "And in that tank, a near full scale replica of the Titanic.",
+          "start": 103.434,
+          "end": 107.474
+        },
+        {
+          "text": "Not a model. A ship you could walk on.",
+          "start": 108.024,
+          "end": 110.11
+        },
+        {
+          "text": "They did not rent a ship. They built a ship, a studio, and an ocean.",
+          "start": 110.66,
+          "end": 114.789
+        }
+      ]
+    },
+    {
+      "id": "money",
+      "kind": "money",
+      "start": 115.789,
+      "end": 137.824,
+      "sentences": [
+        {
+          "text": "Every week, the budget climbed.",
+          "start": 115.789,
+          "end": 117.8
+        },
+        {
+          "text": "One hundred million. One hundred fifty. Then two hundred million dollars.",
+          "start": 118.35,
+          "end": 122.729
+        },
+        {
+          "text": "Every day of shooting burned money, and every delay burned more.",
+          "start": 123.279,
+          "end": 126.89
+        },
+        {
+          "text": "It got so expensive, a second studio had to step in and share the cost.",
+          "start": 127.44,
+          "end": 131.806
+        },
+        {
+          "text": "The director even gave up his own fee, and his share of the profits, to keep the cameras rolling.",
+          "start": 132.356,
+          "end": 137.824
+        }
+      ]
+    },
+    {
+      "id": "headlines",
+      "kind": "headlines",
+      "start": 138.824,
+      "end": 158.988,
+      "sentences": [
+        {
+          "text": "The release date slipped from summer to December.",
+          "start": 138.824,
+          "end": 141.355
+        },
+        {
+          "text": "In Hollywood, a delay like that usually means one thing. Trouble.",
+          "start": 141.905,
+          "end": 145.72
+        },
+        {
+          "text": "The industry buzz was brutal. People were already writing the obituary.",
+          "start": 146.27,
+          "end": 150.422
+        },
+        {
+          "text": "Titanic, the movie, looked like it was heading for its own iceberg.",
+          "start": 150.972,
+          "end": 154.653
+        },
+        {
+          "text": "If it failed, it could have hurt two major studios at the same time.",
+          "start": 155.203,
+          "end": 158.988
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "kind": "title",
+      "num": "3",
+      "label": "THE REAL NIGHT",
+      "pad": 2.0,
+      "start": 159.988,
+      "end": 161.818,
+      "sentences": [
+        {
+          "text": "Act three. The real night.",
+          "start": 159.988,
+          "end": 161.818
+        }
+      ]
+    },
+    {
+      "id": "voyage",
+      "kind": "voyage",
+      "start": 164.818,
+      "end": 190.862,
+      "sentences": [
+        {
+          "text": "To understand why audiences cared, you have to remember the real story.",
+          "start": 164.818,
+          "end": 168.847
+        },
+        {
+          "text": "April tenth, nineteen twelve. The real Titanic leaves Southampton, England, bound for New York.",
+          "start": 169.397,
+          "end": 175.824
+        },
+        {
+          "text": "It was the largest ship in the world, and people called it unsinkable.",
+          "start": 176.374,
+          "end": 179.73
+        },
+        {
+          "text": "On board were some of the richest people in the world, and hundreds of families chasing a new life in America.",
+          "start": 180.28,
+          "end": 185.841
+        },
+        {
+          "text": "Four days later, late at night, the lookouts spot an iceberg. Too late.",
+          "start": 186.391,
+          "end": 190.862
+        }
+      ]
+    },
+    {
+      "id": "lifeboats",
+      "kind": "lifeboats",
+      "start": 191.862,
+      "end": 209.14,
+      "sentences": [
+        {
+          "text": "There were about two thousand two hundred people on board.",
+          "start": 191.862,
+          "end": 194.533
+        },
+        {
+          "text": "But only twenty lifeboats, with room for roughly eleven hundred and eighty.",
+          "start": 195.083,
+          "end": 199.065
+        },
+        {
+          "text": "Even if every seat had been filled, more than a thousand people had no place to go.",
+          "start": 199.615,
+          "end": 203.969
+        },
+        {
+          "text": "And many boats left half empty.",
+          "start": 204.519,
+          "end": 206.423
+        },
+        {
+          "text": "That's not bad luck. That's bad planning.",
+          "start": 206.973,
+          "end": 209.14
+        }
+      ]
+    },
+    {
+      "id": "sinking",
+      "kind": "sinking",
+      "pad": 1.5,
+      "start": 210.14,
+      "end": 239.832,
+      "sentences": [
+        {
+          "text": "The iceberg struck at eleven forty P M.",
+          "start": 210.14,
+          "end": 212.821
+        },
+        {
+          "text": "Water poured into the front compartments, one after another.",
+          "start": 213.371,
+          "end": 216.703
+        },
+        {
+          "text": "The bow sank lower. The stern rose into the air.",
+          "start": 217.253,
+          "end": 220.07
+        },
+        {
+          "text": "Then the ship broke in two.",
+          "start": 220.62,
+          "end": 222.176
+        },
+        {
+          "text": "By two twenty A M, the Titanic was gone. About fifteen hundred people died in the freezing water.",
+          "start": 222.726,
+          "end": 228.945
+        },
+        {
+          "text": "Hours later, the rescue ship Carpathia arrived, and picked up around seven hundred survivors.",
+          "start": 229.495,
+          "end": 235.149
+        },
+        {
+          "text": "From impact to the final plunge, it took about two hours and forty minutes.",
+          "start": 235.699,
+          "end": 239.832
+        }
+      ]
+    },
+    {
+      "id": "compare",
+      "kind": "compare",
+      "start": 242.332,
+      "end": 263.36,
+      "sentences": [
+        {
+          "text": "Here's a strange detail.",
+          "start": 242.332,
+          "end": 243.853
+        },
+        {
+          "text": "The real ship cost about seven and a half million dollars in nineteen twelve.",
+          "start": 244.403,
+          "end": 248.978
+        },
+        {
+          "text": "Adjusted for inflation, that's very roughly a hundred and twenty million in nineteen ninety seven money.",
+          "start": 249.528,
+          "end": 255.019
+        },
+        {
+          "text": "Which means the movie cost more than the actual Titanic.",
+          "start": 255.569,
+          "end": 258.537
+        },
+        {
+          "text": "Hollywood rebuilt history, for more money than history cost the first time.",
+          "start": 259.087,
+          "end": 263.36
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "kind": "title",
+      "num": "4",
+      "label": "THE ICEBERG THAT NEVER CAME",
+      "pad": 2.0,
+      "start": 264.36,
+      "end": 266.701,
+      "sentences": [
+        {
+          "text": "Act four. The iceberg that never came.",
+          "start": 264.36,
+          "end": 266.701
+        }
+      ]
+    },
+    {
+      "id": "boxoffice",
+      "kind": "boxoffice",
+      "start": 269.701,
+      "end": 310.677,
+      "sentences": [
+        {
+          "text": "December nineteenth, nineteen ninety seven. The movie finally opens.",
+          "start": 269.701,
+          "end": 274.004
+        },
+        {
+          "text": "Opening weekend? About twenty eight million dollars. Good, not historic.",
+          "start": 274.554,
+          "end": 278.945
+        },
+        {
+          "text": "But then something weird happened. The second weekend, it went up.",
+          "start": 279.495,
+          "end": 283.086
+        },
+        {
+          "text": "That is not how movies work. Most films earn the most on day one, then fade away.",
+          "start": 283.636,
+          "end": 288.554
+        },
+        {
+          "text": "People came back. Then they came back again, and brought their friends.",
+          "start": 289.104,
+          "end": 292.931
+        },
+        {
+          "text": "Word of mouth did what no marketing budget could.",
+          "start": 293.481,
+          "end": 296.047
+        },
+        {
+          "text": "Titanic stayed number one at the American box office for fifteen weekends in a row.",
+          "start": 296.597,
+          "end": 301.647
+        },
+        {
+          "text": "It became the first movie ever to earn more than one billion dollars worldwide.",
+          "start": 302.197,
+          "end": 306.807
+        },
+        {
+          "text": "By the end of its first run, about one point eight billion.",
+          "start": 307.357,
+          "end": 310.677
+        }
+      ]
+    },
+    {
+      "id": "oscars",
+      "kind": "oscars",
+      "start": 311.677,
+      "end": 333.766,
+      "sentences": [
+        {
+          "text": "Then came the Oscars.",
+          "start": 311.677,
+          "end": 313.082
+        },
+        {
+          "text": "Fourteen nominations. Eleven wins, including Best Picture and Best Director.",
+          "start": 313.632,
+          "end": 318.857
+        },
+        {
+          "text": "That tied the all time record held by Ben Hur since nineteen fifty nine.",
+          "start": 319.407,
+          "end": 323.447
+        },
+        {
+          "text": "And its soundtrack became one of the best selling film scores ever released.",
+          "start": 323.997,
+          "end": 328.63
+        },
+        {
+          "text": "For a movie the industry had already written off, that is the ultimate comeback.",
+          "start": 329.18,
+          "end": 333.766
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "kind": "title",
+      "num": "5",
+      "label": "WHY IT WORKED",
+      "pad": 2.0,
+      "start": 334.766,
+      "end": 336.317,
+      "sentences": [
+        {
+          "text": "Act five. Why it worked.",
+          "start": 334.766,
+          "end": 336.317
+        }
+      ]
+    },
+    {
+      "id": "reasons",
+      "kind": "reasons",
+      "start": 339.317,
+      "end": 383.068,
+      "sentences": [
+        {
+          "text": "So why did a three hour movie with a known ending become a global obsession? Three reasons.",
+          "start": 339.317,
+          "end": 344.618
+        },
+        {
+          "text": "Reason one. You already know the ending.",
+          "start": 345.168,
+          "end": 347.451
+        },
+        {
+          "text": "That sounds like a weakness, but it's the secret weapon. Every happy moment on that ship feels like a countdown. You are waiting for the iceberg the whole time.",
+          "start": 348.001,
+          "end": 355.841
+        },
+        {
+          "text": "Reason two. The ship is a map of society.",
+          "start": 356.391,
+          "end": 359.242
+        },
+        {
+          "text": "First class on the top decks. Third class down below. When the water rises, where you sleep decides whether you live.",
+          "start": 359.792,
+          "end": 366.68
+        },
+        {
+          "text": "Reason three. A fake couple inside a real tragedy.",
+          "start": 367.23,
+          "end": 370.731
+        },
+        {
+          "text": "Fifteen hundred deaths is a number. Two people you care about is a feeling. The love story gives the disaster a face.",
+          "start": 371.281,
+          "end": 378.215
+        },
+        {
+          "text": "Put those three together, and you get a movie people did not just watch. They felt it.",
+          "start": 378.765,
+          "end": 383.068
+        }
+      ]
+    },
+    {
+      "id": "flaws",
+      "kind": "flaws",
+      "start": 384.068,
+      "end": 406.779,
+      "sentences": [
+        {
+          "text": "But it's not a perfect movie.",
+          "start": 384.068,
+          "end": 385.45
+        },
+        {
+          "text": "Some of the dialogue is cheesy, and it knows it.",
+          "start": 386.0,
+          "end": 389.019
+        },
+        {
+          "text": "The villain is about as subtle as an iceberg.",
+          "start": 389.569,
+          "end": 392.227
+        },
+        {
+          "text": "And the runtime? Three hours and fourteen minutes. Bring snacks.",
+          "start": 392.777,
+          "end": 397.076
+        },
+        {
+          "text": "Critics loved the spectacle, but plenty of them rolled their eyes at the romance.",
+          "start": 397.626,
+          "end": 402.56
+        },
+        {
+          "text": "Still, none of that stopped people from buying ticket after ticket.",
+          "start": 403.11,
+          "end": 406.779
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "kind": "title",
+      "num": "6",
+      "label": "THE DOOR",
+      "pad": 2.0,
+      "start": 407.779,
+      "end": 409.214,
+      "sentences": [
+        {
+          "text": "Act six. The door.",
+          "start": 407.779,
+          "end": 409.214
+        }
+      ]
+    },
+    {
+      "id": "door",
+      "kind": "door",
+      "start": 412.214,
+      "end": 454.42,
+      "sentences": [
+        {
+          "text": "But for many fans, one question matters more than any Oscar.",
+          "start": 412.214,
+          "end": 415.744
+        },
+        {
+          "text": "Could Jack have fit on that door?",
+          "start": 416.294,
+          "end": 417.676
+        },
+        {
+          "text": "Rose floats on a piece of wooden debris. Jack stays in the water, and freezes.",
+          "start": 418.226,
+          "end": 423.121
+        },
+        {
+          "text": "Fans have argued about it for decades.",
+          "start": 423.671,
+          "end": 425.922
+        },
+        {
+          "text": "The internet has run this debate in polls, memes, and science videos for years.",
+          "start": 426.472,
+          "end": 430.919
+        },
+        {
+          "text": "TV myth testers tried it. Scientists ran the numbers.",
+          "start": 431.469,
+          "end": 434.832
+        },
+        {
+          "text": "Is the door big enough for two? Probably. Does it float well enough for two? That's the real question.",
+          "start": 435.382,
+          "end": 440.871
+        },
+        {
+          "text": "And in twenty twenty three, the director himself ran a hypothermia experiment with stunt doubles.",
+          "start": 441.421,
+          "end": 446.971
+        },
+        {
+          "text": "His conclusion? Jack might have survived. Maybe.",
+          "start": 447.521,
+          "end": 450.577
+        },
+        {
+          "text": "So, fit or no fit? Tell me in the comments.",
+          "start": 451.127,
+          "end": 454.42
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "kind": "title",
+      "num": "\u2605",
+      "label": "THE VERDICT",
+      "pad": 2.0,
+      "start": 455.42,
+      "end": 456.163,
+      "sentences": [
+        {
+          "text": "The verdict.",
+          "start": 455.42,
+          "end": 456.163
+        }
+      ]
+    },
+    {
+      "id": "verdict",
+      "kind": "verdict",
+      "start": 459.163,
+      "end": 499.147,
+      "sentences": [
+        {
+          "text": "So, was Titanic a good bet, or a bad bet?",
+          "start": 459.163,
+          "end": 462.414
+        },
+        {
+          "text": "Let's run the numbers one last time.",
+          "start": 462.964,
+          "end": 464.961
+        },
+        {
+          "text": "Cost: about two hundred million dollars.",
+          "start": 465.511,
+          "end": 468.031
+        },
+        {
+          "text": "Box office, with re releases: more than two point two billion.",
+          "start": 468.581,
+          "end": 472.342
+        },
+        {
+          "text": "That is more than ten times the budget.",
+          "start": 472.892,
+          "end": 474.901
+        },
+        {
+          "text": "It held the record as the highest grossing film ever, for twelve years.",
+          "start": 475.451,
+          "end": 479.631
+        },
+        {
+          "text": "Verdict: good. Possibly the best bet Hollywood ever made.",
+          "start": 480.181,
+          "end": 483.833
+        },
+        {
+          "text": "And beyond the money, it proved that a big, original, grown up movie could still beat everything.",
+          "start": 484.383,
+          "end": 489.736
+        },
+        {
+          "text": "The lesson? Everyone knew how the story ended. Nobody knew how it would feel.",
+          "start": 490.286,
+          "end": 494.607
+        },
+        {
+          "text": "Next time: a movie that really did sink. Follow, so you don't miss it.",
+          "start": 495.157,
+          "end": 499.147
+        }
+      ]
+    }
+  ],
+  "words": [
+    {
+      "text": "In",
+      "start": 0.3,
+      "end": 0.506,
+      "seg": "cold"
+    },
+    {
+      "text": "nineteen",
+      "start": 0.506,
+      "end": 1.064,
+      "seg": "cold"
+    },
+    {
+      "text": "ninety",
+      "start": 1.064,
+      "end": 1.505,
+      "seg": "cold"
+    },
+    {
+      "text": "seven,",
+      "start": 1.505,
+      "end": 1.888,
+      "seg": "cold"
+    },
+    {
+      "text": "Hollywood",
+      "start": 1.888,
+      "end": 2.505,
+      "seg": "cold"
+    },
+    {
+      "text": "was",
+      "start": 2.505,
+      "end": 2.77,
+      "seg": "cold"
+    },
+    {
+      "text": "sure",
+      "start": 2.77,
+      "end": 3.093,
+      "seg": "cold"
+    },
+    {
+      "text": "of",
+      "start": 3.093,
+      "end": 3.299,
+      "seg": "cold"
+    },
+    {
+      "text": "one",
+      "start": 3.299,
+      "end": 3.563,
+      "seg": "cold"
+    },
+    {
+      "text": "thing.",
+      "start": 3.563,
+      "end": 3.946,
+      "seg": "cold"
+    },
+    {
+      "text": "Titanic",
+      "start": 4.496,
+      "end": 5.03,
+      "seg": "cold"
+    },
+    {
+      "text": "was",
+      "start": 5.03,
+      "end": 5.313,
+      "seg": "cold"
+    },
+    {
+      "text": "going",
+      "start": 5.313,
+      "end": 5.722,
+      "seg": "cold"
+    },
+    {
+      "text": "to",
+      "start": 5.722,
+      "end": 5.942,
+      "seg": "cold"
+    },
+    {
+      "text": "sink.",
+      "start": 5.942,
+      "end": 6.288,
+      "seg": "cold"
+    },
+    {
+      "text": "Twice.",
+      "start": 6.288,
+      "end": 6.697,
+      "seg": "cold"
+    },
+    {
+      "text": "Once",
+      "start": 7.247,
+      "end": 7.593,
+      "seg": "cold"
+    },
+    {
+      "text": "on",
+      "start": 7.593,
+      "end": 7.813,
+      "seg": "cold"
+    },
+    {
+      "text": "screen,",
+      "start": 7.813,
+      "end": 8.285,
+      "seg": "cold"
+    },
+    {
+      "text": "and",
+      "start": 8.285,
+      "end": 8.568,
+      "seg": "cold"
+    },
+    {
+      "text": "once",
+      "start": 8.568,
+      "end": 8.915,
+      "seg": "cold"
+    },
+    {
+      "text": "at",
+      "start": 8.915,
+      "end": 9.135,
+      "seg": "cold"
+    },
+    {
+      "text": "the",
+      "start": 9.135,
+      "end": 9.418,
+      "seg": "cold"
+    },
+    {
+      "text": "box",
+      "start": 9.418,
+      "end": 9.701,
+      "seg": "cold"
+    },
+    {
+      "text": "office.",
+      "start": 9.701,
+      "end": 10.173,
+      "seg": "cold"
+    },
+    {
+      "text": "Two",
+      "start": 10.723,
+      "end": 10.965,
+      "seg": "cold"
+    },
+    {
+      "text": "hundred",
+      "start": 10.965,
+      "end": 11.421,
+      "seg": "cold"
+    },
+    {
+      "text": "million",
+      "start": 11.421,
+      "end": 11.878,
+      "seg": "cold"
+    },
+    {
+      "text": "dollars.",
+      "start": 11.878,
+      "end": 12.334,
+      "seg": "cold"
+    },
+    {
+      "text": "The",
+      "start": 12.334,
+      "end": 12.576,
+      "seg": "cold"
+    },
+    {
+      "text": "most",
+      "start": 12.576,
+      "end": 12.872,
+      "seg": "cold"
+    },
+    {
+      "text": "expensive",
+      "start": 12.872,
+      "end": 13.436,
+      "seg": "cold"
+    },
+    {
+      "text": "movie",
+      "start": 13.436,
+      "end": 13.785,
+      "seg": "cold"
+    },
+    {
+      "text": "ever",
+      "start": 13.785,
+      "end": 14.08,
+      "seg": "cold"
+    },
+    {
+      "text": "made,",
+      "start": 14.08,
+      "end": 14.376,
+      "seg": "cold"
+    },
+    {
+      "text": "about",
+      "start": 14.376,
+      "end": 14.725,
+      "seg": "cold"
+    },
+    {
+      "text": "a",
+      "start": 14.725,
+      "end": 14.859,
+      "seg": "cold"
+    },
+    {
+      "text": "ship",
+      "start": 14.859,
+      "end": 15.154,
+      "seg": "cold"
+    },
+    {
+      "text": "everyone",
+      "start": 15.154,
+      "end": 15.665,
+      "seg": "cold"
+    },
+    {
+      "text": "knew",
+      "start": 15.665,
+      "end": 15.96,
+      "seg": "cold"
+    },
+    {
+      "text": "would",
+      "start": 15.96,
+      "end": 16.309,
+      "seg": "cold"
+    },
+    {
+      "text": "sink.",
+      "start": 16.309,
+      "end": 16.605,
+      "seg": "cold"
+    },
+    {
+      "text": "So",
+      "start": 17.155,
+      "end": 17.336,
+      "seg": "cold"
+    },
+    {
+      "text": "was",
+      "start": 17.336,
+      "end": 17.57,
+      "seg": "cold"
+    },
+    {
+      "text": "it",
+      "start": 17.57,
+      "end": 17.752,
+      "seg": "cold"
+    },
+    {
+      "text": "the",
+      "start": 17.752,
+      "end": 17.985,
+      "seg": "cold"
+    },
+    {
+      "text": "worst",
+      "start": 17.985,
+      "end": 18.323,
+      "seg": "cold"
+    },
+    {
+      "text": "bet",
+      "start": 18.323,
+      "end": 18.556,
+      "seg": "cold"
+    },
+    {
+      "text": "in",
+      "start": 18.556,
+      "end": 18.738,
+      "seg": "cold"
+    },
+    {
+      "text": "movie",
+      "start": 18.738,
+      "end": 19.075,
+      "seg": "cold"
+    },
+    {
+      "text": "history,",
+      "start": 19.075,
+      "end": 19.516,
+      "seg": "cold"
+    },
+    {
+      "text": "or",
+      "start": 19.516,
+      "end": 19.698,
+      "seg": "cold"
+    },
+    {
+      "text": "the",
+      "start": 19.698,
+      "end": 19.931,
+      "seg": "cold"
+    },
+    {
+      "text": "best?",
+      "start": 19.931,
+      "end": 20.217,
+      "seg": "cold"
+    },
+    {
+      "text": "Let's",
+      "start": 20.217,
+      "end": 20.502,
+      "seg": "cold"
+    },
+    {
+      "text": "break",
+      "start": 20.502,
+      "end": 20.84,
+      "seg": "cold"
+    },
+    {
+      "text": "it",
+      "start": 20.84,
+      "end": 21.021,
+      "seg": "cold"
+    },
+    {
+      "text": "down.",
+      "start": 21.021,
+      "end": 21.307,
+      "seg": "cold"
+    },
+    {
+      "text": "Act",
+      "start": 22.307,
+      "end": 22.614,
+      "seg": "t1"
+    },
+    {
+      "text": "one.",
+      "start": 22.614,
+      "end": 22.921,
+      "seg": "t1"
+    },
+    {
+      "text": "The",
+      "start": 22.921,
+      "end": 23.229,
+      "seg": "t1"
+    },
+    {
+      "text": "pitch.",
+      "start": 23.229,
+      "end": 23.672,
+      "seg": "t1"
+    },
+    {
+      "text": "The",
+      "start": 26.672,
+      "end": 26.929,
+      "seg": "pitch"
+    },
+    {
+      "text": "director",
+      "start": 26.929,
+      "end": 27.471,
+      "seg": "pitch"
+    },
+    {
+      "text": "had",
+      "start": 27.471,
+      "end": 27.728,
+      "seg": "pitch"
+    },
+    {
+      "text": "a",
+      "start": 27.728,
+      "end": 27.871,
+      "seg": "pitch"
+    },
+    {
+      "text": "strange",
+      "start": 27.871,
+      "end": 28.356,
+      "seg": "pitch"
+    },
+    {
+      "text": "idea.",
+      "start": 28.356,
+      "end": 28.669,
+      "seg": "pitch"
+    },
+    {
+      "text": "Take",
+      "start": 29.219,
+      "end": 29.513,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 29.513,
+      "end": 29.752,
+      "seg": "pitch"
+    },
+    {
+      "text": "most",
+      "start": 29.752,
+      "end": 30.046,
+      "seg": "pitch"
+    },
+    {
+      "text": "famous",
+      "start": 30.046,
+      "end": 30.445,
+      "seg": "pitch"
+    },
+    {
+      "text": "disaster",
+      "start": 30.445,
+      "end": 30.952,
+      "seg": "pitch"
+    },
+    {
+      "text": "of",
+      "start": 30.952,
+      "end": 31.138,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 31.138,
+      "end": 31.378,
+      "seg": "pitch"
+    },
+    {
+      "text": "twentieth",
+      "start": 31.378,
+      "end": 31.938,
+      "seg": "pitch"
+    },
+    {
+      "text": "century,",
+      "start": 31.938,
+      "end": 32.391,
+      "seg": "pitch"
+    },
+    {
+      "text": "and",
+      "start": 32.391,
+      "end": 32.631,
+      "seg": "pitch"
+    },
+    {
+      "text": "turn",
+      "start": 32.631,
+      "end": 32.924,
+      "seg": "pitch"
+    },
+    {
+      "text": "it",
+      "start": 32.924,
+      "end": 33.111,
+      "seg": "pitch"
+    },
+    {
+      "text": "into",
+      "start": 33.111,
+      "end": 33.404,
+      "seg": "pitch"
+    },
+    {
+      "text": "a",
+      "start": 33.404,
+      "end": 33.537,
+      "seg": "pitch"
+    },
+    {
+      "text": "love",
+      "start": 33.537,
+      "end": 33.83,
+      "seg": "pitch"
+    },
+    {
+      "text": "story.",
+      "start": 33.83,
+      "end": 34.177,
+      "seg": "pitch"
+    },
+    {
+      "text": "Romeo",
+      "start": 34.727,
+      "end": 35.09,
+      "seg": "pitch"
+    },
+    {
+      "text": "and",
+      "start": 35.09,
+      "end": 35.342,
+      "seg": "pitch"
+    },
+    {
+      "text": "Juliet,",
+      "start": 35.342,
+      "end": 35.761,
+      "seg": "pitch"
+    },
+    {
+      "text": "on",
+      "start": 35.761,
+      "end": 35.957,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 35.957,
+      "end": 36.209,
+      "seg": "pitch"
+    },
+    {
+      "text": "Titanic.",
+      "start": 36.209,
+      "end": 36.684,
+      "seg": "pitch"
+    },
+    {
+      "text": "The",
+      "start": 37.234,
+      "end": 37.462,
+      "seg": "pitch"
+    },
+    {
+      "text": "problem?",
+      "start": 37.462,
+      "end": 37.892,
+      "seg": "pitch"
+    },
+    {
+      "text": "Every",
+      "start": 37.892,
+      "end": 38.221,
+      "seg": "pitch"
+    },
+    {
+      "text": "person",
+      "start": 38.221,
+      "end": 38.6,
+      "seg": "pitch"
+    },
+    {
+      "text": "on",
+      "start": 38.6,
+      "end": 38.777,
+      "seg": "pitch"
+    },
+    {
+      "text": "Earth",
+      "start": 38.777,
+      "end": 39.106,
+      "seg": "pitch"
+    },
+    {
+      "text": "already",
+      "start": 39.106,
+      "end": 39.537,
+      "seg": "pitch"
+    },
+    {
+      "text": "knew",
+      "start": 39.537,
+      "end": 39.815,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 39.815,
+      "end": 40.043,
+      "seg": "pitch"
+    },
+    {
+      "text": "ending.",
+      "start": 40.043,
+      "end": 40.422,
+      "seg": "pitch"
+    },
+    {
+      "text": "Imagine",
+      "start": 40.972,
+      "end": 41.472,
+      "seg": "pitch"
+    },
+    {
+      "text": "pitching",
+      "start": 41.472,
+      "end": 42.031,
+      "seg": "pitch"
+    },
+    {
+      "text": "that",
+      "start": 42.031,
+      "end": 42.354,
+      "seg": "pitch"
+    },
+    {
+      "text": "today.",
+      "start": 42.354,
+      "end": 42.737,
+      "seg": "pitch"
+    },
+    {
+      "text": "A",
+      "start": 42.737,
+      "end": 42.884,
+      "seg": "pitch"
+    },
+    {
+      "text": "three",
+      "start": 42.884,
+      "end": 43.266,
+      "seg": "pitch"
+    },
+    {
+      "text": "hour",
+      "start": 43.266,
+      "end": 43.589,
+      "seg": "pitch"
+    },
+    {
+      "text": "period",
+      "start": 43.589,
+      "end": 44.031,
+      "seg": "pitch"
+    },
+    {
+      "text": "romance,",
+      "start": 44.031,
+      "end": 44.53,
+      "seg": "pitch"
+    },
+    {
+      "text": "no",
+      "start": 44.53,
+      "end": 44.736,
+      "seg": "pitch"
+    },
+    {
+      "text": "superheroes,",
+      "start": 44.736,
+      "end": 45.471,
+      "seg": "pitch"
+    },
+    {
+      "text": "no",
+      "start": 45.471,
+      "end": 45.677,
+      "seg": "pitch"
+    },
+    {
+      "text": "sequel",
+      "start": 45.677,
+      "end": 46.118,
+      "seg": "pitch"
+    },
+    {
+      "text": "plan,",
+      "start": 46.118,
+      "end": 46.442,
+      "seg": "pitch"
+    },
+    {
+      "text": "and",
+      "start": 46.442,
+      "end": 46.707,
+      "seg": "pitch"
+    },
+    {
+      "text": "a",
+      "start": 46.707,
+      "end": 46.854,
+      "seg": "pitch"
+    },
+    {
+      "text": "guaranteed",
+      "start": 46.854,
+      "end": 47.53,
+      "seg": "pitch"
+    },
+    {
+      "text": "sad",
+      "start": 47.53,
+      "end": 47.795,
+      "seg": "pitch"
+    },
+    {
+      "text": "ending.",
+      "start": 47.795,
+      "end": 48.236,
+      "seg": "pitch"
+    },
+    {
+      "text": "Most",
+      "start": 48.786,
+      "end": 49.026,
+      "seg": "pitch"
+    },
+    {
+      "text": "studios",
+      "start": 49.026,
+      "end": 49.396,
+      "seg": "pitch"
+    },
+    {
+      "text": "would",
+      "start": 49.396,
+      "end": 49.68,
+      "seg": "pitch"
+    },
+    {
+      "text": "laugh",
+      "start": 49.68,
+      "end": 49.964,
+      "seg": "pitch"
+    },
+    {
+      "text": "you",
+      "start": 49.964,
+      "end": 50.16,
+      "seg": "pitch"
+    },
+    {
+      "text": "out",
+      "start": 50.16,
+      "end": 50.356,
+      "seg": "pitch"
+    },
+    {
+      "text": "of",
+      "start": 50.356,
+      "end": 50.509,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 50.509,
+      "end": 50.705,
+      "seg": "pitch"
+    },
+    {
+      "text": "room.",
+      "start": 50.705,
+      "end": 50.945,
+      "seg": "pitch"
+    },
+    {
+      "text": "The",
+      "start": 51.495,
+      "end": 51.76,
+      "seg": "pitch"
+    },
+    {
+      "text": "ship",
+      "start": 51.76,
+      "end": 52.083,
+      "seg": "pitch"
+    },
+    {
+      "text": "hits",
+      "start": 52.083,
+      "end": 52.407,
+      "seg": "pitch"
+    },
+    {
+      "text": "an",
+      "start": 52.407,
+      "end": 52.613,
+      "seg": "pitch"
+    },
+    {
+      "text": "iceberg.",
+      "start": 52.613,
+      "end": 53.113,
+      "seg": "pitch"
+    },
+    {
+      "text": "The",
+      "start": 53.113,
+      "end": 53.377,
+      "seg": "pitch"
+    },
+    {
+      "text": "ship",
+      "start": 53.377,
+      "end": 53.701,
+      "seg": "pitch"
+    },
+    {
+      "text": "sinks.",
+      "start": 53.701,
+      "end": 54.083,
+      "seg": "pitch"
+    },
+    {
+      "text": "No",
+      "start": 54.083,
+      "end": 54.289,
+      "seg": "pitch"
+    },
+    {
+      "text": "surprise",
+      "start": 54.289,
+      "end": 54.848,
+      "seg": "pitch"
+    },
+    {
+      "text": "twist.",
+      "start": 54.848,
+      "end": 55.23,
+      "seg": "pitch"
+    },
+    {
+      "text": "And",
+      "start": 55.78,
+      "end": 56.109,
+      "seg": "pitch"
+    },
+    {
+      "text": "yet,",
+      "start": 56.109,
+      "end": 56.437,
+      "seg": "pitch"
+    },
+    {
+      "text": "the",
+      "start": 56.437,
+      "end": 56.766,
+      "seg": "pitch"
+    },
+    {
+      "text": "studio",
+      "start": 56.766,
+      "end": 57.314,
+      "seg": "pitch"
+    },
+    {
+      "text": "said",
+      "start": 57.314,
+      "end": 57.715,
+      "seg": "pitch"
+    },
+    {
+      "text": "yes.",
+      "start": 57.715,
+      "end": 58.044,
+      "seg": "pitch"
+    },
+    {
+      "text": "Before",
+      "start": 59.044,
+      "end": 59.444,
+      "seg": "dive"
+    },
+    {
+      "text": "a",
+      "start": 59.444,
+      "end": 59.577,
+      "seg": "dive"
+    },
+    {
+      "text": "single",
+      "start": 59.577,
+      "end": 59.977,
+      "seg": "dive"
+    },
+    {
+      "text": "set",
+      "start": 59.977,
+      "end": 60.217,
+      "seg": "dive"
+    },
+    {
+      "text": "was",
+      "start": 60.217,
+      "end": 60.457,
+      "seg": "dive"
+    },
+    {
+      "text": "built,",
+      "start": 60.457,
+      "end": 60.804,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 60.804,
+      "end": 61.044,
+      "seg": "dive"
+    },
+    {
+      "text": "director",
+      "start": 61.044,
+      "end": 61.55,
+      "seg": "dive"
+    },
+    {
+      "text": "went",
+      "start": 61.55,
+      "end": 61.844,
+      "seg": "dive"
+    },
+    {
+      "text": "to",
+      "start": 61.844,
+      "end": 62.03,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 62.03,
+      "end": 62.27,
+      "seg": "dive"
+    },
+    {
+      "text": "real",
+      "start": 62.27,
+      "end": 62.563,
+      "seg": "dive"
+    },
+    {
+      "text": "wreck.",
+      "start": 62.563,
+      "end": 62.91,
+      "seg": "dive"
+    },
+    {
+      "text": "It",
+      "start": 63.46,
+      "end": 63.637,
+      "seg": "dive"
+    },
+    {
+      "text": "lies",
+      "start": 63.637,
+      "end": 63.914,
+      "seg": "dive"
+    },
+    {
+      "text": "about",
+      "start": 63.914,
+      "end": 64.242,
+      "seg": "dive"
+    },
+    {
+      "text": "twelve",
+      "start": 64.242,
+      "end": 64.62,
+      "seg": "dive"
+    },
+    {
+      "text": "thousand",
+      "start": 64.62,
+      "end": 65.099,
+      "seg": "dive"
+    },
+    {
+      "text": "five",
+      "start": 65.099,
+      "end": 65.377,
+      "seg": "dive"
+    },
+    {
+      "text": "hundred",
+      "start": 65.377,
+      "end": 65.806,
+      "seg": "dive"
+    },
+    {
+      "text": "feet",
+      "start": 65.806,
+      "end": 66.083,
+      "seg": "dive"
+    },
+    {
+      "text": "down,",
+      "start": 66.083,
+      "end": 66.36,
+      "seg": "dive"
+    },
+    {
+      "text": "in",
+      "start": 66.36,
+      "end": 66.537,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 66.537,
+      "end": 66.764,
+      "seg": "dive"
+    },
+    {
+      "text": "freezing",
+      "start": 66.764,
+      "end": 67.243,
+      "seg": "dive"
+    },
+    {
+      "text": "dark",
+      "start": 67.243,
+      "end": 67.521,
+      "seg": "dive"
+    },
+    {
+      "text": "of",
+      "start": 67.521,
+      "end": 67.697,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 67.697,
+      "end": 67.924,
+      "seg": "dive"
+    },
+    {
+      "text": "North",
+      "start": 67.924,
+      "end": 68.252,
+      "seg": "dive"
+    },
+    {
+      "text": "Atlantic.",
+      "start": 68.252,
+      "end": 68.731,
+      "seg": "dive"
+    },
+    {
+      "text": "He",
+      "start": 69.281,
+      "end": 69.468,
+      "seg": "dive"
+    },
+    {
+      "text": "made",
+      "start": 69.468,
+      "end": 69.761,
+      "seg": "dive"
+    },
+    {
+      "text": "twelve",
+      "start": 69.761,
+      "end": 70.161,
+      "seg": "dive"
+    },
+    {
+      "text": "dives",
+      "start": 70.161,
+      "end": 70.508,
+      "seg": "dive"
+    },
+    {
+      "text": "in",
+      "start": 70.508,
+      "end": 70.694,
+      "seg": "dive"
+    },
+    {
+      "text": "a",
+      "start": 70.694,
+      "end": 70.827,
+      "seg": "dive"
+    },
+    {
+      "text": "submersible",
+      "start": 70.827,
+      "end": 71.494,
+      "seg": "dive"
+    },
+    {
+      "text": "to",
+      "start": 71.494,
+      "end": 71.681,
+      "seg": "dive"
+    },
+    {
+      "text": "film",
+      "start": 71.681,
+      "end": 71.974,
+      "seg": "dive"
+    },
+    {
+      "text": "it.",
+      "start": 71.974,
+      "end": 72.161,
+      "seg": "dive"
+    },
+    {
+      "text": "Think",
+      "start": 72.711,
+      "end": 73.023,
+      "seg": "dive"
+    },
+    {
+      "text": "about",
+      "start": 73.023,
+      "end": 73.336,
+      "seg": "dive"
+    },
+    {
+      "text": "that.",
+      "start": 73.336,
+      "end": 73.601,
+      "seg": "dive"
+    },
+    {
+      "text": "To",
+      "start": 73.601,
+      "end": 73.769,
+      "seg": "dive"
+    },
+    {
+      "text": "make",
+      "start": 73.769,
+      "end": 74.034,
+      "seg": "dive"
+    },
+    {
+      "text": "a",
+      "start": 74.034,
+      "end": 74.154,
+      "seg": "dive"
+    },
+    {
+      "text": "movie",
+      "start": 74.154,
+      "end": 74.467,
+      "seg": "dive"
+    },
+    {
+      "text": "about",
+      "start": 74.467,
+      "end": 74.78,
+      "seg": "dive"
+    },
+    {
+      "text": "a",
+      "start": 74.78,
+      "end": 74.9,
+      "seg": "dive"
+    },
+    {
+      "text": "shipwreck,",
+      "start": 74.9,
+      "end": 75.406,
+      "seg": "dive"
+    },
+    {
+      "text": "he",
+      "start": 75.406,
+      "end": 75.574,
+      "seg": "dive"
+    },
+    {
+      "text": "first",
+      "start": 75.574,
+      "end": 75.887,
+      "seg": "dive"
+    },
+    {
+      "text": "became",
+      "start": 75.887,
+      "end": 76.248,
+      "seg": "dive"
+    },
+    {
+      "text": "one",
+      "start": 76.248,
+      "end": 76.464,
+      "seg": "dive"
+    },
+    {
+      "text": "of",
+      "start": 76.464,
+      "end": 76.633,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 76.633,
+      "end": 76.849,
+      "seg": "dive"
+    },
+    {
+      "text": "few",
+      "start": 76.849,
+      "end": 77.066,
+      "seg": "dive"
+    },
+    {
+      "text": "people",
+      "start": 77.066,
+      "end": 77.427,
+      "seg": "dive"
+    },
+    {
+      "text": "alive",
+      "start": 77.427,
+      "end": 77.74,
+      "seg": "dive"
+    },
+    {
+      "text": "who",
+      "start": 77.74,
+      "end": 77.956,
+      "seg": "dive"
+    },
+    {
+      "text": "had",
+      "start": 77.956,
+      "end": 78.173,
+      "seg": "dive"
+    },
+    {
+      "text": "actually",
+      "start": 78.173,
+      "end": 78.63,
+      "seg": "dive"
+    },
+    {
+      "text": "visited",
+      "start": 78.63,
+      "end": 79.039,
+      "seg": "dive"
+    },
+    {
+      "text": "it.",
+      "start": 79.039,
+      "end": 79.208,
+      "seg": "dive"
+    },
+    {
+      "text": "That",
+      "start": 79.758,
+      "end": 80.024,
+      "seg": "dive"
+    },
+    {
+      "text": "footage",
+      "start": 80.024,
+      "end": 80.435,
+      "seg": "dive"
+    },
+    {
+      "text": "would",
+      "start": 80.435,
+      "end": 80.749,
+      "seg": "dive"
+    },
+    {
+      "text": "open",
+      "start": 80.749,
+      "end": 81.015,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 81.015,
+      "end": 81.232,
+      "seg": "dive"
+    },
+    {
+      "text": "movie.",
+      "start": 81.232,
+      "end": 81.547,
+      "seg": "dive"
+    },
+    {
+      "text": "Real",
+      "start": 81.547,
+      "end": 81.813,
+      "seg": "dive"
+    },
+    {
+      "text": "ghosts,",
+      "start": 81.813,
+      "end": 82.175,
+      "seg": "dive"
+    },
+    {
+      "text": "before",
+      "start": 82.175,
+      "end": 82.538,
+      "seg": "dive"
+    },
+    {
+      "text": "the",
+      "start": 82.538,
+      "end": 82.755,
+      "seg": "dive"
+    },
+    {
+      "text": "fake",
+      "start": 82.755,
+      "end": 83.021,
+      "seg": "dive"
+    },
+    {
+      "text": "ship.",
+      "start": 83.021,
+      "end": 83.287,
+      "seg": "dive"
+    },
+    {
+      "text": "Act",
+      "start": 84.287,
+      "end": 84.581,
+      "seg": "t2"
+    },
+    {
+      "text": "two.",
+      "start": 84.581,
+      "end": 84.874,
+      "seg": "t2"
+    },
+    {
+      "text": "The",
+      "start": 84.874,
+      "end": 85.168,
+      "seg": "t2"
+    },
+    {
+      "text": "money",
+      "start": 85.168,
+      "end": 85.592,
+      "seg": "t2"
+    },
+    {
+      "text": "pit.",
+      "start": 85.592,
+      "end": 85.885,
+      "seg": "t2"
+    },
+    {
+      "text": "Then",
+      "start": 88.885,
+      "end": 89.158,
+      "seg": "build"
+    },
+    {
+      "text": "the",
+      "start": 89.158,
+      "end": 89.381,
+      "seg": "build"
+    },
+    {
+      "text": "building",
+      "start": 89.381,
+      "end": 89.853,
+      "seg": "build"
+    },
+    {
+      "text": "started,",
+      "start": 89.853,
+      "end": 90.274,
+      "seg": "build"
+    },
+    {
+      "text": "and",
+      "start": 90.274,
+      "end": 90.498,
+      "seg": "build"
+    },
+    {
+      "text": "it",
+      "start": 90.498,
+      "end": 90.671,
+      "seg": "build"
+    },
+    {
+      "text": "never",
+      "start": 90.671,
+      "end": 90.994,
+      "seg": "build"
+    },
+    {
+      "text": "really",
+      "start": 90.994,
+      "end": 91.366,
+      "seg": "build"
+    },
+    {
+      "text": "stopped.",
+      "start": 91.366,
+      "end": 91.788,
+      "seg": "build"
+    },
+    {
+      "text": "The",
+      "start": 92.338,
+      "end": 92.586,
+      "seg": "build"
+    },
+    {
+      "text": "studio",
+      "start": 92.586,
+      "end": 93.0,
+      "seg": "build"
+    },
+    {
+      "text": "built",
+      "start": 93.0,
+      "end": 93.359,
+      "seg": "build"
+    },
+    {
+      "text": "an",
+      "start": 93.359,
+      "end": 93.553,
+      "seg": "build"
+    },
+    {
+      "text": "entirely",
+      "start": 93.553,
+      "end": 94.077,
+      "seg": "build"
+    },
+    {
+      "text": "new",
+      "start": 94.077,
+      "end": 94.326,
+      "seg": "build"
+    },
+    {
+      "text": "film",
+      "start": 94.326,
+      "end": 94.629,
+      "seg": "build"
+    },
+    {
+      "text": "studio",
+      "start": 94.629,
+      "end": 95.044,
+      "seg": "build"
+    },
+    {
+      "text": "on",
+      "start": 95.044,
+      "end": 95.237,
+      "seg": "build"
+    },
+    {
+      "text": "the",
+      "start": 95.237,
+      "end": 95.485,
+      "seg": "build"
+    },
+    {
+      "text": "coast",
+      "start": 95.485,
+      "end": 95.844,
+      "seg": "build"
+    },
+    {
+      "text": "of",
+      "start": 95.844,
+      "end": 96.038,
+      "seg": "build"
+    },
+    {
+      "text": "Mexico,",
+      "start": 96.038,
+      "end": 96.452,
+      "seg": "build"
+    },
+    {
+      "text": "just",
+      "start": 96.452,
+      "end": 96.755,
+      "seg": "build"
+    },
+    {
+      "text": "for",
+      "start": 96.755,
+      "end": 97.004,
+      "seg": "build"
+    },
+    {
+      "text": "this",
+      "start": 97.004,
+      "end": 97.308,
+      "seg": "build"
+    },
+    {
+      "text": "movie.",
+      "start": 97.308,
+      "end": 97.667,
+      "seg": "build"
+    },
+    {
+      "text": "Inside,",
+      "start": 98.217,
+      "end": 98.703,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 98.703,
+      "end": 98.865,
+      "seg": "build"
+    },
+    {
+      "text": "tank",
+      "start": 98.865,
+      "end": 99.221,
+      "seg": "build"
+    },
+    {
+      "text": "holding",
+      "start": 99.221,
+      "end": 99.772,
+      "seg": "build"
+    },
+    {
+      "text": "around",
+      "start": 99.772,
+      "end": 100.259,
+      "seg": "build"
+    },
+    {
+      "text": "seventeen",
+      "start": 100.259,
+      "end": 100.939,
+      "seg": "build"
+    },
+    {
+      "text": "million",
+      "start": 100.939,
+      "end": 101.49,
+      "seg": "build"
+    },
+    {
+      "text": "gallons",
+      "start": 101.49,
+      "end": 102.041,
+      "seg": "build"
+    },
+    {
+      "text": "of",
+      "start": 102.041,
+      "end": 102.268,
+      "seg": "build"
+    },
+    {
+      "text": "seawater.",
+      "start": 102.268,
+      "end": 102.884,
+      "seg": "build"
+    },
+    {
+      "text": "And",
+      "start": 103.434,
+      "end": 103.718,
+      "seg": "build"
+    },
+    {
+      "text": "in",
+      "start": 103.718,
+      "end": 103.939,
+      "seg": "build"
+    },
+    {
+      "text": "that",
+      "start": 103.939,
+      "end": 104.286,
+      "seg": "build"
+    },
+    {
+      "text": "tank,",
+      "start": 104.286,
+      "end": 104.633,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 104.633,
+      "end": 104.791,
+      "seg": "build"
+    },
+    {
+      "text": "near",
+      "start": 104.791,
+      "end": 105.139,
+      "seg": "build"
+    },
+    {
+      "text": "full",
+      "start": 105.139,
+      "end": 105.486,
+      "seg": "build"
+    },
+    {
+      "text": "scale",
+      "start": 105.486,
+      "end": 105.896,
+      "seg": "build"
+    },
+    {
+      "text": "replica",
+      "start": 105.896,
+      "end": 106.433,
+      "seg": "build"
+    },
+    {
+      "text": "of",
+      "start": 106.433,
+      "end": 106.654,
+      "seg": "build"
+    },
+    {
+      "text": "the",
+      "start": 106.654,
+      "end": 106.938,
+      "seg": "build"
+    },
+    {
+      "text": "Titanic.",
+      "start": 106.938,
+      "end": 107.474,
+      "seg": "build"
+    },
+    {
+      "text": "Not",
+      "start": 108.024,
+      "end": 108.251,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 108.251,
+      "end": 108.376,
+      "seg": "build"
+    },
+    {
+      "text": "model.",
+      "start": 108.376,
+      "end": 108.703,
+      "seg": "build"
+    },
+    {
+      "text": "A",
+      "start": 108.703,
+      "end": 108.828,
+      "seg": "build"
+    },
+    {
+      "text": "ship",
+      "start": 108.828,
+      "end": 109.105,
+      "seg": "build"
+    },
+    {
+      "text": "you",
+      "start": 109.105,
+      "end": 109.331,
+      "seg": "build"
+    },
+    {
+      "text": "could",
+      "start": 109.331,
+      "end": 109.658,
+      "seg": "build"
+    },
+    {
+      "text": "walk",
+      "start": 109.658,
+      "end": 109.934,
+      "seg": "build"
+    },
+    {
+      "text": "on.",
+      "start": 109.934,
+      "end": 110.11,
+      "seg": "build"
+    },
+    {
+      "text": "They",
+      "start": 110.66,
+      "end": 110.973,
+      "seg": "build"
+    },
+    {
+      "text": "did",
+      "start": 110.973,
+      "end": 111.229,
+      "seg": "build"
+    },
+    {
+      "text": "not",
+      "start": 111.229,
+      "end": 111.486,
+      "seg": "build"
+    },
+    {
+      "text": "rent",
+      "start": 111.486,
+      "end": 111.799,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 111.799,
+      "end": 111.941,
+      "seg": "build"
+    },
+    {
+      "text": "ship.",
+      "start": 111.941,
+      "end": 112.254,
+      "seg": "build"
+    },
+    {
+      "text": "They",
+      "start": 112.254,
+      "end": 112.568,
+      "seg": "build"
+    },
+    {
+      "text": "built",
+      "start": 112.568,
+      "end": 112.938,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 112.938,
+      "end": 113.08,
+      "seg": "build"
+    },
+    {
+      "text": "ship,",
+      "start": 113.08,
+      "end": 113.393,
+      "seg": "build"
+    },
+    {
+      "text": "a",
+      "start": 113.393,
+      "end": 113.536,
+      "seg": "build"
+    },
+    {
+      "text": "studio,",
+      "start": 113.536,
+      "end": 113.963,
+      "seg": "build"
+    },
+    {
+      "text": "and",
+      "start": 113.963,
+      "end": 114.219,
+      "seg": "build"
+    },
+    {
+      "text": "an",
+      "start": 114.219,
+      "end": 114.418,
+      "seg": "build"
+    },
+    {
+      "text": "ocean.",
+      "start": 114.418,
+      "end": 114.789,
+      "seg": "build"
+    },
+    {
+      "text": "Every",
+      "start": 115.789,
+      "end": 116.191,
+      "seg": "money"
+    },
+    {
+      "text": "week,",
+      "start": 116.191,
+      "end": 116.531,
+      "seg": "money"
+    },
+    {
+      "text": "the",
+      "start": 116.531,
+      "end": 116.81,
+      "seg": "money"
+    },
+    {
+      "text": "budget",
+      "start": 116.81,
+      "end": 117.274,
+      "seg": "money"
+    },
+    {
+      "text": "climbed.",
+      "start": 117.274,
+      "end": 117.8,
+      "seg": "money"
+    },
+    {
+      "text": "One",
+      "start": 118.35,
+      "end": 118.607,
+      "seg": "money"
+    },
+    {
+      "text": "hundred",
+      "start": 118.607,
+      "end": 119.094,
+      "seg": "money"
+    },
+    {
+      "text": "million.",
+      "start": 119.094,
+      "end": 119.581,
+      "seg": "money"
+    },
+    {
+      "text": "One",
+      "start": 119.581,
+      "end": 119.838,
+      "seg": "money"
+    },
+    {
+      "text": "hundred",
+      "start": 119.838,
+      "end": 120.325,
+      "seg": "money"
+    },
+    {
+      "text": "fifty.",
+      "start": 120.325,
+      "end": 120.697,
+      "seg": "money"
+    },
+    {
+      "text": "Then",
+      "start": 120.697,
+      "end": 121.012,
+      "seg": "money"
+    },
+    {
+      "text": "two",
+      "start": 121.012,
+      "end": 121.27,
+      "seg": "money"
+    },
+    {
+      "text": "hundred",
+      "start": 121.27,
+      "end": 121.756,
+      "seg": "money"
+    },
+    {
+      "text": "million",
+      "start": 121.756,
+      "end": 122.243,
+      "seg": "money"
+    },
+    {
+      "text": "dollars.",
+      "start": 122.243,
+      "end": 122.729,
+      "seg": "money"
+    },
+    {
+      "text": "Every",
+      "start": 123.279,
+      "end": 123.622,
+      "seg": "money"
+    },
+    {
+      "text": "day",
+      "start": 123.622,
+      "end": 123.859,
+      "seg": "money"
+    },
+    {
+      "text": "of",
+      "start": 123.859,
+      "end": 124.044,
+      "seg": "money"
+    },
+    {
+      "text": "shooting",
+      "start": 124.044,
+      "end": 124.545,
+      "seg": "money"
+    },
+    {
+      "text": "burned",
+      "start": 124.545,
+      "end": 124.94,
+      "seg": "money"
+    },
+    {
+      "text": "money,",
+      "start": 124.94,
+      "end": 125.282,
+      "seg": "money"
+    },
+    {
+      "text": "and",
+      "start": 125.282,
+      "end": 125.52,
+      "seg": "money"
+    },
+    {
+      "text": "every",
+      "start": 125.52,
+      "end": 125.862,
+      "seg": "money"
+    },
+    {
+      "text": "delay",
+      "start": 125.862,
+      "end": 126.205,
+      "seg": "money"
+    },
+    {
+      "text": "burned",
+      "start": 126.205,
+      "end": 126.6,
+      "seg": "money"
+    },
+    {
+      "text": "more.",
+      "start": 126.6,
+      "end": 126.89,
+      "seg": "money"
+    },
+    {
+      "text": "It",
+      "start": 127.44,
+      "end": 127.637,
+      "seg": "money"
+    },
+    {
+      "text": "got",
+      "start": 127.637,
+      "end": 127.891,
+      "seg": "money"
+    },
+    {
+      "text": "so",
+      "start": 127.891,
+      "end": 128.088,
+      "seg": "money"
+    },
+    {
+      "text": "expensive,",
+      "start": 128.088,
+      "end": 128.679,
+      "seg": "money"
+    },
+    {
+      "text": "a",
+      "start": 128.679,
+      "end": 128.82,
+      "seg": "money"
+    },
+    {
+      "text": "second",
+      "start": 128.82,
+      "end": 129.243,
+      "seg": "money"
+    },
+    {
+      "text": "studio",
+      "start": 129.243,
+      "end": 129.665,
+      "seg": "money"
+    },
+    {
+      "text": "had",
+      "start": 129.665,
+      "end": 129.919,
+      "seg": "money"
+    },
+    {
+      "text": "to",
+      "start": 129.919,
+      "end": 130.116,
+      "seg": "money"
+    },
+    {
+      "text": "step",
+      "start": 130.116,
+      "end": 130.426,
+      "seg": "money"
+    },
+    {
+      "text": "in",
+      "start": 130.426,
+      "end": 130.623,
+      "seg": "money"
+    },
+    {
+      "text": "and",
+      "start": 130.623,
+      "end": 130.876,
+      "seg": "money"
+    },
+    {
+      "text": "share",
+      "start": 130.876,
+      "end": 131.242,
+      "seg": "money"
+    },
+    {
+      "text": "the",
+      "start": 131.242,
+      "end": 131.496,
+      "seg": "money"
+    },
+    {
+      "text": "cost.",
+      "start": 131.496,
+      "end": 131.806,
+      "seg": "money"
+    },
+    {
+      "text": "The",
+      "start": 132.356,
+      "end": 132.591,
+      "seg": "money"
+    },
+    {
+      "text": "director",
+      "start": 132.591,
+      "end": 133.088,
+      "seg": "money"
+    },
+    {
+      "text": "even",
+      "start": 133.088,
+      "end": 133.376,
+      "seg": "money"
+    },
+    {
+      "text": "gave",
+      "start": 133.376,
+      "end": 133.664,
+      "seg": "money"
+    },
+    {
+      "text": "up",
+      "start": 133.664,
+      "end": 133.847,
+      "seg": "money"
+    },
+    {
+      "text": "his",
+      "start": 133.847,
+      "end": 134.083,
+      "seg": "money"
+    },
+    {
+      "text": "own",
+      "start": 134.083,
+      "end": 134.318,
+      "seg": "money"
+    },
+    {
+      "text": "fee,",
+      "start": 134.318,
+      "end": 134.554,
+      "seg": "money"
+    },
+    {
+      "text": "and",
+      "start": 134.554,
+      "end": 134.789,
+      "seg": "money"
+    },
+    {
+      "text": "his",
+      "start": 134.789,
+      "end": 135.024,
+      "seg": "money"
+    },
+    {
+      "text": "share",
+      "start": 135.024,
+      "end": 135.365,
+      "seg": "money"
+    },
+    {
+      "text": "of",
+      "start": 135.365,
+      "end": 135.548,
+      "seg": "money"
+    },
+    {
+      "text": "the",
+      "start": 135.548,
+      "end": 135.783,
+      "seg": "money"
+    },
+    {
+      "text": "profits,",
+      "start": 135.783,
+      "end": 136.228,
+      "seg": "money"
+    },
+    {
+      "text": "to",
+      "start": 136.228,
+      "end": 136.411,
+      "seg": "money"
+    },
+    {
+      "text": "keep",
+      "start": 136.411,
+      "end": 136.699,
+      "seg": "money"
+    },
+    {
+      "text": "the",
+      "start": 136.699,
+      "end": 136.934,
+      "seg": "money"
+    },
+    {
+      "text": "cameras",
+      "start": 136.934,
+      "end": 137.379,
+      "seg": "money"
+    },
+    {
+      "text": "rolling.",
+      "start": 137.379,
+      "end": 137.824,
+      "seg": "money"
+    },
+    {
+      "text": "The",
+      "start": 138.824,
+      "end": 139.039,
+      "seg": "headlines"
+    },
+    {
+      "text": "release",
+      "start": 139.039,
+      "end": 139.445,
+      "seg": "headlines"
+    },
+    {
+      "text": "date",
+      "start": 139.445,
+      "end": 139.708,
+      "seg": "headlines"
+    },
+    {
+      "text": "slipped",
+      "start": 139.708,
+      "end": 140.114,
+      "seg": "headlines"
+    },
+    {
+      "text": "from",
+      "start": 140.114,
+      "end": 140.376,
+      "seg": "headlines"
+    },
+    {
+      "text": "summer",
+      "start": 140.376,
+      "end": 140.734,
+      "seg": "headlines"
+    },
+    {
+      "text": "to",
+      "start": 140.734,
+      "end": 140.901,
+      "seg": "headlines"
+    },
+    {
+      "text": "December.",
+      "start": 140.901,
+      "end": 141.355,
+      "seg": "headlines"
+    },
+    {
+      "text": "In",
+      "start": 141.905,
+      "end": 142.1,
+      "seg": "headlines"
+    },
+    {
+      "text": "Hollywood,",
+      "start": 142.1,
+      "end": 142.685,
+      "seg": "headlines"
+    },
+    {
+      "text": "a",
+      "start": 142.685,
+      "end": 142.824,
+      "seg": "headlines"
+    },
+    {
+      "text": "delay",
+      "start": 142.824,
+      "end": 143.186,
+      "seg": "headlines"
+    },
+    {
+      "text": "like",
+      "start": 143.186,
+      "end": 143.493,
+      "seg": "headlines"
+    },
+    {
+      "text": "that",
+      "start": 143.493,
+      "end": 143.799,
+      "seg": "headlines"
+    },
+    {
+      "text": "usually",
+      "start": 143.799,
+      "end": 144.272,
+      "seg": "headlines"
+    },
+    {
+      "text": "means",
+      "start": 144.272,
+      "end": 144.634,
+      "seg": "headlines"
+    },
+    {
+      "text": "one",
+      "start": 144.634,
+      "end": 144.885,
+      "seg": "headlines"
+    },
+    {
+      "text": "thing.",
+      "start": 144.885,
+      "end": 145.247,
+      "seg": "headlines"
+    },
+    {
+      "text": "Trouble.",
+      "start": 145.247,
+      "end": 145.72,
+      "seg": "headlines"
+    },
+    {
+      "text": "The",
+      "start": 146.27,
+      "end": 146.518,
+      "seg": "headlines"
+    },
+    {
+      "text": "industry",
+      "start": 146.518,
+      "end": 147.04,
+      "seg": "headlines"
+    },
+    {
+      "text": "buzz",
+      "start": 147.04,
+      "end": 147.343,
+      "seg": "headlines"
+    },
+    {
+      "text": "was",
+      "start": 147.343,
+      "end": 147.59,
+      "seg": "headlines"
+    },
+    {
+      "text": "brutal.",
+      "start": 147.59,
+      "end": 148.003,
+      "seg": "headlines"
+    },
+    {
+      "text": "People",
+      "start": 148.003,
+      "end": 148.415,
+      "seg": "headlines"
+    },
+    {
+      "text": "were",
+      "start": 148.415,
+      "end": 148.718,
+      "seg": "headlines"
+    },
+    {
+      "text": "already",
+      "start": 148.718,
+      "end": 149.185,
+      "seg": "headlines"
+    },
+    {
+      "text": "writing",
+      "start": 149.185,
+      "end": 149.653,
+      "seg": "headlines"
+    },
+    {
+      "text": "the",
+      "start": 149.653,
+      "end": 149.9,
+      "seg": "headlines"
+    },
+    {
+      "text": "obituary.",
+      "start": 149.9,
+      "end": 150.422,
+      "seg": "headlines"
+    },
+    {
+      "text": "Titanic,",
+      "start": 150.972,
+      "end": 151.413,
+      "seg": "headlines"
+    },
+    {
+      "text": "the",
+      "start": 151.413,
+      "end": 151.646,
+      "seg": "headlines"
+    },
+    {
+      "text": "movie,",
+      "start": 151.646,
+      "end": 151.983,
+      "seg": "headlines"
+    },
+    {
+      "text": "looked",
+      "start": 151.983,
+      "end": 152.372,
+      "seg": "headlines"
+    },
+    {
+      "text": "like",
+      "start": 152.372,
+      "end": 152.657,
+      "seg": "headlines"
+    },
+    {
+      "text": "it",
+      "start": 152.657,
+      "end": 152.839,
+      "seg": "headlines"
+    },
+    {
+      "text": "was",
+      "start": 152.839,
+      "end": 153.072,
+      "seg": "headlines"
+    },
+    {
+      "text": "heading",
+      "start": 153.072,
+      "end": 153.512,
+      "seg": "headlines"
+    },
+    {
+      "text": "for",
+      "start": 153.512,
+      "end": 153.746,
+      "seg": "headlines"
+    },
+    {
+      "text": "its",
+      "start": 153.746,
+      "end": 153.979,
+      "seg": "headlines"
+    },
+    {
+      "text": "own",
+      "start": 153.979,
+      "end": 154.212,
+      "seg": "headlines"
+    },
+    {
+      "text": "iceberg.",
+      "start": 154.212,
+      "end": 154.653,
+      "seg": "headlines"
+    },
+    {
+      "text": "If",
+      "start": 155.203,
+      "end": 155.382,
+      "seg": "headlines"
+    },
+    {
+      "text": "it",
+      "start": 155.382,
+      "end": 155.561,
+      "seg": "headlines"
+    },
+    {
+      "text": "failed,",
+      "start": 155.561,
+      "end": 155.945,
+      "seg": "headlines"
+    },
+    {
+      "text": "it",
+      "start": 155.945,
+      "end": 156.124,
+      "seg": "headlines"
+    },
+    {
+      "text": "could",
+      "start": 156.124,
+      "end": 156.456,
+      "seg": "headlines"
+    },
+    {
+      "text": "have",
+      "start": 156.456,
+      "end": 156.737,
+      "seg": "headlines"
+    },
+    {
+      "text": "hurt",
+      "start": 156.737,
+      "end": 157.019,
+      "seg": "headlines"
+    },
+    {
+      "text": "two",
+      "start": 157.019,
+      "end": 157.249,
+      "seg": "headlines"
+    },
+    {
+      "text": "major",
+      "start": 157.249,
+      "end": 157.581,
+      "seg": "headlines"
+    },
+    {
+      "text": "studios",
+      "start": 157.581,
+      "end": 158.016,
+      "seg": "headlines"
+    },
+    {
+      "text": "at",
+      "start": 158.016,
+      "end": 158.195,
+      "seg": "headlines"
+    },
+    {
+      "text": "the",
+      "start": 158.195,
+      "end": 158.425,
+      "seg": "headlines"
+    },
+    {
+      "text": "same",
+      "start": 158.425,
+      "end": 158.707,
+      "seg": "headlines"
+    },
+    {
+      "text": "time.",
+      "start": 158.707,
+      "end": 158.988,
+      "seg": "headlines"
+    },
+    {
+      "text": "Act",
+      "start": 159.988,
+      "end": 160.287,
+      "seg": "t3"
+    },
+    {
+      "text": "three.",
+      "start": 160.287,
+      "end": 160.72,
+      "seg": "t3"
+    },
+    {
+      "text": "The",
+      "start": 160.72,
+      "end": 161.019,
+      "seg": "t3"
+    },
+    {
+      "text": "real",
+      "start": 161.019,
+      "end": 161.385,
+      "seg": "t3"
+    },
+    {
+      "text": "night.",
+      "start": 161.385,
+      "end": 161.818,
+      "seg": "t3"
+    },
+    {
+      "text": "To",
+      "start": 164.818,
+      "end": 165.003,
+      "seg": "voyage"
+    },
+    {
+      "text": "understand",
+      "start": 165.003,
+      "end": 165.613,
+      "seg": "voyage"
+    },
+    {
+      "text": "why",
+      "start": 165.613,
+      "end": 165.852,
+      "seg": "voyage"
+    },
+    {
+      "text": "audiences",
+      "start": 165.852,
+      "end": 166.408,
+      "seg": "voyage"
+    },
+    {
+      "text": "cared,",
+      "start": 166.408,
+      "end": 166.753,
+      "seg": "voyage"
+    },
+    {
+      "text": "you",
+      "start": 166.753,
+      "end": 166.991,
+      "seg": "voyage"
+    },
+    {
+      "text": "have",
+      "start": 166.991,
+      "end": 167.283,
+      "seg": "voyage"
+    },
+    {
+      "text": "to",
+      "start": 167.283,
+      "end": 167.468,
+      "seg": "voyage"
+    },
+    {
+      "text": "remember",
+      "start": 167.468,
+      "end": 167.972,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 167.972,
+      "end": 168.21,
+      "seg": "voyage"
+    },
+    {
+      "text": "real",
+      "start": 168.21,
+      "end": 168.502,
+      "seg": "voyage"
+    },
+    {
+      "text": "story.",
+      "start": 168.502,
+      "end": 168.847,
+      "seg": "voyage"
+    },
+    {
+      "text": "April",
+      "start": 169.397,
+      "end": 169.823,
+      "seg": "voyage"
+    },
+    {
+      "text": "tenth,",
+      "start": 169.823,
+      "end": 170.249,
+      "seg": "voyage"
+    },
+    {
+      "text": "nineteen",
+      "start": 170.249,
+      "end": 170.872,
+      "seg": "voyage"
+    },
+    {
+      "text": "twelve.",
+      "start": 170.872,
+      "end": 171.364,
+      "seg": "voyage"
+    },
+    {
+      "text": "The",
+      "start": 171.364,
+      "end": 171.659,
+      "seg": "voyage"
+    },
+    {
+      "text": "real",
+      "start": 171.659,
+      "end": 172.02,
+      "seg": "voyage"
+    },
+    {
+      "text": "Titanic",
+      "start": 172.02,
+      "end": 172.578,
+      "seg": "voyage"
+    },
+    {
+      "text": "leaves",
+      "start": 172.578,
+      "end": 173.069,
+      "seg": "voyage"
+    },
+    {
+      "text": "Southampton,",
+      "start": 173.069,
+      "end": 173.889,
+      "seg": "voyage"
+    },
+    {
+      "text": "England,",
+      "start": 173.889,
+      "end": 174.447,
+      "seg": "voyage"
+    },
+    {
+      "text": "bound",
+      "start": 174.447,
+      "end": 174.873,
+      "seg": "voyage"
+    },
+    {
+      "text": "for",
+      "start": 174.873,
+      "end": 175.168,
+      "seg": "voyage"
+    },
+    {
+      "text": "New",
+      "start": 175.168,
+      "end": 175.463,
+      "seg": "voyage"
+    },
+    {
+      "text": "York.",
+      "start": 175.463,
+      "end": 175.824,
+      "seg": "voyage"
+    },
+    {
+      "text": "It",
+      "start": 176.374,
+      "end": 176.53,
+      "seg": "voyage"
+    },
+    {
+      "text": "was",
+      "start": 176.53,
+      "end": 176.73,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 176.73,
+      "end": 176.93,
+      "seg": "voyage"
+    },
+    {
+      "text": "largest",
+      "start": 176.93,
+      "end": 177.307,
+      "seg": "voyage"
+    },
+    {
+      "text": "ship",
+      "start": 177.307,
+      "end": 177.552,
+      "seg": "voyage"
+    },
+    {
+      "text": "in",
+      "start": 177.552,
+      "end": 177.707,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 177.707,
+      "end": 177.907,
+      "seg": "voyage"
+    },
+    {
+      "text": "world,",
+      "start": 177.907,
+      "end": 178.196,
+      "seg": "voyage"
+    },
+    {
+      "text": "and",
+      "start": 178.196,
+      "end": 178.396,
+      "seg": "voyage"
+    },
+    {
+      "text": "people",
+      "start": 178.396,
+      "end": 178.73,
+      "seg": "voyage"
+    },
+    {
+      "text": "called",
+      "start": 178.73,
+      "end": 179.063,
+      "seg": "voyage"
+    },
+    {
+      "text": "it",
+      "start": 179.063,
+      "end": 179.218,
+      "seg": "voyage"
+    },
+    {
+      "text": "unsinkable.",
+      "start": 179.218,
+      "end": 179.73,
+      "seg": "voyage"
+    },
+    {
+      "text": "On",
+      "start": 180.28,
+      "end": 180.442,
+      "seg": "voyage"
+    },
+    {
+      "text": "board",
+      "start": 180.442,
+      "end": 180.745,
+      "seg": "voyage"
+    },
+    {
+      "text": "were",
+      "start": 180.745,
+      "end": 181.001,
+      "seg": "voyage"
+    },
+    {
+      "text": "some",
+      "start": 181.001,
+      "end": 181.257,
+      "seg": "voyage"
+    },
+    {
+      "text": "of",
+      "start": 181.257,
+      "end": 181.42,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 181.42,
+      "end": 181.629,
+      "seg": "voyage"
+    },
+    {
+      "text": "richest",
+      "start": 181.629,
+      "end": 182.025,
+      "seg": "voyage"
+    },
+    {
+      "text": "people",
+      "start": 182.025,
+      "end": 182.374,
+      "seg": "voyage"
+    },
+    {
+      "text": "in",
+      "start": 182.374,
+      "end": 182.537,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 182.537,
+      "end": 182.746,
+      "seg": "voyage"
+    },
+    {
+      "text": "world,",
+      "start": 182.746,
+      "end": 183.049,
+      "seg": "voyage"
+    },
+    {
+      "text": "and",
+      "start": 183.049,
+      "end": 183.258,
+      "seg": "voyage"
+    },
+    {
+      "text": "hundreds",
+      "start": 183.258,
+      "end": 183.7,
+      "seg": "voyage"
+    },
+    {
+      "text": "of",
+      "start": 183.7,
+      "end": 183.863,
+      "seg": "voyage"
+    },
+    {
+      "text": "families",
+      "start": 183.863,
+      "end": 184.305,
+      "seg": "voyage"
+    },
+    {
+      "text": "chasing",
+      "start": 184.305,
+      "end": 184.701,
+      "seg": "voyage"
+    },
+    {
+      "text": "a",
+      "start": 184.701,
+      "end": 184.817,
+      "seg": "voyage"
+    },
+    {
+      "text": "new",
+      "start": 184.817,
+      "end": 185.026,
+      "seg": "voyage"
+    },
+    {
+      "text": "life",
+      "start": 185.026,
+      "end": 185.282,
+      "seg": "voyage"
+    },
+    {
+      "text": "in",
+      "start": 185.282,
+      "end": 185.445,
+      "seg": "voyage"
+    },
+    {
+      "text": "America.",
+      "start": 185.445,
+      "end": 185.841,
+      "seg": "voyage"
+    },
+    {
+      "text": "Four",
+      "start": 186.391,
+      "end": 186.721,
+      "seg": "voyage"
+    },
+    {
+      "text": "days",
+      "start": 186.721,
+      "end": 187.051,
+      "seg": "voyage"
+    },
+    {
+      "text": "later,",
+      "start": 187.051,
+      "end": 187.441,
+      "seg": "voyage"
+    },
+    {
+      "text": "late",
+      "start": 187.441,
+      "end": 187.771,
+      "seg": "voyage"
+    },
+    {
+      "text": "at",
+      "start": 187.771,
+      "end": 187.981,
+      "seg": "voyage"
+    },
+    {
+      "text": "night,",
+      "start": 187.981,
+      "end": 188.372,
+      "seg": "voyage"
+    },
+    {
+      "text": "the",
+      "start": 188.372,
+      "end": 188.642,
+      "seg": "voyage"
+    },
+    {
+      "text": "lookouts",
+      "start": 188.642,
+      "end": 189.212,
+      "seg": "voyage"
+    },
+    {
+      "text": "spot",
+      "start": 189.212,
+      "end": 189.542,
+      "seg": "voyage"
+    },
+    {
+      "text": "an",
+      "start": 189.542,
+      "end": 189.752,
+      "seg": "voyage"
+    },
+    {
+      "text": "iceberg.",
+      "start": 189.752,
+      "end": 190.262,
+      "seg": "voyage"
+    },
+    {
+      "text": "Too",
+      "start": 190.262,
+      "end": 190.532,
+      "seg": "voyage"
+    },
+    {
+      "text": "late.",
+      "start": 190.532,
+      "end": 190.862,
+      "seg": "voyage"
+    },
+    {
+      "text": "There",
+      "start": 191.862,
+      "end": 192.138,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "were",
+      "start": 192.138,
+      "end": 192.371,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "about",
+      "start": 192.371,
+      "end": 192.647,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "two",
+      "start": 192.647,
+      "end": 192.837,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "thousand",
+      "start": 192.837,
+      "end": 193.24,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "two",
+      "start": 193.24,
+      "end": 193.431,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "hundred",
+      "start": 193.431,
+      "end": 193.791,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "people",
+      "start": 193.791,
+      "end": 194.109,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "on",
+      "start": 194.109,
+      "end": 194.257,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "board.",
+      "start": 194.257,
+      "end": 194.533,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "But",
+      "start": 195.083,
+      "end": 195.307,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "only",
+      "start": 195.307,
+      "end": 195.581,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "twenty",
+      "start": 195.581,
+      "end": 195.954,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "lifeboats,",
+      "start": 195.954,
+      "end": 196.477,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "with",
+      "start": 196.477,
+      "end": 196.75,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "room",
+      "start": 196.75,
+      "end": 197.024,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "for",
+      "start": 197.024,
+      "end": 197.248,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "roughly",
+      "start": 197.248,
+      "end": 197.671,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "eleven",
+      "start": 197.671,
+      "end": 198.045,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "hundred",
+      "start": 198.045,
+      "end": 198.468,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "and",
+      "start": 198.468,
+      "end": 198.692,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "eighty.",
+      "start": 198.692,
+      "end": 199.065,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "Even",
+      "start": 199.615,
+      "end": 199.88,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "if",
+      "start": 199.88,
+      "end": 200.048,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "every",
+      "start": 200.048,
+      "end": 200.361,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "seat",
+      "start": 200.361,
+      "end": 200.625,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "had",
+      "start": 200.625,
+      "end": 200.842,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "been",
+      "start": 200.842,
+      "end": 201.107,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "filled,",
+      "start": 201.107,
+      "end": 201.467,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "more",
+      "start": 201.467,
+      "end": 201.732,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "than",
+      "start": 201.732,
+      "end": 201.997,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "a",
+      "start": 201.997,
+      "end": 202.117,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "thousand",
+      "start": 202.117,
+      "end": 202.574,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "people",
+      "start": 202.574,
+      "end": 202.935,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "had",
+      "start": 202.935,
+      "end": 203.151,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "no",
+      "start": 203.151,
+      "end": 203.32,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "place",
+      "start": 203.32,
+      "end": 203.632,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "to",
+      "start": 203.632,
+      "end": 203.801,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "go.",
+      "start": 203.801,
+      "end": 203.969,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "And",
+      "start": 204.519,
+      "end": 204.771,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "many",
+      "start": 204.771,
+      "end": 205.079,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "boats",
+      "start": 205.079,
+      "end": 205.443,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "left",
+      "start": 205.443,
+      "end": 205.751,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "half",
+      "start": 205.751,
+      "end": 206.059,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "empty.",
+      "start": 206.059,
+      "end": 206.423,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "That's",
+      "start": 206.973,
+      "end": 207.313,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "not",
+      "start": 207.313,
+      "end": 207.547,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "bad",
+      "start": 207.547,
+      "end": 207.782,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "luck.",
+      "start": 207.782,
+      "end": 208.07,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "That's",
+      "start": 208.07,
+      "end": 208.409,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "bad",
+      "start": 208.409,
+      "end": 208.644,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "planning.",
+      "start": 208.644,
+      "end": 209.14,
+      "seg": "lifeboats"
+    },
+    {
+      "text": "The",
+      "start": 210.14,
+      "end": 210.42,
+      "seg": "sinking"
+    },
+    {
+      "text": "iceberg",
+      "start": 210.42,
+      "end": 210.95,
+      "seg": "sinking"
+    },
+    {
+      "text": "struck",
+      "start": 210.95,
+      "end": 211.418,
+      "seg": "sinking"
+    },
+    {
+      "text": "at",
+      "start": 211.418,
+      "end": 211.636,
+      "seg": "sinking"
+    },
+    {
+      "text": "eleven",
+      "start": 211.636,
+      "end": 212.104,
+      "seg": "sinking"
+    },
+    {
+      "text": "forty",
+      "start": 212.104,
+      "end": 212.509,
+      "seg": "sinking"
+    },
+    {
+      "text": "P",
+      "start": 212.509,
+      "end": 212.665,
+      "seg": "sinking"
+    },
+    {
+      "text": "M.",
+      "start": 212.665,
+      "end": 212.821,
+      "seg": "sinking"
+    },
+    {
+      "text": "Water",
+      "start": 213.371,
+      "end": 213.712,
+      "seg": "sinking"
+    },
+    {
+      "text": "poured",
+      "start": 213.712,
+      "end": 214.106,
+      "seg": "sinking"
+    },
+    {
+      "text": "into",
+      "start": 214.106,
+      "end": 214.395,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 214.395,
+      "end": 214.631,
+      "seg": "sinking"
+    },
+    {
+      "text": "front",
+      "start": 214.631,
+      "end": 214.972,
+      "seg": "sinking"
+    },
+    {
+      "text": "compartments,",
+      "start": 214.972,
+      "end": 215.68,
+      "seg": "sinking"
+    },
+    {
+      "text": "one",
+      "start": 215.68,
+      "end": 215.916,
+      "seg": "sinking"
+    },
+    {
+      "text": "after",
+      "start": 215.916,
+      "end": 216.257,
+      "seg": "sinking"
+    },
+    {
+      "text": "another.",
+      "start": 216.257,
+      "end": 216.703,
+      "seg": "sinking"
+    },
+    {
+      "text": "The",
+      "start": 217.253,
+      "end": 217.497,
+      "seg": "sinking"
+    },
+    {
+      "text": "bow",
+      "start": 217.497,
+      "end": 217.741,
+      "seg": "sinking"
+    },
+    {
+      "text": "sank",
+      "start": 217.741,
+      "end": 218.039,
+      "seg": "sinking"
+    },
+    {
+      "text": "lower.",
+      "start": 218.039,
+      "end": 218.391,
+      "seg": "sinking"
+    },
+    {
+      "text": "The",
+      "start": 218.391,
+      "end": 218.635,
+      "seg": "sinking"
+    },
+    {
+      "text": "stern",
+      "start": 218.635,
+      "end": 218.987,
+      "seg": "sinking"
+    },
+    {
+      "text": "rose",
+      "start": 218.987,
+      "end": 219.285,
+      "seg": "sinking"
+    },
+    {
+      "text": "into",
+      "start": 219.285,
+      "end": 219.583,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 219.583,
+      "end": 219.826,
+      "seg": "sinking"
+    },
+    {
+      "text": "air.",
+      "start": 219.826,
+      "end": 220.07,
+      "seg": "sinking"
+    },
+    {
+      "text": "Then",
+      "start": 220.62,
+      "end": 220.905,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 220.905,
+      "end": 221.139,
+      "seg": "sinking"
+    },
+    {
+      "text": "ship",
+      "start": 221.139,
+      "end": 221.424,
+      "seg": "sinking"
+    },
+    {
+      "text": "broke",
+      "start": 221.424,
+      "end": 221.761,
+      "seg": "sinking"
+    },
+    {
+      "text": "in",
+      "start": 221.761,
+      "end": 221.943,
+      "seg": "sinking"
+    },
+    {
+      "text": "two.",
+      "start": 221.943,
+      "end": 222.176,
+      "seg": "sinking"
+    },
+    {
+      "text": "By",
+      "start": 222.726,
+      "end": 222.935,
+      "seg": "sinking"
+    },
+    {
+      "text": "two",
+      "start": 222.935,
+      "end": 223.204,
+      "seg": "sinking"
+    },
+    {
+      "text": "twenty",
+      "start": 223.204,
+      "end": 223.653,
+      "seg": "sinking"
+    },
+    {
+      "text": "A",
+      "start": 223.653,
+      "end": 223.802,
+      "seg": "sinking"
+    },
+    {
+      "text": "M,",
+      "start": 223.802,
+      "end": 223.952,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 223.952,
+      "end": 224.221,
+      "seg": "sinking"
+    },
+    {
+      "text": "Titanic",
+      "start": 224.221,
+      "end": 224.729,
+      "seg": "sinking"
+    },
+    {
+      "text": "was",
+      "start": 224.729,
+      "end": 224.998,
+      "seg": "sinking"
+    },
+    {
+      "text": "gone.",
+      "start": 224.998,
+      "end": 225.327,
+      "seg": "sinking"
+    },
+    {
+      "text": "About",
+      "start": 225.327,
+      "end": 225.716,
+      "seg": "sinking"
+    },
+    {
+      "text": "fifteen",
+      "start": 225.716,
+      "end": 226.224,
+      "seg": "sinking"
+    },
+    {
+      "text": "hundred",
+      "start": 226.224,
+      "end": 226.732,
+      "seg": "sinking"
+    },
+    {
+      "text": "people",
+      "start": 226.732,
+      "end": 227.181,
+      "seg": "sinking"
+    },
+    {
+      "text": "died",
+      "start": 227.181,
+      "end": 227.51,
+      "seg": "sinking"
+    },
+    {
+      "text": "in",
+      "start": 227.51,
+      "end": 227.719,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 227.719,
+      "end": 227.988,
+      "seg": "sinking"
+    },
+    {
+      "text": "freezing",
+      "start": 227.988,
+      "end": 228.556,
+      "seg": "sinking"
+    },
+    {
+      "text": "water.",
+      "start": 228.556,
+      "end": 228.945,
+      "seg": "sinking"
+    },
+    {
+      "text": "Hours",
+      "start": 229.495,
+      "end": 229.87,
+      "seg": "sinking"
+    },
+    {
+      "text": "later,",
+      "start": 229.87,
+      "end": 230.245,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 230.245,
+      "end": 230.504,
+      "seg": "sinking"
+    },
+    {
+      "text": "rescue",
+      "start": 230.504,
+      "end": 230.937,
+      "seg": "sinking"
+    },
+    {
+      "text": "ship",
+      "start": 230.937,
+      "end": 231.254,
+      "seg": "sinking"
+    },
+    {
+      "text": "Carpathia",
+      "start": 231.254,
+      "end": 231.86,
+      "seg": "sinking"
+    },
+    {
+      "text": "arrived,",
+      "start": 231.86,
+      "end": 232.351,
+      "seg": "sinking"
+    },
+    {
+      "text": "and",
+      "start": 232.351,
+      "end": 232.61,
+      "seg": "sinking"
+    },
+    {
+      "text": "picked",
+      "start": 232.61,
+      "end": 233.043,
+      "seg": "sinking"
+    },
+    {
+      "text": "up",
+      "start": 233.043,
+      "end": 233.245,
+      "seg": "sinking"
+    },
+    {
+      "text": "around",
+      "start": 233.245,
+      "end": 233.678,
+      "seg": "sinking"
+    },
+    {
+      "text": "seven",
+      "start": 233.678,
+      "end": 234.053,
+      "seg": "sinking"
+    },
+    {
+      "text": "hundred",
+      "start": 234.053,
+      "end": 234.543,
+      "seg": "sinking"
+    },
+    {
+      "text": "survivors.",
+      "start": 234.543,
+      "end": 235.149,
+      "seg": "sinking"
+    },
+    {
+      "text": "From",
+      "start": 235.699,
+      "end": 235.979,
+      "seg": "sinking"
+    },
+    {
+      "text": "impact",
+      "start": 235.979,
+      "end": 236.362,
+      "seg": "sinking"
+    },
+    {
+      "text": "to",
+      "start": 236.362,
+      "end": 236.541,
+      "seg": "sinking"
+    },
+    {
+      "text": "the",
+      "start": 236.541,
+      "end": 236.77,
+      "seg": "sinking"
+    },
+    {
+      "text": "final",
+      "start": 236.77,
+      "end": 237.102,
+      "seg": "sinking"
+    },
+    {
+      "text": "plunge,",
+      "start": 237.102,
+      "end": 237.485,
+      "seg": "sinking"
+    },
+    {
+      "text": "it",
+      "start": 237.485,
+      "end": 237.663,
+      "seg": "sinking"
+    },
+    {
+      "text": "took",
+      "start": 237.663,
+      "end": 237.944,
+      "seg": "sinking"
+    },
+    {
+      "text": "about",
+      "start": 237.944,
+      "end": 238.276,
+      "seg": "sinking"
+    },
+    {
+      "text": "two",
+      "start": 238.276,
+      "end": 238.505,
+      "seg": "sinking"
+    },
+    {
+      "text": "hours",
+      "start": 238.505,
+      "end": 238.837,
+      "seg": "sinking"
+    },
+    {
+      "text": "and",
+      "start": 238.837,
+      "end": 239.067,
+      "seg": "sinking"
+    },
+    {
+      "text": "forty",
+      "start": 239.067,
+      "end": 239.398,
+      "seg": "sinking"
+    },
+    {
+      "text": "minutes.",
+      "start": 239.398,
+      "end": 239.832,
+      "seg": "sinking"
+    },
+    {
+      "text": "Here's",
+      "start": 242.332,
+      "end": 242.728,
+      "seg": "compare"
+    },
+    {
+      "text": "a",
+      "start": 242.728,
+      "end": 242.88,
+      "seg": "compare"
+    },
+    {
+      "text": "strange",
+      "start": 242.88,
+      "end": 243.397,
+      "seg": "compare"
+    },
+    {
+      "text": "detail.",
+      "start": 243.397,
+      "end": 243.853,
+      "seg": "compare"
+    },
+    {
+      "text": "The",
+      "start": 244.403,
+      "end": 244.648,
+      "seg": "compare"
+    },
+    {
+      "text": "real",
+      "start": 244.648,
+      "end": 244.948,
+      "seg": "compare"
+    },
+    {
+      "text": "ship",
+      "start": 244.948,
+      "end": 245.247,
+      "seg": "compare"
+    },
+    {
+      "text": "cost",
+      "start": 245.247,
+      "end": 245.547,
+      "seg": "compare"
+    },
+    {
+      "text": "about",
+      "start": 245.547,
+      "end": 245.901,
+      "seg": "compare"
+    },
+    {
+      "text": "seven",
+      "start": 245.901,
+      "end": 246.255,
+      "seg": "compare"
+    },
+    {
+      "text": "and",
+      "start": 246.255,
+      "end": 246.5,
+      "seg": "compare"
+    },
+    {
+      "text": "a",
+      "start": 246.5,
+      "end": 246.636,
+      "seg": "compare"
+    },
+    {
+      "text": "half",
+      "start": 246.636,
+      "end": 246.935,
+      "seg": "compare"
+    },
+    {
+      "text": "million",
+      "start": 246.935,
+      "end": 247.398,
+      "seg": "compare"
+    },
+    {
+      "text": "dollars",
+      "start": 247.398,
+      "end": 247.861,
+      "seg": "compare"
+    },
+    {
+      "text": "in",
+      "start": 247.861,
+      "end": 248.052,
+      "seg": "compare"
+    },
+    {
+      "text": "nineteen",
+      "start": 248.052,
+      "end": 248.569,
+      "seg": "compare"
+    },
+    {
+      "text": "twelve.",
+      "start": 248.569,
+      "end": 248.978,
+      "seg": "compare"
+    },
+    {
+      "text": "Adjusted",
+      "start": 249.528,
+      "end": 250.002,
+      "seg": "compare"
+    },
+    {
+      "text": "for",
+      "start": 250.002,
+      "end": 250.226,
+      "seg": "compare"
+    },
+    {
+      "text": "inflation,",
+      "start": 250.226,
+      "end": 250.751,
+      "seg": "compare"
+    },
+    {
+      "text": "that's",
+      "start": 250.751,
+      "end": 251.075,
+      "seg": "compare"
+    },
+    {
+      "text": "very",
+      "start": 251.075,
+      "end": 251.35,
+      "seg": "compare"
+    },
+    {
+      "text": "roughly",
+      "start": 251.35,
+      "end": 251.774,
+      "seg": "compare"
+    },
+    {
+      "text": "a",
+      "start": 251.774,
+      "end": 251.899,
+      "seg": "compare"
+    },
+    {
+      "text": "hundred",
+      "start": 251.899,
+      "end": 252.323,
+      "seg": "compare"
+    },
+    {
+      "text": "and",
+      "start": 252.323,
+      "end": 252.548,
+      "seg": "compare"
+    },
+    {
+      "text": "twenty",
+      "start": 252.548,
+      "end": 252.922,
+      "seg": "compare"
+    },
+    {
+      "text": "million",
+      "start": 252.922,
+      "end": 253.347,
+      "seg": "compare"
+    },
+    {
+      "text": "in",
+      "start": 253.347,
+      "end": 253.521,
+      "seg": "compare"
+    },
+    {
+      "text": "nineteen",
+      "start": 253.521,
+      "end": 253.996,
+      "seg": "compare"
+    },
+    {
+      "text": "ninety",
+      "start": 253.996,
+      "end": 254.37,
+      "seg": "compare"
+    },
+    {
+      "text": "seven",
+      "start": 254.37,
+      "end": 254.695,
+      "seg": "compare"
+    },
+    {
+      "text": "money.",
+      "start": 254.695,
+      "end": 255.019,
+      "seg": "compare"
+    },
+    {
+      "text": "Which",
+      "start": 255.569,
+      "end": 255.885,
+      "seg": "compare"
+    },
+    {
+      "text": "means",
+      "start": 255.885,
+      "end": 256.202,
+      "seg": "compare"
+    },
+    {
+      "text": "the",
+      "start": 256.202,
+      "end": 256.421,
+      "seg": "compare"
+    },
+    {
+      "text": "movie",
+      "start": 256.421,
+      "end": 256.737,
+      "seg": "compare"
+    },
+    {
+      "text": "cost",
+      "start": 256.737,
+      "end": 257.005,
+      "seg": "compare"
+    },
+    {
+      "text": "more",
+      "start": 257.005,
+      "end": 257.272,
+      "seg": "compare"
+    },
+    {
+      "text": "than",
+      "start": 257.272,
+      "end": 257.54,
+      "seg": "compare"
+    },
+    {
+      "text": "the",
+      "start": 257.54,
+      "end": 257.759,
+      "seg": "compare"
+    },
+    {
+      "text": "actual",
+      "start": 257.759,
+      "end": 258.124,
+      "seg": "compare"
+    },
+    {
+      "text": "Titanic.",
+      "start": 258.124,
+      "end": 258.537,
+      "seg": "compare"
+    },
+    {
+      "text": "Hollywood",
+      "start": 259.087,
+      "end": 259.648,
+      "seg": "compare"
+    },
+    {
+      "text": "rebuilt",
+      "start": 259.648,
+      "end": 260.102,
+      "seg": "compare"
+    },
+    {
+      "text": "history,",
+      "start": 260.102,
+      "end": 260.556,
+      "seg": "compare"
+    },
+    {
+      "text": "for",
+      "start": 260.556,
+      "end": 260.796,
+      "seg": "compare"
+    },
+    {
+      "text": "more",
+      "start": 260.796,
+      "end": 261.09,
+      "seg": "compare"
+    },
+    {
+      "text": "money",
+      "start": 261.09,
+      "end": 261.437,
+      "seg": "compare"
+    },
+    {
+      "text": "than",
+      "start": 261.437,
+      "end": 261.731,
+      "seg": "compare"
+    },
+    {
+      "text": "history",
+      "start": 261.731,
+      "end": 262.185,
+      "seg": "compare"
+    },
+    {
+      "text": "cost",
+      "start": 262.185,
+      "end": 262.479,
+      "seg": "compare"
+    },
+    {
+      "text": "the",
+      "start": 262.479,
+      "end": 262.719,
+      "seg": "compare"
+    },
+    {
+      "text": "first",
+      "start": 262.719,
+      "end": 263.066,
+      "seg": "compare"
+    },
+    {
+      "text": "time.",
+      "start": 263.066,
+      "end": 263.36,
+      "seg": "compare"
+    },
+    {
+      "text": "Act",
+      "start": 264.36,
+      "end": 264.62,
+      "seg": "t4"
+    },
+    {
+      "text": "four.",
+      "start": 264.62,
+      "end": 264.938,
+      "seg": "t4"
+    },
+    {
+      "text": "The",
+      "start": 264.938,
+      "end": 265.198,
+      "seg": "t4"
+    },
+    {
+      "text": "iceberg",
+      "start": 265.198,
+      "end": 265.689,
+      "seg": "t4"
+    },
+    {
+      "text": "that",
+      "start": 265.689,
+      "end": 266.007,
+      "seg": "t4"
+    },
+    {
+      "text": "never",
+      "start": 266.007,
+      "end": 266.383,
+      "seg": "t4"
+    },
+    {
+      "text": "came.",
+      "start": 266.383,
+      "end": 266.701,
+      "seg": "t4"
+    },
+    {
+      "text": "December",
+      "start": 269.701,
+      "end": 270.28,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "nineteenth,",
+      "start": 270.28,
+      "end": 270.982,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "nineteen",
+      "start": 270.982,
+      "end": 271.562,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "ninety",
+      "start": 271.562,
+      "end": 272.02,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "seven.",
+      "start": 272.02,
+      "end": 272.417,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "The",
+      "start": 272.417,
+      "end": 272.691,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "movie",
+      "start": 272.691,
+      "end": 273.088,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "finally",
+      "start": 273.088,
+      "end": 273.607,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "opens.",
+      "start": 273.607,
+      "end": 274.004,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Opening",
+      "start": 274.554,
+      "end": 275.058,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "weekend?",
+      "start": 275.058,
+      "end": 275.562,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "About",
+      "start": 275.562,
+      "end": 275.948,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "twenty",
+      "start": 275.948,
+      "end": 276.393,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "eight",
+      "start": 276.393,
+      "end": 276.779,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "million",
+      "start": 276.779,
+      "end": 277.283,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "dollars.",
+      "start": 277.283,
+      "end": 277.788,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Good,",
+      "start": 277.788,
+      "end": 278.114,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "not",
+      "start": 278.114,
+      "end": 278.381,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "historic.",
+      "start": 278.381,
+      "end": 278.945,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "But",
+      "start": 279.495,
+      "end": 279.727,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "then",
+      "start": 279.727,
+      "end": 280.012,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "something",
+      "start": 280.012,
+      "end": 280.554,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "weird",
+      "start": 280.554,
+      "end": 280.89,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "happened.",
+      "start": 280.89,
+      "end": 281.381,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "The",
+      "start": 281.381,
+      "end": 281.613,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "second",
+      "start": 281.613,
+      "end": 282.001,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "weekend,",
+      "start": 282.001,
+      "end": 282.44,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "it",
+      "start": 282.44,
+      "end": 282.621,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "went",
+      "start": 282.621,
+      "end": 282.905,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "up.",
+      "start": 282.905,
+      "end": 283.086,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "That",
+      "start": 283.636,
+      "end": 283.945,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "is",
+      "start": 283.945,
+      "end": 284.142,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "not",
+      "start": 284.142,
+      "end": 284.395,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "how",
+      "start": 284.395,
+      "end": 284.648,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "movies",
+      "start": 284.648,
+      "end": 285.069,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "work.",
+      "start": 285.069,
+      "end": 285.378,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Most",
+      "start": 285.378,
+      "end": 285.687,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "films",
+      "start": 285.687,
+      "end": 286.053,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "earn",
+      "start": 286.053,
+      "end": 286.362,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "the",
+      "start": 286.362,
+      "end": 286.615,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "most",
+      "start": 286.615,
+      "end": 286.924,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "on",
+      "start": 286.924,
+      "end": 287.121,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "day",
+      "start": 287.121,
+      "end": 287.374,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "one,",
+      "start": 287.374,
+      "end": 287.627,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "then",
+      "start": 287.627,
+      "end": 287.936,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "fade",
+      "start": 287.936,
+      "end": 288.245,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "away.",
+      "start": 288.245,
+      "end": 288.554,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "People",
+      "start": 289.104,
+      "end": 289.487,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "came",
+      "start": 289.487,
+      "end": 289.767,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "back.",
+      "start": 289.767,
+      "end": 290.048,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Then",
+      "start": 290.048,
+      "end": 290.329,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "they",
+      "start": 290.329,
+      "end": 290.609,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "came",
+      "start": 290.609,
+      "end": 290.89,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "back",
+      "start": 290.89,
+      "end": 291.171,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "again,",
+      "start": 291.171,
+      "end": 291.502,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "and",
+      "start": 291.502,
+      "end": 291.732,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "brought",
+      "start": 291.732,
+      "end": 292.166,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "their",
+      "start": 292.166,
+      "end": 292.497,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "friends.",
+      "start": 292.497,
+      "end": 292.931,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Word",
+      "start": 293.481,
+      "end": 293.745,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "of",
+      "start": 293.745,
+      "end": 293.913,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "mouth",
+      "start": 293.913,
+      "end": 294.224,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "did",
+      "start": 294.224,
+      "end": 294.44,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "what",
+      "start": 294.44,
+      "end": 294.704,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "no",
+      "start": 294.704,
+      "end": 294.872,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "marketing",
+      "start": 294.872,
+      "end": 295.375,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "budget",
+      "start": 295.375,
+      "end": 295.735,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "could.",
+      "start": 295.735,
+      "end": 296.047,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Titanic",
+      "start": 296.597,
+      "end": 297.071,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "stayed",
+      "start": 297.071,
+      "end": 297.49,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "number",
+      "start": 297.49,
+      "end": 297.908,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "one",
+      "start": 297.908,
+      "end": 298.159,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "at",
+      "start": 298.159,
+      "end": 298.355,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "the",
+      "start": 298.355,
+      "end": 298.606,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "American",
+      "start": 298.606,
+      "end": 299.136,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "box",
+      "start": 299.136,
+      "end": 299.387,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "office",
+      "start": 299.387,
+      "end": 299.806,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "for",
+      "start": 299.806,
+      "end": 300.057,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "fifteen",
+      "start": 300.057,
+      "end": 300.531,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "weekends",
+      "start": 300.531,
+      "end": 301.061,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "in",
+      "start": 301.061,
+      "end": 301.257,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "a",
+      "start": 301.257,
+      "end": 301.396,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "row.",
+      "start": 301.396,
+      "end": 301.647,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "It",
+      "start": 302.197,
+      "end": 302.385,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "became",
+      "start": 302.385,
+      "end": 302.787,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "the",
+      "start": 302.787,
+      "end": 303.028,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "first",
+      "start": 303.028,
+      "end": 303.376,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "movie",
+      "start": 303.376,
+      "end": 303.725,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "ever",
+      "start": 303.725,
+      "end": 304.02,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "to",
+      "start": 304.02,
+      "end": 304.207,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "earn",
+      "start": 304.207,
+      "end": 304.502,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "more",
+      "start": 304.502,
+      "end": 304.797,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "than",
+      "start": 304.797,
+      "end": 305.092,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "one",
+      "start": 305.092,
+      "end": 305.333,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "billion",
+      "start": 305.333,
+      "end": 305.788,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "dollars",
+      "start": 305.788,
+      "end": 306.244,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "worldwide.",
+      "start": 306.244,
+      "end": 306.807,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "By",
+      "start": 307.357,
+      "end": 307.538,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "the",
+      "start": 307.538,
+      "end": 307.772,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "end",
+      "start": 307.772,
+      "end": 308.005,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "of",
+      "start": 308.005,
+      "end": 308.187,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "its",
+      "start": 308.187,
+      "end": 308.42,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "first",
+      "start": 308.42,
+      "end": 308.757,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "run,",
+      "start": 308.757,
+      "end": 308.991,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "about",
+      "start": 308.991,
+      "end": 309.328,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "one",
+      "start": 309.328,
+      "end": 309.562,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "point",
+      "start": 309.562,
+      "end": 309.899,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "eight",
+      "start": 309.899,
+      "end": 310.236,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "billion.",
+      "start": 310.236,
+      "end": 310.677,
+      "seg": "boxoffice"
+    },
+    {
+      "text": "Then",
+      "start": 311.677,
+      "end": 312.013,
+      "seg": "oscars"
+    },
+    {
+      "text": "came",
+      "start": 312.013,
+      "end": 312.349,
+      "seg": "oscars"
+    },
+    {
+      "text": "the",
+      "start": 312.349,
+      "end": 312.624,
+      "seg": "oscars"
+    },
+    {
+      "text": "Oscars.",
+      "start": 312.624,
+      "end": 313.082,
+      "seg": "oscars"
+    },
+    {
+      "text": "Fourteen",
+      "start": 313.632,
+      "end": 314.26,
+      "seg": "oscars"
+    },
+    {
+      "text": "nominations.",
+      "start": 314.26,
+      "end": 315.087,
+      "seg": "oscars"
+    },
+    {
+      "text": "Eleven",
+      "start": 315.087,
+      "end": 315.583,
+      "seg": "oscars"
+    },
+    {
+      "text": "wins,",
+      "start": 315.583,
+      "end": 315.947,
+      "seg": "oscars"
+    },
+    {
+      "text": "including",
+      "start": 315.947,
+      "end": 316.641,
+      "seg": "oscars"
+    },
+    {
+      "text": "Best",
+      "start": 316.641,
+      "end": 317.005,
+      "seg": "oscars"
+    },
+    {
+      "text": "Picture",
+      "start": 317.005,
+      "end": 317.567,
+      "seg": "oscars"
+    },
+    {
+      "text": "and",
+      "start": 317.567,
+      "end": 317.865,
+      "seg": "oscars"
+    },
+    {
+      "text": "Best",
+      "start": 317.865,
+      "end": 318.228,
+      "seg": "oscars"
+    },
+    {
+      "text": "Director.",
+      "start": 318.228,
+      "end": 318.857,
+      "seg": "oscars"
+    },
+    {
+      "text": "That",
+      "start": 319.407,
+      "end": 319.688,
+      "seg": "oscars"
+    },
+    {
+      "text": "tied",
+      "start": 319.688,
+      "end": 319.969,
+      "seg": "oscars"
+    },
+    {
+      "text": "the",
+      "start": 319.969,
+      "end": 320.199,
+      "seg": "oscars"
+    },
+    {
+      "text": "all",
+      "start": 320.199,
+      "end": 320.43,
+      "seg": "oscars"
+    },
+    {
+      "text": "time",
+      "start": 320.43,
+      "end": 320.711,
+      "seg": "oscars"
+    },
+    {
+      "text": "record",
+      "start": 320.711,
+      "end": 321.094,
+      "seg": "oscars"
+    },
+    {
+      "text": "held",
+      "start": 321.094,
+      "end": 321.376,
+      "seg": "oscars"
+    },
+    {
+      "text": "by",
+      "start": 321.376,
+      "end": 321.555,
+      "seg": "oscars"
+    },
+    {
+      "text": "Ben",
+      "start": 321.555,
+      "end": 321.785,
+      "seg": "oscars"
+    },
+    {
+      "text": "Hur",
+      "start": 321.785,
+      "end": 322.015,
+      "seg": "oscars"
+    },
+    {
+      "text": "since",
+      "start": 322.015,
+      "end": 322.347,
+      "seg": "oscars"
+    },
+    {
+      "text": "nineteen",
+      "start": 322.347,
+      "end": 322.833,
+      "seg": "oscars"
+    },
+    {
+      "text": "fifty",
+      "start": 322.833,
+      "end": 323.166,
+      "seg": "oscars"
+    },
+    {
+      "text": "nine.",
+      "start": 323.166,
+      "end": 323.447,
+      "seg": "oscars"
+    },
+    {
+      "text": "And",
+      "start": 323.997,
+      "end": 324.25,
+      "seg": "oscars"
+    },
+    {
+      "text": "its",
+      "start": 324.25,
+      "end": 324.502,
+      "seg": "oscars"
+    },
+    {
+      "text": "soundtrack",
+      "start": 324.502,
+      "end": 325.148,
+      "seg": "oscars"
+    },
+    {
+      "text": "became",
+      "start": 325.148,
+      "end": 325.569,
+      "seg": "oscars"
+    },
+    {
+      "text": "one",
+      "start": 325.569,
+      "end": 325.822,
+      "seg": "oscars"
+    },
+    {
+      "text": "of",
+      "start": 325.822,
+      "end": 326.018,
+      "seg": "oscars"
+    },
+    {
+      "text": "the",
+      "start": 326.018,
+      "end": 326.271,
+      "seg": "oscars"
+    },
+    {
+      "text": "best",
+      "start": 326.271,
+      "end": 326.58,
+      "seg": "oscars"
+    },
+    {
+      "text": "selling",
+      "start": 326.58,
+      "end": 327.057,
+      "seg": "oscars"
+    },
+    {
+      "text": "film",
+      "start": 327.057,
+      "end": 327.366,
+      "seg": "oscars"
+    },
+    {
+      "text": "scores",
+      "start": 327.366,
+      "end": 327.787,
+      "seg": "oscars"
+    },
+    {
+      "text": "ever",
+      "start": 327.787,
+      "end": 328.096,
+      "seg": "oscars"
+    },
+    {
+      "text": "released.",
+      "start": 328.096,
+      "end": 328.63,
+      "seg": "oscars"
+    },
+    {
+      "text": "For",
+      "start": 329.18,
+      "end": 329.419,
+      "seg": "oscars"
+    },
+    {
+      "text": "a",
+      "start": 329.419,
+      "end": 329.553,
+      "seg": "oscars"
+    },
+    {
+      "text": "movie",
+      "start": 329.553,
+      "end": 329.899,
+      "seg": "oscars"
+    },
+    {
+      "text": "the",
+      "start": 329.899,
+      "end": 330.139,
+      "seg": "oscars"
+    },
+    {
+      "text": "industry",
+      "start": 330.139,
+      "end": 330.646,
+      "seg": "oscars"
+    },
+    {
+      "text": "had",
+      "start": 330.646,
+      "end": 330.886,
+      "seg": "oscars"
+    },
+    {
+      "text": "already",
+      "start": 330.886,
+      "end": 331.339,
+      "seg": "oscars"
+    },
+    {
+      "text": "written",
+      "start": 331.339,
+      "end": 331.793,
+      "seg": "oscars"
+    },
+    {
+      "text": "off,",
+      "start": 331.793,
+      "end": 332.032,
+      "seg": "oscars"
+    },
+    {
+      "text": "that",
+      "start": 332.032,
+      "end": 332.326,
+      "seg": "oscars"
+    },
+    {
+      "text": "is",
+      "start": 332.326,
+      "end": 332.512,
+      "seg": "oscars"
+    },
+    {
+      "text": "the",
+      "start": 332.512,
+      "end": 332.752,
+      "seg": "oscars"
+    },
+    {
+      "text": "ultimate",
+      "start": 332.752,
+      "end": 333.259,
+      "seg": "oscars"
+    },
+    {
+      "text": "comeback.",
+      "start": 333.259,
+      "end": 333.766,
+      "seg": "oscars"
+    },
+    {
+      "text": "Act",
+      "start": 334.766,
+      "end": 335.039,
+      "seg": "t5"
+    },
+    {
+      "text": "five.",
+      "start": 335.039,
+      "end": 335.374,
+      "seg": "t5"
+    },
+    {
+      "text": "Why",
+      "start": 335.374,
+      "end": 335.648,
+      "seg": "t5"
+    },
+    {
+      "text": "it",
+      "start": 335.648,
+      "end": 335.861,
+      "seg": "t5"
+    },
+    {
+      "text": "worked.",
+      "start": 335.861,
+      "end": 336.317,
+      "seg": "t5"
+    },
+    {
+      "text": "So",
+      "start": 339.317,
+      "end": 339.505,
+      "seg": "reasons"
+    },
+    {
+      "text": "why",
+      "start": 339.505,
+      "end": 339.747,
+      "seg": "reasons"
+    },
+    {
+      "text": "did",
+      "start": 339.747,
+      "end": 339.99,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 339.99,
+      "end": 340.124,
+      "seg": "reasons"
+    },
+    {
+      "text": "three",
+      "start": 340.124,
+      "end": 340.474,
+      "seg": "reasons"
+    },
+    {
+      "text": "hour",
+      "start": 340.474,
+      "end": 340.77,
+      "seg": "reasons"
+    },
+    {
+      "text": "movie",
+      "start": 340.77,
+      "end": 341.12,
+      "seg": "reasons"
+    },
+    {
+      "text": "with",
+      "start": 341.12,
+      "end": 341.416,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 341.416,
+      "end": 341.55,
+      "seg": "reasons"
+    },
+    {
+      "text": "known",
+      "start": 341.55,
+      "end": 341.9,
+      "seg": "reasons"
+    },
+    {
+      "text": "ending",
+      "start": 341.9,
+      "end": 342.304,
+      "seg": "reasons"
+    },
+    {
+      "text": "become",
+      "start": 342.304,
+      "end": 342.708,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 342.708,
+      "end": 342.842,
+      "seg": "reasons"
+    },
+    {
+      "text": "global",
+      "start": 342.842,
+      "end": 343.246,
+      "seg": "reasons"
+    },
+    {
+      "text": "obsession?",
+      "start": 343.246,
+      "end": 343.811,
+      "seg": "reasons"
+    },
+    {
+      "text": "Three",
+      "start": 343.811,
+      "end": 344.161,
+      "seg": "reasons"
+    },
+    {
+      "text": "reasons.",
+      "start": 344.161,
+      "end": 344.618,
+      "seg": "reasons"
+    },
+    {
+      "text": "Reason",
+      "start": 345.168,
+      "end": 345.571,
+      "seg": "reasons"
+    },
+    {
+      "text": "one.",
+      "start": 345.571,
+      "end": 345.813,
+      "seg": "reasons"
+    },
+    {
+      "text": "You",
+      "start": 345.813,
+      "end": 346.055,
+      "seg": "reasons"
+    },
+    {
+      "text": "already",
+      "start": 346.055,
+      "end": 346.511,
+      "seg": "reasons"
+    },
+    {
+      "text": "know",
+      "start": 346.511,
+      "end": 346.807,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 346.807,
+      "end": 347.048,
+      "seg": "reasons"
+    },
+    {
+      "text": "ending.",
+      "start": 347.048,
+      "end": 347.451,
+      "seg": "reasons"
+    },
+    {
+      "text": "That",
+      "start": 348.001,
+      "end": 348.254,
+      "seg": "reasons"
+    },
+    {
+      "text": "sounds",
+      "start": 348.254,
+      "end": 348.599,
+      "seg": "reasons"
+    },
+    {
+      "text": "like",
+      "start": 348.599,
+      "end": 348.852,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 348.852,
+      "end": 348.967,
+      "seg": "reasons"
+    },
+    {
+      "text": "weakness,",
+      "start": 348.967,
+      "end": 349.403,
+      "seg": "reasons"
+    },
+    {
+      "text": "but",
+      "start": 349.403,
+      "end": 349.61,
+      "seg": "reasons"
+    },
+    {
+      "text": "it's",
+      "start": 349.61,
+      "end": 349.817,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 349.817,
+      "end": 350.024,
+      "seg": "reasons"
+    },
+    {
+      "text": "secret",
+      "start": 350.024,
+      "end": 350.369,
+      "seg": "reasons"
+    },
+    {
+      "text": "weapon.",
+      "start": 350.369,
+      "end": 350.714,
+      "seg": "reasons"
+    },
+    {
+      "text": "Every",
+      "start": 350.714,
+      "end": 351.013,
+      "seg": "reasons"
+    },
+    {
+      "text": "happy",
+      "start": 351.013,
+      "end": 351.312,
+      "seg": "reasons"
+    },
+    {
+      "text": "moment",
+      "start": 351.312,
+      "end": 351.656,
+      "seg": "reasons"
+    },
+    {
+      "text": "on",
+      "start": 351.656,
+      "end": 351.817,
+      "seg": "reasons"
+    },
+    {
+      "text": "that",
+      "start": 351.817,
+      "end": 352.07,
+      "seg": "reasons"
+    },
+    {
+      "text": "ship",
+      "start": 352.07,
+      "end": 352.323,
+      "seg": "reasons"
+    },
+    {
+      "text": "feels",
+      "start": 352.323,
+      "end": 352.622,
+      "seg": "reasons"
+    },
+    {
+      "text": "like",
+      "start": 352.622,
+      "end": 352.875,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 352.875,
+      "end": 352.99,
+      "seg": "reasons"
+    },
+    {
+      "text": "countdown.",
+      "start": 352.99,
+      "end": 353.473,
+      "seg": "reasons"
+    },
+    {
+      "text": "You",
+      "start": 353.473,
+      "end": 353.68,
+      "seg": "reasons"
+    },
+    {
+      "text": "are",
+      "start": 353.68,
+      "end": 353.886,
+      "seg": "reasons"
+    },
+    {
+      "text": "waiting",
+      "start": 353.886,
+      "end": 354.277,
+      "seg": "reasons"
+    },
+    {
+      "text": "for",
+      "start": 354.277,
+      "end": 354.484,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 354.484,
+      "end": 354.691,
+      "seg": "reasons"
+    },
+    {
+      "text": "iceberg",
+      "start": 354.691,
+      "end": 355.082,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 355.082,
+      "end": 355.289,
+      "seg": "reasons"
+    },
+    {
+      "text": "whole",
+      "start": 355.289,
+      "end": 355.588,
+      "seg": "reasons"
+    },
+    {
+      "text": "time.",
+      "start": 355.588,
+      "end": 355.841,
+      "seg": "reasons"
+    },
+    {
+      "text": "Reason",
+      "start": 356.391,
+      "end": 356.871,
+      "seg": "reasons"
+    },
+    {
+      "text": "two.",
+      "start": 356.871,
+      "end": 357.16,
+      "seg": "reasons"
+    },
+    {
+      "text": "The",
+      "start": 357.16,
+      "end": 357.448,
+      "seg": "reasons"
+    },
+    {
+      "text": "ship",
+      "start": 357.448,
+      "end": 357.8,
+      "seg": "reasons"
+    },
+    {
+      "text": "is",
+      "start": 357.8,
+      "end": 358.025,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 358.025,
+      "end": 358.185,
+      "seg": "reasons"
+    },
+    {
+      "text": "map",
+      "start": 358.185,
+      "end": 358.473,
+      "seg": "reasons"
+    },
+    {
+      "text": "of",
+      "start": 358.473,
+      "end": 358.697,
+      "seg": "reasons"
+    },
+    {
+      "text": "society.",
+      "start": 358.697,
+      "end": 359.242,
+      "seg": "reasons"
+    },
+    {
+      "text": "First",
+      "start": 359.792,
+      "end": 360.152,
+      "seg": "reasons"
+    },
+    {
+      "text": "class",
+      "start": 360.152,
+      "end": 360.511,
+      "seg": "reasons"
+    },
+    {
+      "text": "on",
+      "start": 360.511,
+      "end": 360.705,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 360.705,
+      "end": 360.954,
+      "seg": "reasons"
+    },
+    {
+      "text": "top",
+      "start": 360.954,
+      "end": 361.203,
+      "seg": "reasons"
+    },
+    {
+      "text": "decks.",
+      "start": 361.203,
+      "end": 361.562,
+      "seg": "reasons"
+    },
+    {
+      "text": "Third",
+      "start": 361.562,
+      "end": 361.922,
+      "seg": "reasons"
+    },
+    {
+      "text": "class",
+      "start": 361.922,
+      "end": 362.282,
+      "seg": "reasons"
+    },
+    {
+      "text": "down",
+      "start": 362.282,
+      "end": 362.586,
+      "seg": "reasons"
+    },
+    {
+      "text": "below.",
+      "start": 362.586,
+      "end": 362.945,
+      "seg": "reasons"
+    },
+    {
+      "text": "When",
+      "start": 362.945,
+      "end": 363.25,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 363.25,
+      "end": 363.499,
+      "seg": "reasons"
+    },
+    {
+      "text": "water",
+      "start": 363.499,
+      "end": 363.858,
+      "seg": "reasons"
+    },
+    {
+      "text": "rises,",
+      "start": 363.858,
+      "end": 364.218,
+      "seg": "reasons"
+    },
+    {
+      "text": "where",
+      "start": 364.218,
+      "end": 364.577,
+      "seg": "reasons"
+    },
+    {
+      "text": "you",
+      "start": 364.577,
+      "end": 364.826,
+      "seg": "reasons"
+    },
+    {
+      "text": "sleep",
+      "start": 364.826,
+      "end": 365.186,
+      "seg": "reasons"
+    },
+    {
+      "text": "decides",
+      "start": 365.186,
+      "end": 365.656,
+      "seg": "reasons"
+    },
+    {
+      "text": "whether",
+      "start": 365.656,
+      "end": 366.126,
+      "seg": "reasons"
+    },
+    {
+      "text": "you",
+      "start": 366.126,
+      "end": 366.375,
+      "seg": "reasons"
+    },
+    {
+      "text": "live.",
+      "start": 366.375,
+      "end": 366.68,
+      "seg": "reasons"
+    },
+    {
+      "text": "Reason",
+      "start": 367.23,
+      "end": 367.721,
+      "seg": "reasons"
+    },
+    {
+      "text": "three.",
+      "start": 367.721,
+      "end": 368.146,
+      "seg": "reasons"
+    },
+    {
+      "text": "A",
+      "start": 368.146,
+      "end": 368.31,
+      "seg": "reasons"
+    },
+    {
+      "text": "fake",
+      "start": 368.31,
+      "end": 368.67,
+      "seg": "reasons"
+    },
+    {
+      "text": "couple",
+      "start": 368.67,
+      "end": 369.161,
+      "seg": "reasons"
+    },
+    {
+      "text": "inside",
+      "start": 369.161,
+      "end": 369.651,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 369.651,
+      "end": 369.815,
+      "seg": "reasons"
+    },
+    {
+      "text": "real",
+      "start": 369.815,
+      "end": 370.175,
+      "seg": "reasons"
+    },
+    {
+      "text": "tragedy.",
+      "start": 370.175,
+      "end": 370.731,
+      "seg": "reasons"
+    },
+    {
+      "text": "Fifteen",
+      "start": 371.281,
+      "end": 371.749,
+      "seg": "reasons"
+    },
+    {
+      "text": "hundred",
+      "start": 371.749,
+      "end": 372.217,
+      "seg": "reasons"
+    },
+    {
+      "text": "deaths",
+      "start": 372.217,
+      "end": 372.63,
+      "seg": "reasons"
+    },
+    {
+      "text": "is",
+      "start": 372.63,
+      "end": 372.822,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 372.822,
+      "end": 372.96,
+      "seg": "reasons"
+    },
+    {
+      "text": "number.",
+      "start": 372.96,
+      "end": 373.373,
+      "seg": "reasons"
+    },
+    {
+      "text": "Two",
+      "start": 373.373,
+      "end": 373.62,
+      "seg": "reasons"
+    },
+    {
+      "text": "people",
+      "start": 373.62,
+      "end": 374.033,
+      "seg": "reasons"
+    },
+    {
+      "text": "you",
+      "start": 374.033,
+      "end": 374.281,
+      "seg": "reasons"
+    },
+    {
+      "text": "care",
+      "start": 374.281,
+      "end": 374.583,
+      "seg": "reasons"
+    },
+    {
+      "text": "about",
+      "start": 374.583,
+      "end": 374.941,
+      "seg": "reasons"
+    },
+    {
+      "text": "is",
+      "start": 374.941,
+      "end": 375.134,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 375.134,
+      "end": 375.271,
+      "seg": "reasons"
+    },
+    {
+      "text": "feeling.",
+      "start": 375.271,
+      "end": 375.739,
+      "seg": "reasons"
+    },
+    {
+      "text": "The",
+      "start": 375.739,
+      "end": 375.987,
+      "seg": "reasons"
+    },
+    {
+      "text": "love",
+      "start": 375.987,
+      "end": 376.289,
+      "seg": "reasons"
+    },
+    {
+      "text": "story",
+      "start": 376.289,
+      "end": 376.647,
+      "seg": "reasons"
+    },
+    {
+      "text": "gives",
+      "start": 376.647,
+      "end": 377.005,
+      "seg": "reasons"
+    },
+    {
+      "text": "the",
+      "start": 377.005,
+      "end": 377.252,
+      "seg": "reasons"
+    },
+    {
+      "text": "disaster",
+      "start": 377.252,
+      "end": 377.775,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 377.775,
+      "end": 377.913,
+      "seg": "reasons"
+    },
+    {
+      "text": "face.",
+      "start": 377.913,
+      "end": 378.215,
+      "seg": "reasons"
+    },
+    {
+      "text": "Put",
+      "start": 378.765,
+      "end": 378.975,
+      "seg": "reasons"
+    },
+    {
+      "text": "those",
+      "start": 378.975,
+      "end": 379.277,
+      "seg": "reasons"
+    },
+    {
+      "text": "three",
+      "start": 379.277,
+      "end": 379.579,
+      "seg": "reasons"
+    },
+    {
+      "text": "together,",
+      "start": 379.579,
+      "end": 380.021,
+      "seg": "reasons"
+    },
+    {
+      "text": "and",
+      "start": 380.021,
+      "end": 380.231,
+      "seg": "reasons"
+    },
+    {
+      "text": "you",
+      "start": 380.231,
+      "end": 380.44,
+      "seg": "reasons"
+    },
+    {
+      "text": "get",
+      "start": 380.44,
+      "end": 380.649,
+      "seg": "reasons"
+    },
+    {
+      "text": "a",
+      "start": 380.649,
+      "end": 380.766,
+      "seg": "reasons"
+    },
+    {
+      "text": "movie",
+      "start": 380.766,
+      "end": 381.068,
+      "seg": "reasons"
+    },
+    {
+      "text": "people",
+      "start": 381.068,
+      "end": 381.417,
+      "seg": "reasons"
+    },
+    {
+      "text": "did",
+      "start": 381.417,
+      "end": 381.626,
+      "seg": "reasons"
+    },
+    {
+      "text": "not",
+      "start": 381.626,
+      "end": 381.836,
+      "seg": "reasons"
+    },
+    {
+      "text": "just",
+      "start": 381.836,
+      "end": 382.091,
+      "seg": "reasons"
+    },
+    {
+      "text": "watch.",
+      "start": 382.091,
+      "end": 382.394,
+      "seg": "reasons"
+    },
+    {
+      "text": "They",
+      "start": 382.394,
+      "end": 382.65,
+      "seg": "reasons"
+    },
+    {
+      "text": "felt",
+      "start": 382.65,
+      "end": 382.905,
+      "seg": "reasons"
+    },
+    {
+      "text": "it.",
+      "start": 382.905,
+      "end": 383.068,
+      "seg": "reasons"
+    },
+    {
+      "text": "But",
+      "start": 384.068,
+      "end": 384.269,
+      "seg": "flaws"
+    },
+    {
+      "text": "it's",
+      "start": 384.269,
+      "end": 384.469,
+      "seg": "flaws"
+    },
+    {
+      "text": "not",
+      "start": 384.469,
+      "end": 384.67,
+      "seg": "flaws"
+    },
+    {
+      "text": "a",
+      "start": 384.67,
+      "end": 384.781,
+      "seg": "flaws"
+    },
+    {
+      "text": "perfect",
+      "start": 384.781,
+      "end": 385.16,
+      "seg": "flaws"
+    },
+    {
+      "text": "movie.",
+      "start": 385.16,
+      "end": 385.45,
+      "seg": "flaws"
+    },
+    {
+      "text": "Some",
+      "start": 386.0,
+      "end": 386.319,
+      "seg": "flaws"
+    },
+    {
+      "text": "of",
+      "start": 386.319,
+      "end": 386.522,
+      "seg": "flaws"
+    },
+    {
+      "text": "the",
+      "start": 386.522,
+      "end": 386.784,
+      "seg": "flaws"
+    },
+    {
+      "text": "dialogue",
+      "start": 386.784,
+      "end": 387.335,
+      "seg": "flaws"
+    },
+    {
+      "text": "is",
+      "start": 387.335,
+      "end": 387.538,
+      "seg": "flaws"
+    },
+    {
+      "text": "cheesy,",
+      "start": 387.538,
+      "end": 387.974,
+      "seg": "flaws"
+    },
+    {
+      "text": "and",
+      "start": 387.974,
+      "end": 388.235,
+      "seg": "flaws"
+    },
+    {
+      "text": "it",
+      "start": 388.235,
+      "end": 388.438,
+      "seg": "flaws"
+    },
+    {
+      "text": "knows",
+      "start": 388.438,
+      "end": 388.815,
+      "seg": "flaws"
+    },
+    {
+      "text": "it.",
+      "start": 388.815,
+      "end": 389.019,
+      "seg": "flaws"
+    },
+    {
+      "text": "The",
+      "start": 389.569,
+      "end": 389.81,
+      "seg": "flaws"
+    },
+    {
+      "text": "villain",
+      "start": 389.81,
+      "end": 390.267,
+      "seg": "flaws"
+    },
+    {
+      "text": "is",
+      "start": 390.267,
+      "end": 390.455,
+      "seg": "flaws"
+    },
+    {
+      "text": "about",
+      "start": 390.455,
+      "end": 390.804,
+      "seg": "flaws"
+    },
+    {
+      "text": "as",
+      "start": 390.804,
+      "end": 390.992,
+      "seg": "flaws"
+    },
+    {
+      "text": "subtle",
+      "start": 390.992,
+      "end": 391.395,
+      "seg": "flaws"
+    },
+    {
+      "text": "as",
+      "start": 391.395,
+      "end": 391.583,
+      "seg": "flaws"
+    },
+    {
+      "text": "an",
+      "start": 391.583,
+      "end": 391.771,
+      "seg": "flaws"
+    },
+    {
+      "text": "iceberg.",
+      "start": 391.771,
+      "end": 392.227,
+      "seg": "flaws"
+    },
+    {
+      "text": "And",
+      "start": 392.777,
+      "end": 393.066,
+      "seg": "flaws"
+    },
+    {
+      "text": "the",
+      "start": 393.066,
+      "end": 393.355,
+      "seg": "flaws"
+    },
+    {
+      "text": "runtime?",
+      "start": 393.355,
+      "end": 393.9,
+      "seg": "flaws"
+    },
+    {
+      "text": "Three",
+      "start": 393.9,
+      "end": 394.317,
+      "seg": "flaws"
+    },
+    {
+      "text": "hours",
+      "start": 394.317,
+      "end": 394.734,
+      "seg": "flaws"
+    },
+    {
+      "text": "and",
+      "start": 394.734,
+      "end": 395.023,
+      "seg": "flaws"
+    },
+    {
+      "text": "fourteen",
+      "start": 395.023,
+      "end": 395.632,
+      "seg": "flaws"
+    },
+    {
+      "text": "minutes.",
+      "start": 395.632,
+      "end": 396.178,
+      "seg": "flaws"
+    },
+    {
+      "text": "Bring",
+      "start": 396.178,
+      "end": 396.595,
+      "seg": "flaws"
+    },
+    {
+      "text": "snacks.",
+      "start": 396.595,
+      "end": 397.076,
+      "seg": "flaws"
+    },
+    {
+      "text": "Critics",
+      "start": 397.626,
+      "end": 398.108,
+      "seg": "flaws"
+    },
+    {
+      "text": "loved",
+      "start": 398.108,
+      "end": 398.477,
+      "seg": "flaws"
+    },
+    {
+      "text": "the",
+      "start": 398.477,
+      "end": 398.732,
+      "seg": "flaws"
+    },
+    {
+      "text": "spectacle,",
+      "start": 398.732,
+      "end": 399.327,
+      "seg": "flaws"
+    },
+    {
+      "text": "but",
+      "start": 399.327,
+      "end": 399.583,
+      "seg": "flaws"
+    },
+    {
+      "text": "plenty",
+      "start": 399.583,
+      "end": 400.008,
+      "seg": "flaws"
+    },
+    {
+      "text": "of",
+      "start": 400.008,
+      "end": 400.206,
+      "seg": "flaws"
+    },
+    {
+      "text": "them",
+      "start": 400.206,
+      "end": 400.518,
+      "seg": "flaws"
+    },
+    {
+      "text": "rolled",
+      "start": 400.518,
+      "end": 400.944,
+      "seg": "flaws"
+    },
+    {
+      "text": "their",
+      "start": 400.944,
+      "end": 401.312,
+      "seg": "flaws"
+    },
+    {
+      "text": "eyes",
+      "start": 401.312,
+      "end": 401.624,
+      "seg": "flaws"
+    },
+    {
+      "text": "at",
+      "start": 401.624,
+      "end": 401.823,
+      "seg": "flaws"
+    },
+    {
+      "text": "the",
+      "start": 401.823,
+      "end": 402.078,
+      "seg": "flaws"
+    },
+    {
+      "text": "romance.",
+      "start": 402.078,
+      "end": 402.56,
+      "seg": "flaws"
+    },
+    {
+      "text": "Still,",
+      "start": 403.11,
+      "end": 403.444,
+      "seg": "flaws"
+    },
+    {
+      "text": "none",
+      "start": 403.444,
+      "end": 403.726,
+      "seg": "flaws"
+    },
+    {
+      "text": "of",
+      "start": 403.726,
+      "end": 403.906,
+      "seg": "flaws"
+    },
+    {
+      "text": "that",
+      "start": 403.906,
+      "end": 404.188,
+      "seg": "flaws"
+    },
+    {
+      "text": "stopped",
+      "start": 404.188,
+      "end": 404.624,
+      "seg": "flaws"
+    },
+    {
+      "text": "people",
+      "start": 404.624,
+      "end": 405.009,
+      "seg": "flaws"
+    },
+    {
+      "text": "from",
+      "start": 405.009,
+      "end": 405.291,
+      "seg": "flaws"
+    },
+    {
+      "text": "buying",
+      "start": 405.291,
+      "end": 405.676,
+      "seg": "flaws"
+    },
+    {
+      "text": "ticket",
+      "start": 405.676,
+      "end": 406.061,
+      "seg": "flaws"
+    },
+    {
+      "text": "after",
+      "start": 406.061,
+      "end": 406.394,
+      "seg": "flaws"
+    },
+    {
+      "text": "ticket.",
+      "start": 406.394,
+      "end": 406.779,
+      "seg": "flaws"
+    },
+    {
+      "text": "Act",
+      "start": 407.779,
+      "end": 408.119,
+      "seg": "t6"
+    },
+    {
+      "text": "six.",
+      "start": 408.119,
+      "end": 408.459,
+      "seg": "t6"
+    },
+    {
+      "text": "The",
+      "start": 408.459,
+      "end": 408.799,
+      "seg": "t6"
+    },
+    {
+      "text": "door.",
+      "start": 408.799,
+      "end": 409.214,
+      "seg": "t6"
+    },
+    {
+      "text": "But",
+      "start": 412.214,
+      "end": 412.461,
+      "seg": "door"
+    },
+    {
+      "text": "for",
+      "start": 412.461,
+      "end": 412.707,
+      "seg": "door"
+    },
+    {
+      "text": "many",
+      "start": 412.707,
+      "end": 413.008,
+      "seg": "door"
+    },
+    {
+      "text": "fans,",
+      "start": 413.008,
+      "end": 413.309,
+      "seg": "door"
+    },
+    {
+      "text": "one",
+      "start": 413.309,
+      "end": 413.555,
+      "seg": "door"
+    },
+    {
+      "text": "question",
+      "start": 413.555,
+      "end": 414.075,
+      "seg": "door"
+    },
+    {
+      "text": "matters",
+      "start": 414.075,
+      "end": 414.54,
+      "seg": "door"
+    },
+    {
+      "text": "more",
+      "start": 414.54,
+      "end": 414.841,
+      "seg": "door"
+    },
+    {
+      "text": "than",
+      "start": 414.841,
+      "end": 415.142,
+      "seg": "door"
+    },
+    {
+      "text": "any",
+      "start": 415.142,
+      "end": 415.388,
+      "seg": "door"
+    },
+    {
+      "text": "Oscar.",
+      "start": 415.388,
+      "end": 415.744,
+      "seg": "door"
+    },
+    {
+      "text": "Could",
+      "start": 416.294,
+      "end": 416.54,
+      "seg": "door"
+    },
+    {
+      "text": "Jack",
+      "start": 416.54,
+      "end": 416.748,
+      "seg": "door"
+    },
+    {
+      "text": "have",
+      "start": 416.748,
+      "end": 416.956,
+      "seg": "door"
+    },
+    {
+      "text": "fit",
+      "start": 416.956,
+      "end": 417.127,
+      "seg": "door"
+    },
+    {
+      "text": "on",
+      "start": 417.127,
+      "end": 417.259,
+      "seg": "door"
+    },
+    {
+      "text": "that",
+      "start": 417.259,
+      "end": 417.467,
+      "seg": "door"
+    },
+    {
+      "text": "door?",
+      "start": 417.467,
+      "end": 417.676,
+      "seg": "door"
+    },
+    {
+      "text": "Rose",
+      "start": 418.226,
+      "end": 418.548,
+      "seg": "door"
+    },
+    {
+      "text": "floats",
+      "start": 418.548,
+      "end": 418.988,
+      "seg": "door"
+    },
+    {
+      "text": "on",
+      "start": 418.988,
+      "end": 419.193,
+      "seg": "door"
+    },
+    {
+      "text": "a",
+      "start": 419.193,
+      "end": 419.339,
+      "seg": "door"
+    },
+    {
+      "text": "piece",
+      "start": 419.339,
+      "end": 419.72,
+      "seg": "door"
+    },
+    {
+      "text": "of",
+      "start": 419.72,
+      "end": 419.926,
+      "seg": "door"
+    },
+    {
+      "text": "wooden",
+      "start": 419.926,
+      "end": 420.365,
+      "seg": "door"
+    },
+    {
+      "text": "debris.",
+      "start": 420.365,
+      "end": 420.805,
+      "seg": "door"
+    },
+    {
+      "text": "Jack",
+      "start": 420.805,
+      "end": 421.127,
+      "seg": "door"
+    },
+    {
+      "text": "stays",
+      "start": 421.127,
+      "end": 421.508,
+      "seg": "door"
+    },
+    {
+      "text": "in",
+      "start": 421.508,
+      "end": 421.714,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 421.714,
+      "end": 421.977,
+      "seg": "door"
+    },
+    {
+      "text": "water,",
+      "start": 421.977,
+      "end": 422.358,
+      "seg": "door"
+    },
+    {
+      "text": "and",
+      "start": 422.358,
+      "end": 422.622,
+      "seg": "door"
+    },
+    {
+      "text": "freezes.",
+      "start": 422.622,
+      "end": 423.121,
+      "seg": "door"
+    },
+    {
+      "text": "Fans",
+      "start": 423.671,
+      "end": 423.969,
+      "seg": "door"
+    },
+    {
+      "text": "have",
+      "start": 423.969,
+      "end": 424.267,
+      "seg": "door"
+    },
+    {
+      "text": "argued",
+      "start": 424.267,
+      "end": 424.674,
+      "seg": "door"
+    },
+    {
+      "text": "about",
+      "start": 424.674,
+      "end": 425.027,
+      "seg": "door"
+    },
+    {
+      "text": "it",
+      "start": 425.027,
+      "end": 425.217,
+      "seg": "door"
+    },
+    {
+      "text": "for",
+      "start": 425.217,
+      "end": 425.461,
+      "seg": "door"
+    },
+    {
+      "text": "decades.",
+      "start": 425.461,
+      "end": 425.922,
+      "seg": "door"
+    },
+    {
+      "text": "The",
+      "start": 426.472,
+      "end": 426.711,
+      "seg": "door"
+    },
+    {
+      "text": "internet",
+      "start": 426.711,
+      "end": 427.213,
+      "seg": "door"
+    },
+    {
+      "text": "has",
+      "start": 427.213,
+      "end": 427.452,
+      "seg": "door"
+    },
+    {
+      "text": "run",
+      "start": 427.452,
+      "end": 427.69,
+      "seg": "door"
+    },
+    {
+      "text": "this",
+      "start": 427.69,
+      "end": 427.981,
+      "seg": "door"
+    },
+    {
+      "text": "debate",
+      "start": 427.981,
+      "end": 428.378,
+      "seg": "door"
+    },
+    {
+      "text": "in",
+      "start": 428.378,
+      "end": 428.563,
+      "seg": "door"
+    },
+    {
+      "text": "polls,",
+      "start": 428.563,
+      "end": 428.907,
+      "seg": "door"
+    },
+    {
+      "text": "memes,",
+      "start": 428.907,
+      "end": 429.252,
+      "seg": "door"
+    },
+    {
+      "text": "and",
+      "start": 429.252,
+      "end": 429.49,
+      "seg": "door"
+    },
+    {
+      "text": "science",
+      "start": 429.49,
+      "end": 429.94,
+      "seg": "door"
+    },
+    {
+      "text": "videos",
+      "start": 429.94,
+      "end": 430.337,
+      "seg": "door"
+    },
+    {
+      "text": "for",
+      "start": 430.337,
+      "end": 430.575,
+      "seg": "door"
+    },
+    {
+      "text": "years.",
+      "start": 430.575,
+      "end": 430.919,
+      "seg": "door"
+    },
+    {
+      "text": "TV",
+      "start": 431.469,
+      "end": 431.677,
+      "seg": "door"
+    },
+    {
+      "text": "myth",
+      "start": 431.677,
+      "end": 432.005,
+      "seg": "door"
+    },
+    {
+      "text": "testers",
+      "start": 432.005,
+      "end": 432.511,
+      "seg": "door"
+    },
+    {
+      "text": "tried",
+      "start": 432.511,
+      "end": 432.897,
+      "seg": "door"
+    },
+    {
+      "text": "it.",
+      "start": 432.897,
+      "end": 433.106,
+      "seg": "door"
+    },
+    {
+      "text": "Scientists",
+      "start": 433.106,
+      "end": 433.79,
+      "seg": "door"
+    },
+    {
+      "text": "ran",
+      "start": 433.79,
+      "end": 434.058,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 434.058,
+      "end": 434.326,
+      "seg": "door"
+    },
+    {
+      "text": "numbers.",
+      "start": 434.326,
+      "end": 434.832,
+      "seg": "door"
+    },
+    {
+      "text": "Is",
+      "start": 435.382,
+      "end": 435.56,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 435.56,
+      "end": 435.79,
+      "seg": "door"
+    },
+    {
+      "text": "door",
+      "start": 435.79,
+      "end": 436.071,
+      "seg": "door"
+    },
+    {
+      "text": "big",
+      "start": 436.071,
+      "end": 436.301,
+      "seg": "door"
+    },
+    {
+      "text": "enough",
+      "start": 436.301,
+      "end": 436.684,
+      "seg": "door"
+    },
+    {
+      "text": "for",
+      "start": 436.684,
+      "end": 436.914,
+      "seg": "door"
+    },
+    {
+      "text": "two?",
+      "start": 436.914,
+      "end": 437.143,
+      "seg": "door"
+    },
+    {
+      "text": "Probably.",
+      "start": 437.143,
+      "end": 437.629,
+      "seg": "door"
+    },
+    {
+      "text": "Does",
+      "start": 437.629,
+      "end": 437.909,
+      "seg": "door"
+    },
+    {
+      "text": "it",
+      "start": 437.909,
+      "end": 438.088,
+      "seg": "door"
+    },
+    {
+      "text": "float",
+      "start": 438.088,
+      "end": 438.42,
+      "seg": "door"
+    },
+    {
+      "text": "well",
+      "start": 438.42,
+      "end": 438.701,
+      "seg": "door"
+    },
+    {
+      "text": "enough",
+      "start": 438.701,
+      "end": 439.084,
+      "seg": "door"
+    },
+    {
+      "text": "for",
+      "start": 439.084,
+      "end": 439.314,
+      "seg": "door"
+    },
+    {
+      "text": "two?",
+      "start": 439.314,
+      "end": 439.544,
+      "seg": "door"
+    },
+    {
+      "text": "That's",
+      "start": 439.544,
+      "end": 439.876,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 439.876,
+      "end": 440.105,
+      "seg": "door"
+    },
+    {
+      "text": "real",
+      "start": 440.105,
+      "end": 440.386,
+      "seg": "door"
+    },
+    {
+      "text": "question.",
+      "start": 440.386,
+      "end": 440.871,
+      "seg": "door"
+    },
+    {
+      "text": "And",
+      "start": 441.421,
+      "end": 441.663,
+      "seg": "door"
+    },
+    {
+      "text": "in",
+      "start": 441.663,
+      "end": 441.85,
+      "seg": "door"
+    },
+    {
+      "text": "twenty",
+      "start": 441.85,
+      "end": 442.252,
+      "seg": "door"
+    },
+    {
+      "text": "twenty",
+      "start": 442.252,
+      "end": 442.655,
+      "seg": "door"
+    },
+    {
+      "text": "three,",
+      "start": 442.655,
+      "end": 443.003,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 443.003,
+      "end": 443.244,
+      "seg": "door"
+    },
+    {
+      "text": "director",
+      "start": 443.244,
+      "end": 443.754,
+      "seg": "door"
+    },
+    {
+      "text": "himself",
+      "start": 443.754,
+      "end": 444.21,
+      "seg": "door"
+    },
+    {
+      "text": "ran",
+      "start": 444.21,
+      "end": 444.451,
+      "seg": "door"
+    },
+    {
+      "text": "a",
+      "start": 444.451,
+      "end": 444.585,
+      "seg": "door"
+    },
+    {
+      "text": "hypothermia",
+      "start": 444.585,
+      "end": 445.255,
+      "seg": "door"
+    },
+    {
+      "text": "experiment",
+      "start": 445.255,
+      "end": 445.872,
+      "seg": "door"
+    },
+    {
+      "text": "with",
+      "start": 445.872,
+      "end": 446.167,
+      "seg": "door"
+    },
+    {
+      "text": "stunt",
+      "start": 446.167,
+      "end": 446.515,
+      "seg": "door"
+    },
+    {
+      "text": "doubles.",
+      "start": 446.515,
+      "end": 446.971,
+      "seg": "door"
+    },
+    {
+      "text": "His",
+      "start": 447.521,
+      "end": 447.799,
+      "seg": "door"
+    },
+    {
+      "text": "conclusion?",
+      "start": 447.799,
+      "end": 448.509,
+      "seg": "door"
+    },
+    {
+      "text": "Jack",
+      "start": 448.509,
+      "end": 448.848,
+      "seg": "door"
+    },
+    {
+      "text": "might",
+      "start": 448.848,
+      "end": 449.25,
+      "seg": "door"
+    },
+    {
+      "text": "have",
+      "start": 449.25,
+      "end": 449.589,
+      "seg": "door"
+    },
+    {
+      "text": "survived.",
+      "start": 449.589,
+      "end": 450.176,
+      "seg": "door"
+    },
+    {
+      "text": "Maybe.",
+      "start": 450.176,
+      "end": 450.577,
+      "seg": "door"
+    },
+    {
+      "text": "So,",
+      "start": 451.127,
+      "end": 451.378,
+      "seg": "door"
+    },
+    {
+      "text": "fit",
+      "start": 451.378,
+      "end": 451.7,
+      "seg": "door"
+    },
+    {
+      "text": "or",
+      "start": 451.7,
+      "end": 451.95,
+      "seg": "door"
+    },
+    {
+      "text": "no",
+      "start": 451.95,
+      "end": 452.201,
+      "seg": "door"
+    },
+    {
+      "text": "fit?",
+      "start": 452.201,
+      "end": 452.523,
+      "seg": "door"
+    },
+    {
+      "text": "Tell",
+      "start": 452.523,
+      "end": 452.917,
+      "seg": "door"
+    },
+    {
+      "text": "me",
+      "start": 452.917,
+      "end": 453.167,
+      "seg": "door"
+    },
+    {
+      "text": "in",
+      "start": 453.167,
+      "end": 453.418,
+      "seg": "door"
+    },
+    {
+      "text": "the",
+      "start": 453.418,
+      "end": 453.74,
+      "seg": "door"
+    },
+    {
+      "text": "comments.",
+      "start": 453.74,
+      "end": 454.42,
+      "seg": "door"
+    },
+    {
+      "text": "The",
+      "start": 455.42,
+      "end": 455.677,
+      "seg": "t7"
+    },
+    {
+      "text": "verdict.",
+      "start": 455.677,
+      "end": 456.163,
+      "seg": "t7"
+    },
+    {
+      "text": "So,",
+      "start": 459.163,
+      "end": 459.422,
+      "seg": "verdict"
+    },
+    {
+      "text": "was",
+      "start": 459.422,
+      "end": 459.754,
+      "seg": "verdict"
+    },
+    {
+      "text": "Titanic",
+      "start": 459.754,
+      "end": 460.382,
+      "seg": "verdict"
+    },
+    {
+      "text": "a",
+      "start": 460.382,
+      "end": 460.567,
+      "seg": "verdict"
+    },
+    {
+      "text": "good",
+      "start": 460.567,
+      "end": 460.973,
+      "seg": "verdict"
+    },
+    {
+      "text": "bet,",
+      "start": 460.973,
+      "end": 461.306,
+      "seg": "verdict"
+    },
+    {
+      "text": "or",
+      "start": 461.306,
+      "end": 461.564,
+      "seg": "verdict"
+    },
+    {
+      "text": "a",
+      "start": 461.564,
+      "end": 461.749,
+      "seg": "verdict"
+    },
+    {
+      "text": "bad",
+      "start": 461.749,
+      "end": 462.082,
+      "seg": "verdict"
+    },
+    {
+      "text": "bet?",
+      "start": 462.082,
+      "end": 462.414,
+      "seg": "verdict"
+    },
+    {
+      "text": "Let's",
+      "start": 462.964,
+      "end": 463.249,
+      "seg": "verdict"
+    },
+    {
+      "text": "run",
+      "start": 463.249,
+      "end": 463.483,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 463.483,
+      "end": 463.716,
+      "seg": "verdict"
+    },
+    {
+      "text": "numbers",
+      "start": 463.716,
+      "end": 464.157,
+      "seg": "verdict"
+    },
+    {
+      "text": "one",
+      "start": 464.157,
+      "end": 464.391,
+      "seg": "verdict"
+    },
+    {
+      "text": "last",
+      "start": 464.391,
+      "end": 464.676,
+      "seg": "verdict"
+    },
+    {
+      "text": "time.",
+      "start": 464.676,
+      "end": 464.961,
+      "seg": "verdict"
+    },
+    {
+      "text": "Cost:",
+      "start": 465.511,
+      "end": 465.841,
+      "seg": "verdict"
+    },
+    {
+      "text": "about",
+      "start": 465.841,
+      "end": 466.231,
+      "seg": "verdict"
+    },
+    {
+      "text": "two",
+      "start": 466.231,
+      "end": 466.501,
+      "seg": "verdict"
+    },
+    {
+      "text": "hundred",
+      "start": 466.501,
+      "end": 467.011,
+      "seg": "verdict"
+    },
+    {
+      "text": "million",
+      "start": 467.011,
+      "end": 467.521,
+      "seg": "verdict"
+    },
+    {
+      "text": "dollars.",
+      "start": 467.521,
+      "end": 468.031,
+      "seg": "verdict"
+    },
+    {
+      "text": "Box",
+      "start": 468.581,
+      "end": 468.839,
+      "seg": "verdict"
+    },
+    {
+      "text": "office,",
+      "start": 468.839,
+      "end": 469.27,
+      "seg": "verdict"
+    },
+    {
+      "text": "with",
+      "start": 469.27,
+      "end": 469.586,
+      "seg": "verdict"
+    },
+    {
+      "text": "re",
+      "start": 469.586,
+      "end": 469.787,
+      "seg": "verdict"
+    },
+    {
+      "text": "releases:",
+      "start": 469.787,
+      "end": 470.332,
+      "seg": "verdict"
+    },
+    {
+      "text": "more",
+      "start": 470.332,
+      "end": 470.648,
+      "seg": "verdict"
+    },
+    {
+      "text": "than",
+      "start": 470.648,
+      "end": 470.964,
+      "seg": "verdict"
+    },
+    {
+      "text": "two",
+      "start": 470.964,
+      "end": 471.222,
+      "seg": "verdict"
+    },
+    {
+      "text": "point",
+      "start": 471.222,
+      "end": 471.596,
+      "seg": "verdict"
+    },
+    {
+      "text": "two",
+      "start": 471.596,
+      "end": 471.854,
+      "seg": "verdict"
+    },
+    {
+      "text": "billion.",
+      "start": 471.854,
+      "end": 472.342,
+      "seg": "verdict"
+    },
+    {
+      "text": "That",
+      "start": 472.892,
+      "end": 473.149,
+      "seg": "verdict"
+    },
+    {
+      "text": "is",
+      "start": 473.149,
+      "end": 473.313,
+      "seg": "verdict"
+    },
+    {
+      "text": "more",
+      "start": 473.313,
+      "end": 473.57,
+      "seg": "verdict"
+    },
+    {
+      "text": "than",
+      "start": 473.57,
+      "end": 473.827,
+      "seg": "verdict"
+    },
+    {
+      "text": "ten",
+      "start": 473.827,
+      "end": 474.037,
+      "seg": "verdict"
+    },
+    {
+      "text": "times",
+      "start": 474.037,
+      "end": 474.34,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 474.34,
+      "end": 474.551,
+      "seg": "verdict"
+    },
+    {
+      "text": "budget.",
+      "start": 474.551,
+      "end": 474.901,
+      "seg": "verdict"
+    },
+    {
+      "text": "It",
+      "start": 475.451,
+      "end": 475.642,
+      "seg": "verdict"
+    },
+    {
+      "text": "held",
+      "start": 475.642,
+      "end": 475.943,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 475.943,
+      "end": 476.188,
+      "seg": "verdict"
+    },
+    {
+      "text": "record",
+      "start": 476.188,
+      "end": 476.598,
+      "seg": "verdict"
+    },
+    {
+      "text": "as",
+      "start": 476.598,
+      "end": 476.789,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 476.789,
+      "end": 477.035,
+      "seg": "verdict"
+    },
+    {
+      "text": "highest",
+      "start": 477.035,
+      "end": 477.5,
+      "seg": "verdict"
+    },
+    {
+      "text": "grossing",
+      "start": 477.5,
+      "end": 478.019,
+      "seg": "verdict"
+    },
+    {
+      "text": "film",
+      "start": 478.019,
+      "end": 478.319,
+      "seg": "verdict"
+    },
+    {
+      "text": "ever,",
+      "start": 478.319,
+      "end": 478.62,
+      "seg": "verdict"
+    },
+    {
+      "text": "for",
+      "start": 478.62,
+      "end": 478.866,
+      "seg": "verdict"
+    },
+    {
+      "text": "twelve",
+      "start": 478.866,
+      "end": 479.275,
+      "seg": "verdict"
+    },
+    {
+      "text": "years.",
+      "start": 479.275,
+      "end": 479.631,
+      "seg": "verdict"
+    },
+    {
+      "text": "Verdict:",
+      "start": 480.181,
+      "end": 480.702,
+      "seg": "verdict"
+    },
+    {
+      "text": "good.",
+      "start": 480.702,
+      "end": 481.04,
+      "seg": "verdict"
+    },
+    {
+      "text": "Possibly",
+      "start": 481.04,
+      "end": 481.623,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 481.623,
+      "end": 481.9,
+      "seg": "verdict"
+    },
+    {
+      "text": "best",
+      "start": 481.9,
+      "end": 482.237,
+      "seg": "verdict"
+    },
+    {
+      "text": "bet",
+      "start": 482.237,
+      "end": 482.513,
+      "seg": "verdict"
+    },
+    {
+      "text": "Hollywood",
+      "start": 482.513,
+      "end": 483.158,
+      "seg": "verdict"
+    },
+    {
+      "text": "ever",
+      "start": 483.158,
+      "end": 483.496,
+      "seg": "verdict"
+    },
+    {
+      "text": "made.",
+      "start": 483.496,
+      "end": 483.833,
+      "seg": "verdict"
+    },
+    {
+      "text": "And",
+      "start": 484.383,
+      "end": 484.618,
+      "seg": "verdict"
+    },
+    {
+      "text": "beyond",
+      "start": 484.618,
+      "end": 485.01,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 485.01,
+      "end": 485.245,
+      "seg": "verdict"
+    },
+    {
+      "text": "money,",
+      "start": 485.245,
+      "end": 485.584,
+      "seg": "verdict"
+    },
+    {
+      "text": "it",
+      "start": 485.584,
+      "end": 485.767,
+      "seg": "verdict"
+    },
+    {
+      "text": "proved",
+      "start": 485.767,
+      "end": 486.159,
+      "seg": "verdict"
+    },
+    {
+      "text": "that",
+      "start": 486.159,
+      "end": 486.446,
+      "seg": "verdict"
+    },
+    {
+      "text": "a",
+      "start": 486.446,
+      "end": 486.576,
+      "seg": "verdict"
+    },
+    {
+      "text": "big,",
+      "start": 486.576,
+      "end": 486.811,
+      "seg": "verdict"
+    },
+    {
+      "text": "original,",
+      "start": 486.811,
+      "end": 487.308,
+      "seg": "verdict"
+    },
+    {
+      "text": "grown",
+      "start": 487.308,
+      "end": 487.647,
+      "seg": "verdict"
+    },
+    {
+      "text": "up",
+      "start": 487.647,
+      "end": 487.83,
+      "seg": "verdict"
+    },
+    {
+      "text": "movie",
+      "start": 487.83,
+      "end": 488.169,
+      "seg": "verdict"
+    },
+    {
+      "text": "could",
+      "start": 488.169,
+      "end": 488.509,
+      "seg": "verdict"
+    },
+    {
+      "text": "still",
+      "start": 488.509,
+      "end": 488.848,
+      "seg": "verdict"
+    },
+    {
+      "text": "beat",
+      "start": 488.848,
+      "end": 489.135,
+      "seg": "verdict"
+    },
+    {
+      "text": "everything.",
+      "start": 489.135,
+      "end": 489.736,
+      "seg": "verdict"
+    },
+    {
+      "text": "The",
+      "start": 490.286,
+      "end": 490.523,
+      "seg": "verdict"
+    },
+    {
+      "text": "lesson?",
+      "start": 490.523,
+      "end": 490.918,
+      "seg": "verdict"
+    },
+    {
+      "text": "Everyone",
+      "start": 490.918,
+      "end": 491.419,
+      "seg": "verdict"
+    },
+    {
+      "text": "knew",
+      "start": 491.419,
+      "end": 491.709,
+      "seg": "verdict"
+    },
+    {
+      "text": "how",
+      "start": 491.709,
+      "end": 491.946,
+      "seg": "verdict"
+    },
+    {
+      "text": "the",
+      "start": 491.946,
+      "end": 492.183,
+      "seg": "verdict"
+    },
+    {
+      "text": "story",
+      "start": 492.183,
+      "end": 492.526,
+      "seg": "verdict"
+    },
+    {
+      "text": "ended.",
+      "start": 492.526,
+      "end": 492.868,
+      "seg": "verdict"
+    },
+    {
+      "text": "Nobody",
+      "start": 492.868,
+      "end": 493.263,
+      "seg": "verdict"
+    },
+    {
+      "text": "knew",
+      "start": 493.263,
+      "end": 493.553,
+      "seg": "verdict"
+    },
+    {
+      "text": "how",
+      "start": 493.553,
+      "end": 493.79,
+      "seg": "verdict"
+    },
+    {
+      "text": "it",
+      "start": 493.79,
+      "end": 493.975,
+      "seg": "verdict"
+    },
+    {
+      "text": "would",
+      "start": 493.975,
+      "end": 494.317,
+      "seg": "verdict"
+    },
+    {
+      "text": "feel.",
+      "start": 494.317,
+      "end": 494.607,
+      "seg": "verdict"
+    },
+    {
+      "text": "Next",
+      "start": 495.157,
+      "end": 495.458,
+      "seg": "verdict"
+    },
+    {
+      "text": "time:",
+      "start": 495.458,
+      "end": 495.758,
+      "seg": "verdict"
+    },
+    {
+      "text": "a",
+      "start": 495.758,
+      "end": 495.895,
+      "seg": "verdict"
+    },
+    {
+      "text": "movie",
+      "start": 495.895,
+      "end": 496.25,
+      "seg": "verdict"
+    },
+    {
+      "text": "that",
+      "start": 496.25,
+      "end": 496.551,
+      "seg": "verdict"
+    },
+    {
+      "text": "really",
+      "start": 496.551,
+      "end": 496.961,
+      "seg": "verdict"
+    },
+    {
+      "text": "did",
+      "start": 496.961,
+      "end": 497.207,
+      "seg": "verdict"
+    },
+    {
+      "text": "sink.",
+      "start": 497.207,
+      "end": 497.507,
+      "seg": "verdict"
+    },
+    {
+      "text": "Follow,",
+      "start": 497.507,
+      "end": 497.917,
+      "seg": "verdict"
+    },
+    {
+      "text": "so",
+      "start": 497.917,
+      "end": 498.108,
+      "seg": "verdict"
+    },
+    {
+      "text": "you",
+      "start": 498.108,
+      "end": 498.354,
+      "seg": "verdict"
+    },
+    {
+      "text": "don't",
+      "start": 498.354,
+      "end": 498.655,
+      "seg": "verdict"
+    },
+    {
+      "text": "miss",
+      "start": 498.655,
+      "end": 498.955,
+      "seg": "verdict"
+    },
+    {
+      "text": "it.",
+      "start": 498.955,
+      "end": 499.147,
+      "seg": "verdict"
+    }
+  ]
+}

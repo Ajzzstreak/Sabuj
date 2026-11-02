@@ -1,0 +1,513 @@
+{
+ "title": "Titanic: The $200 Million Bet Everyone Said Would Sink",
+ "format": "16:9 1920x1080, ~9-10 min, fully animated, no film footage/stills/likenesses/score",
+ "voice": "piper en-us-ryan-high",
+ "facts_to_verify": [
+  "Budget ~$200M, most expensive film at the time",
+  "Opening weekend ~$28.6M (US); 2nd weekend higher",
+  "15 consecutive weekends #1 (US)",
+  "First film to pass $1B worldwide; ~$1.84B original run; >$2.2B with re-releases",
+  "14 Oscar nominations, 11 wins (tie with Ben-Hur 1959)",
+  "Fox Baja Studios, Rosarito Mexico; ~17M-gallon tank; near full-scale replica",
+  "Director made 12 dives to the wreck (~12,500 ft)",
+  "Second studio (Paramount) joined to share cost; director waived fee/back-end",
+  "Real ship: left Southampton 10 Apr 1912; struck 11:40 PM 14 Apr; sank 2:20 AM 15 Apr; ~2,224 aboard; 20 lifeboats ~1,178 seats; ~1,500 died; cost ~$7.5M",
+  "Highest-grossing film until Avatar (12 years)",
+  "2023 hypothermia experiment by the director concluded Jack 'might have' survived"
+ ],
+ "segments": [
+  {
+   "id": "cold",
+   "kind": "cold",
+   "sentences": [
+    {
+     "text": "In nineteen ninety seven, Hollywood was sure of one thing."
+    },
+    {
+     "text": "Titanic was going to sink. Twice."
+    },
+    {
+     "text": "Once on screen, and once at the box office."
+    },
+    {
+     "text": "Two hundred million dollars. The most expensive movie ever made, about a ship everyone knew would sink."
+    },
+    {
+     "text": "So was it the worst bet in movie history, or the best? Let's break it down."
+    }
+   ]
+  },
+  {
+   "id": "t1",
+   "kind": "title",
+   "num": "1",
+   "label": "THE PITCH",
+   "sentences": [
+    {
+     "text": "Act one. The pitch."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "pitch",
+   "kind": "pitch",
+   "sentences": [
+    {
+     "text": "The director had a strange idea."
+    },
+    {
+     "text": "Take the most famous disaster of the twentieth century, and turn it into a love story."
+    },
+    {
+     "text": "Romeo and Juliet, on the Titanic."
+    },
+    {
+     "text": "The problem? Every person on Earth already knew the ending."
+    },
+    {
+     "text": "Imagine pitching that today. A three hour period romance, no superheroes, no sequel plan, and a guaranteed sad ending."
+    },
+    {
+     "text": "Most studios would laugh you out of the room."
+    },
+    {
+     "text": "The ship hits an iceberg. The ship sinks. No surprise twist."
+    },
+    {
+     "text": "And yet, the studio said yes."
+    }
+   ]
+  },
+  {
+   "id": "dive",
+   "kind": "dive",
+   "sentences": [
+    {
+     "text": "Before a single set was built, the director went to the real wreck."
+    },
+    {
+     "text": "It lies about twelve thousand five hundred feet down, in the freezing dark of the North Atlantic."
+    },
+    {
+     "text": "He made twelve dives in a submersible to film it."
+    },
+    {
+     "text": "Think about that. To make a movie about a shipwreck, he first became one of the few people alive who had actually visited it."
+    },
+    {
+     "text": "That footage would open the movie. Real ghosts, before the fake ship."
+    }
+   ]
+  },
+  {
+   "id": "t2",
+   "kind": "title",
+   "num": "2",
+   "label": "THE MONEY PIT",
+   "sentences": [
+    {
+     "text": "Act two. The money pit."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "build",
+   "kind": "build",
+   "sentences": [
+    {
+     "text": "Then the building started, and it never really stopped."
+    },
+    {
+     "text": "The studio built an entirely new film studio on the coast of Mexico, just for this movie."
+    },
+    {
+     "text": "Inside, a tank holding around seventeen million gallons of seawater."
+    },
+    {
+     "text": "And in that tank, a near full scale replica of the Titanic."
+    },
+    {
+     "text": "Not a model. A ship you could walk on."
+    },
+    {
+     "text": "They did not rent a ship. They built a ship, a studio, and an ocean."
+    }
+   ]
+  },
+  {
+   "id": "money",
+   "kind": "money",
+   "sentences": [
+    {
+     "text": "Every week, the budget climbed."
+    },
+    {
+     "text": "One hundred million. One hundred fifty. Then two hundred million dollars."
+    },
+    {
+     "text": "Every day of shooting burned money, and every delay burned more."
+    },
+    {
+     "text": "It got so expensive, a second studio had to step in and share the cost."
+    },
+    {
+     "text": "The director even gave up his own fee, and his share of the profits, to keep the cameras rolling."
+    }
+   ]
+  },
+  {
+   "id": "headlines",
+   "kind": "headlines",
+   "sentences": [
+    {
+     "text": "The release date slipped from summer to December."
+    },
+    {
+     "text": "In Hollywood, a delay like that usually means one thing. Trouble."
+    },
+    {
+     "text": "The industry buzz was brutal. People were already writing the obituary."
+    },
+    {
+     "text": "Titanic, the movie, looked like it was heading for its own iceberg."
+    },
+    {
+     "text": "If it failed, it could have hurt two major studios at the same time."
+    }
+   ]
+  },
+  {
+   "id": "t3",
+   "kind": "title",
+   "num": "3",
+   "label": "THE REAL NIGHT",
+   "sentences": [
+    {
+     "text": "Act three. The real night."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "voyage",
+   "kind": "voyage",
+   "sentences": [
+    {
+     "text": "To understand why audiences cared, you have to remember the real story."
+    },
+    {
+     "text": "April tenth, nineteen twelve. The real Titanic leaves Southampton, England, bound for New York."
+    },
+    {
+     "text": "It was the largest ship in the world, and people called it unsinkable."
+    },
+    {
+     "text": "On board were some of the richest people in the world, and hundreds of families chasing a new life in America."
+    },
+    {
+     "text": "Four days later, late at night, the lookouts spot an iceberg. Too late."
+    }
+   ]
+  },
+  {
+   "id": "lifeboats",
+   "kind": "lifeboats",
+   "sentences": [
+    {
+     "text": "There were about two thousand two hundred people on board."
+    },
+    {
+     "text": "But only twenty lifeboats, with room for roughly eleven hundred and eighty."
+    },
+    {
+     "text": "Even if every seat had been filled, more than a thousand people had no place to go."
+    },
+    {
+     "text": "And many boats left half empty."
+    },
+    {
+     "text": "That's not bad luck. That's bad planning."
+    }
+   ]
+  },
+  {
+   "id": "sinking",
+   "kind": "sinking",
+   "sentences": [
+    {
+     "text": "The iceberg struck at eleven forty P M."
+    },
+    {
+     "text": "Water poured into the front compartments, one after another."
+    },
+    {
+     "text": "The bow sank lower. The stern rose into the air."
+    },
+    {
+     "text": "Then the ship broke in two."
+    },
+    {
+     "text": "By two twenty A M, the Titanic was gone. About fifteen hundred people died in the freezing water."
+    },
+    {
+     "text": "Hours later, the rescue ship Carpathia arrived, and picked up around seven hundred survivors."
+    },
+    {
+     "text": "From impact to the final plunge, it took about two hours and forty minutes."
+    }
+   ],
+   "pad": 1.5
+  },
+  {
+   "id": "compare",
+   "kind": "compare",
+   "sentences": [
+    {
+     "text": "Here's a strange detail."
+    },
+    {
+     "text": "The real ship cost about seven and a half million dollars in nineteen twelve."
+    },
+    {
+     "text": "Adjusted for inflation, that's very roughly a hundred and twenty million in nineteen ninety seven money."
+    },
+    {
+     "text": "Which means the movie cost more than the actual Titanic."
+    },
+    {
+     "text": "Hollywood rebuilt history, for more money than history cost the first time."
+    }
+   ]
+  },
+  {
+   "id": "t4",
+   "kind": "title",
+   "num": "4",
+   "label": "THE ICEBERG THAT NEVER CAME",
+   "sentences": [
+    {
+     "text": "Act four. The iceberg that never came."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "boxoffice",
+   "kind": "boxoffice",
+   "sentences": [
+    {
+     "text": "December nineteenth, nineteen ninety seven. The movie finally opens."
+    },
+    {
+     "text": "Opening weekend? About twenty eight million dollars. Good, not historic."
+    },
+    {
+     "text": "But then something weird happened. The second weekend, it went up."
+    },
+    {
+     "text": "That is not how movies work. Most films earn the most on day one, then fade away."
+    },
+    {
+     "text": "People came back. Then they came back again, and brought their friends."
+    },
+    {
+     "text": "Word of mouth did what no marketing budget could."
+    },
+    {
+     "text": "Titanic stayed number one at the American box office for fifteen weekends in a row."
+    },
+    {
+     "text": "It became the first movie ever to earn more than one billion dollars worldwide."
+    },
+    {
+     "text": "By the end of its first run, about one point eight billion."
+    }
+   ]
+  },
+  {
+   "id": "oscars",
+   "kind": "oscars",
+   "sentences": [
+    {
+     "text": "Then came the Oscars."
+    },
+    {
+     "text": "Fourteen nominations. Eleven wins, including Best Picture and Best Director."
+    },
+    {
+     "text": "That tied the all time record held by Ben Hur since nineteen fifty nine."
+    },
+    {
+     "text": "And its soundtrack became one of the best selling film scores ever released."
+    },
+    {
+     "text": "For a movie the industry had already written off, that is the ultimate comeback."
+    }
+   ]
+  },
+  {
+   "id": "t5",
+   "kind": "title",
+   "num": "5",
+   "label": "WHY IT WORKED",
+   "sentences": [
+    {
+     "text": "Act five. Why it worked."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "reasons",
+   "kind": "reasons",
+   "sentences": [
+    {
+     "text": "So why did a three hour movie with a known ending become a global obsession? Three reasons."
+    },
+    {
+     "text": "Reason one. You already know the ending."
+    },
+    {
+     "text": "That sounds like a weakness, but it's the secret weapon. Every happy moment on that ship feels like a countdown. You are waiting for the iceberg the whole time."
+    },
+    {
+     "text": "Reason two. The ship is a map of society."
+    },
+    {
+     "text": "First class on the top decks. Third class down below. When the water rises, where you sleep decides whether you live."
+    },
+    {
+     "text": "Reason three. A fake couple inside a real tragedy."
+    },
+    {
+     "text": "Fifteen hundred deaths is a number. Two people you care about is a feeling. The love story gives the disaster a face."
+    },
+    {
+     "text": "Put those three together, and you get a movie people did not just watch. They felt it."
+    }
+   ]
+  },
+  {
+   "id": "flaws",
+   "kind": "flaws",
+   "sentences": [
+    {
+     "text": "But it's not a perfect movie."
+    },
+    {
+     "text": "Some of the dialogue is cheesy, and it knows it."
+    },
+    {
+     "text": "The villain is about as subtle as an iceberg."
+    },
+    {
+     "text": "And the runtime? Three hours and fourteen minutes. Bring snacks."
+    },
+    {
+     "text": "Critics loved the spectacle, but plenty of them rolled their eyes at the romance."
+    },
+    {
+     "text": "Still, none of that stopped people from buying ticket after ticket."
+    }
+   ]
+  },
+  {
+   "id": "t6",
+   "kind": "title",
+   "num": "6",
+   "label": "THE DOOR",
+   "sentences": [
+    {
+     "text": "Act six. The door."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "door",
+   "kind": "door",
+   "sentences": [
+    {
+     "text": "But for many fans, one question matters more than any Oscar."
+    },
+    {
+     "text": "Could Jack have fit on that door?"
+    },
+    {
+     "text": "Rose floats on a piece of wooden debris. Jack stays in the water, and freezes."
+    },
+    {
+     "text": "Fans have argued about it for decades."
+    },
+    {
+     "text": "The internet has run this debate in polls, memes, and science videos for years."
+    },
+    {
+     "text": "TV myth testers tried it. Scientists ran the numbers."
+    },
+    {
+     "text": "Is the door big enough for two? Probably. Does it float well enough for two? That's the real question."
+    },
+    {
+     "text": "And in twenty twenty three, the director himself ran a hypothermia experiment with stunt doubles."
+    },
+    {
+     "text": "His conclusion? Jack might have survived. Maybe."
+    },
+    {
+     "text": "So, fit or no fit? Tell me in the comments."
+    }
+   ]
+  },
+  {
+   "id": "t7",
+   "kind": "title",
+   "num": "\u2605",
+   "label": "THE VERDICT",
+   "sentences": [
+    {
+     "text": "The verdict."
+    }
+   ],
+   "pad": 2.0
+  },
+  {
+   "id": "verdict",
+   "kind": "verdict",
+   "sentences": [
+    {
+     "text": "So, was Titanic a good bet, or a bad bet?"
+    },
+    {
+     "text": "Let's run the numbers one last time."
+    },
+    {
+     "text": "Cost: about two hundred million dollars."
+    },
+    {
+     "text": "Box office, with re releases: more than two point two billion."
+    },
+    {
+     "text": "That is more than ten times the budget."
+    },
+    {
+     "text": "It held the record as the highest grossing film ever, for twelve years."
+    },
+    {
+     "text": "Verdict: good. Possibly the best bet Hollywood ever made."
+    },
+    {
+     "text": "And beyond the money, it proved that a big, original, grown up movie could still beat everything."
+    },
+    {
+     "text": "The lesson? Everyone knew how the story ended. Nobody knew how it would feel."
+    },
+    {
+     "text": "Next time: a movie that really did sink. Follow, so you don't miss it."
+    }
+   ]
+  }
+ ]
+}
