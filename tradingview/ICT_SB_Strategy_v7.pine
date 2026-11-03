@@ -1,0 +1,546 @@
+//@version=6
+// ================================================================
+// ICT SILVER BULLET / UNICORN — STRATEGY v7  (port of the Python bot)
+//
+// Same rules as trading_bot/strategy.py + paper_trader.py:
+//   Kill zones   LONDON 02:00-05:00, NY AM 09:00-11:00 (New York)
+//   Context      Asian range (for London) / London range (for NY) — first sweep latches
+//   HTF          previous completed daily candle filters direction
+//   1 Sweep      confirmed, still-unswept swing low/high taken
+//   2 Breaker    highest up-close (long) / lowest down-close (short) candle
+//                between the swept swing and the sweep
+//   3 Displace   body >= 50%, closes through the breaker
+//   4 FVG        created by the displacement, >= min size ("no FVG, no trade")
+//   5 Unicorn    FVG overlaps breaker (optional)
+//   6 PD         zone in discount (long) / premium (short) of the leg
+//   7 Retest     limit order at zone edge; consumed if price reaches +2R first
+//   Exits        stop / 2R target / 240-min time stop / 16:00 NY flatten
+//   Gates        stop range, whole-contract sizing for $risk, fee drag,
+//                daily loss limit, max trades/day, 1 trade per window
+//
+// Fixes vs v6.4 indicator: swing-sweep could never fire, breaker used the
+// wrong candle, invalidation at 2x zone size, London bias flipped on target.
+//
+// Use on a 5-minute chart. Micro futures recommended: MNQ1!, MES1!, MGC1!
+// (full-size NQ/ES/GC rarely fit $100 risk with 1 contract).
+// ================================================================
+strategy("ICT Silver Bullet v7 Strategy", shorttitle = "ICT SB v7", overlay = true,
+     initial_capital = 50000, currency = currency.USD, pyramiding = 0,
+     default_qty_type = strategy.fixed, default_qty_value = 1,
+     commission_type = strategy.commission.cash_per_contract, commission_value = 0.62,
+     slippage = 1, calc_on_every_tick = false, process_orders_on_close = false,
+     max_labels_count = 500, max_lines_count = 500, max_boxes_count = 500)
+
+NY = "America/New_York"
+
+// ================================================================
+// INPUTS
+// ================================================================
+G1 = "Backtest window"
+i_from      = input.time(timestamp("2025-01-01 00:00 +0000"), "From", group = G1)
+i_to        = input.time(timestamp("2025-12-31 23:59 +0000"), "To",   group = G1)
+
+G2 = "Sessions (New York time)"
+i_lonOn     = input.bool(true,         "Trade London kill zone",  group = G2)
+i_lonKZ     = input.session("0200-0500", "London kill zone",      group = G2)
+i_nyOn      = input.bool(true,         "Trade NY AM kill zone",   group = G2)
+i_nyKZ      = input.session("0900-1100", "NY AM kill zone",       group = G2)
+i_asian     = input.session("2000-0000", "Asian range",           group = G2)
+i_lonRng    = input.session("0300-0800", "London range",          group = G2)
+i_sbLon     = input.session("0300-0400", "Silver Bullet (London)", group = G2)
+i_sbNy      = input.session("1000-1100", "Silver Bullet (NY)",    group = G2)
+
+G3 = "Setup rules"
+i_swingLen  = input.int(2,     "Swing confirm bars each side", minval = 1, maxval = 5, group = G3)
+i_swingLb   = input.int(36,    "Swing lookback bars",          minval = 5, group = G3)
+i_bodyPct   = input.float(50,  "Min displacement body %",      minval = 20, maxval = 95, group = G3)
+i_bbLb      = input.int(6,     "Breaker lookback bars",        minval = 2, maxval = 20, group = G3)
+i_dispMax   = input.int(12,    "Max bars sweep → displacement", minval = 2, group = G3)
+i_fvgSearch = input.int(3,     "FVG must form within N bars",  minval = 1, maxval = 6, group = G3)
+i_slBuf     = input.float(0.10, "SL buffer (fraction of zone)", minval = 0.0, step = 0.05, group = G3)
+i_minFvg    = input.float(0.0, "Min FVG size (0 = auto by symbol)", minval = 0.0, group = G3)
+i_reqPD     = input.bool(true,  "Require premium/discount",    group = G3)
+i_reqUni    = input.bool(false, "Require unicorn",             group = G3)
+i_htfOn     = input.bool(true,  "HTF daily bias filter",       group = G3)
+i_minConf   = input.int(0,     "Min confluence (0-5)", minval = 0, maxval = 5, group = G3,
+     tooltip = "Soft items: unicorn, session-context sweep, draw on liquidity, PO3 open, Silver Bullet hour. Stand-in for the Python swarm filter.")
+
+G4 = "Risk & exits"
+i_risk      = input.float(100,  "Risk per trade ($)",          minval = 1, group = G4)
+i_targetR   = input.float(2.0,  "Target (R)",                  minval = 0.5, step = 0.5, group = G4)
+i_invR      = input.float(2.0,  "Zone consumed at +R before fill", minval = 0.5, step = 0.5, group = G4)
+i_maxQty    = input.int(10,     "Max contracts",               minval = 1, group = G4)
+i_whole     = input.bool(true,  "Whole contracts only",        group = G4)
+i_minStop   = input.float(0.0,  "Min stop pts (0 = auto)",     minval = 0.0, group = G4)
+i_maxStop   = input.float(0.0,  "Max stop pts (0 = auto)",     minval = 0.0, group = G4)
+i_feeSide   = input.float(0.62, "Fee per contract per side (gate only)", minval = 0.0, group = G4)
+i_maxFee    = input.float(0.15, "Max fees / risk",             minval = 0.0, step = 0.05, group = G4)
+i_dayLoss   = input.float(300,  "Daily loss limit ($)",        minval = 0, group = G4)
+i_maxDay    = input.int(6,      "Max trades per day",          minval = 1, group = G4)
+i_maxHold   = input.int(240,    "Time stop (minutes)",         minval = 5, group = G4)
+i_flatHour  = input.int(16,     "Flatten hour (NY)",           minval = 0, maxval = 23, group = G4)
+
+G5 = "Display"
+i_showRng   = input.bool(true,  "Asian / London range boxes",  group = G5)
+i_showKZ    = input.bool(true,  "Kill zone shading",           group = G5)
+i_showMid   = input.bool(true,  "Midnight open line",          group = G5)
+i_showSetup = input.bool(true,  "Sweep / breaker / FVG / unicorn", group = G5)
+i_showLv    = input.bool(true,  "Entry / SL / TP levels",      group = G5)
+i_showTbl   = input.bool(true,  "Checklist table",             group = G5)
+i_tblPos    = input.string("Top Right", "Table position", options = ["Top Left", "Top Right", "Bottom Left", "Bottom Right"], group = G5)
+
+// ================================================================
+// SYMBOL PROFILE (auto defaults = Python config)
+// ================================================================
+t    = syminfo.ticker
+isNQ = str.startswith(t, "MNQ") or str.startswith(t, "NQ") or str.contains(t, "NAS100") or str.contains(t, "US100") or str.contains(t, "NDX") or str.contains(t, "USTEC")
+isES = not isNQ and (str.startswith(t, "MES") or str.startswith(t, "ES") or str.contains(t, "SPX") or str.contains(t, "US500"))
+isGC = str.startswith(t, "MGC") or str.startswith(t, "GC") or str.contains(t, "XAU") or str.contains(t, "GOLD")
+minFvg  = i_minFvg  > 0 ? i_minFvg  : isNQ ? 5.0  : isES ? 1.25 : isGC ? 1.0  : syminfo.mintick * 4
+minStop = i_minStop > 0 ? i_minStop : isNQ ? 8.0  : isES ? 2.0  : isGC ? 2.0  : 0.0
+maxStop = i_maxStop > 0 ? i_maxStop : isNQ ? 60.0 : isES ? 20.0 : isGC ? 10.0 : 1e12
+tick    = syminfo.mintick
+pv      = syminfo.pointvalue
+
+roundDown(x) => math.floor(x / tick + 1e-9) * tick
+roundUp(x)   => math.ceil(x / tick - 1e-9) * tick
+
+// ================================================================
+// TIME / SESSIONS
+// ================================================================
+inSess(sessStr) => not na(time(timeframe.period, sessStr, NY))
+nyHour   = hour(time, NY)
+nyMin    = minute(time, NY)
+tdId     = dayofmonth(time + 6 * 3600000, NY)          // CME trading day rolls 18:00 NY
+newTD    = tdId != tdId[1]
+calDay   = dayofmonth(time, NY)
+newCal   = calDay != calDay[1]
+inRange  = time >= i_from and time <= i_to
+
+inLonKZ  = i_lonOn and inSess(i_lonKZ)
+inNyKZ   = i_nyOn  and inSess(i_nyKZ)
+winName  = inLonKZ ? "LONDON" : inNyKZ ? "NY_AM" : ""
+winStart = winName != "" and winName != winName[1]
+winEnd   = winName[1] != "" and winName != winName[1]
+inAsian  = inSess(i_asian)
+inLonRng = inSess(i_lonRng)
+inSB     = (winName == "LONDON" and inSess(i_sbLon)) or (winName == "NY_AM" and inSess(i_sbNy))
+
+bgcolor(i_showKZ and winName == "LONDON" ? color.new(color.blue, 92) : i_showKZ and winName == "NY_AM" ? color.new(color.teal, 90) : na, title = "Kill zone")
+bgcolor(i_showKZ and inSB ? color.new(color.teal, 88) : na, title = "Silver Bullet hour")
+
+// ================================================================
+// HTF BIAS — previous completed daily candle (non-repainting)
+// ================================================================
+[dO, dC] = request.security(syminfo.tickerid, "D", [open[1], close[1]], lookahead = barmerge.lookahead_on)
+htf       = not i_htfOn ? "OFF" : dC > dO ? "BULLISH" : dC < dO ? "BEARISH" : "NEUTRAL"
+allowBull = htf != "BEARISH"
+allowBear = htf != "BULLISH"
+
+// ================================================================
+// PO3 — midnight open, Asian & London ranges
+// ================================================================
+var float midOpen = na
+var line  midLn   = na
+if newCal
+    midOpen := open
+    if i_showMid
+        midLn := line.new(bar_index, open, bar_index + 1, open, color = color.new(color.gray, 30), style = line.style_dotted, extend = extend.none)
+if not na(midLn) and not newCal
+    line.set_x2(midLn, bar_index)
+
+var float asHi    = na
+var float asLo    = na
+var int   asStart = na
+var bool  asDone  = false
+var float lrHi    = na
+var float lrLo    = na
+var int   lrStart = na
+var bool  lrDone  = false
+if newTD
+    asHi := na
+    asLo := na
+    asStart := na
+    asDone := false
+    lrHi := na
+    lrLo := na
+    lrStart := na
+    lrDone := false
+if inAsian and not asDone
+    asStart := na(asStart) ? bar_index : asStart
+    asHi := na(asHi) ? high : math.max(asHi, high)
+    asLo := na(asLo) ? low  : math.min(asLo, low)
+if not inAsian and not asDone and not na(asHi)
+    asDone := true
+    if i_showRng
+        box.new(asStart, asHi, bar_index - 1, asLo, border_color = color.new(color.yellow, 30), bgcolor = color.new(color.yellow, 93), border_style = line.style_dashed, text = "ASIAN", text_color = color.new(color.yellow, 20), text_size = size.tiny, text_halign = text.align_left, text_valign = text.align_top)
+if inLonRng and not lrDone
+    lrStart := na(lrStart) ? bar_index : lrStart
+    lrHi := na(lrHi) ? high : math.max(lrHi, high)
+    lrLo := na(lrLo) ? low  : math.min(lrLo, low)
+if not inLonRng and not lrDone and not na(lrHi)
+    lrDone := true
+    if i_showRng
+        box.new(lrStart, lrHi, bar_index - 1, lrLo, border_color = color.new(color.orange, 30), bgcolor = color.new(color.orange, 93), border_style = line.style_dashed, text = "LONDON", text_color = color.new(color.orange, 20), text_size = size.tiny, text_halign = text.align_left, text_valign = text.align_top)
+
+// ================================================================
+// SWING LIQUIDITY — confirmed pivots, removed once swept
+// ================================================================
+pl = ta.pivotlow(low,  i_swingLen, i_swingLen)
+ph = ta.pivothigh(high, i_swingLen, i_swingLen)
+var swLoP = array.new<float>()
+var swLoB = array.new<int>()
+var swHiP = array.new<float>()
+var swHiB = array.new<int>()
+
+// sweep check uses swings confirmed on PREVIOUS bars (k + n < i), then removes swept ones
+float sweptLoLvl = na
+int   sweptLoBar = na
+float sweptHiLvl = na
+int   sweptHiBar = na
+if array.size(swLoP) > 0
+    for j = array.size(swLoP) - 1 to 0
+        if bar_index - array.get(swLoB, j) > i_swingLb
+            array.remove(swLoP, j)
+            array.remove(swLoB, j)
+        else if low < array.get(swLoP, j)
+            if na(sweptLoLvl) or array.get(swLoP, j) < sweptLoLvl
+                sweptLoLvl := array.get(swLoP, j)
+                sweptLoBar := array.get(swLoB, j)
+            array.remove(swLoP, j)
+            array.remove(swLoB, j)
+if array.size(swHiP) > 0
+    for j = array.size(swHiP) - 1 to 0
+        if bar_index - array.get(swHiB, j) > i_swingLb
+            array.remove(swHiP, j)
+            array.remove(swHiB, j)
+        else if high > array.get(swHiP, j)
+            if na(sweptHiLvl) or array.get(swHiP, j) > sweptHiLvl
+                sweptHiLvl := array.get(swHiP, j)
+                sweptHiBar := array.get(swHiB, j)
+            array.remove(swHiP, j)
+            array.remove(swHiB, j)
+if not na(pl)
+    array.push(swLoP, pl)
+    array.push(swLoB, bar_index - i_swingLen)
+if not na(ph)
+    array.push(swHiP, ph)
+    array.push(swHiB, bar_index - i_swingLen)
+
+// ================================================================
+// SETUP STATE MACHINE
+// ================================================================
+type Setup
+    string state   = "SCANNING"   // SCANNING SWEPT DISPLACED ARMED DONE
+    string dir     = ""
+    int    sweepBar
+    int    swingBar
+    float  level
+    float  extreme
+    float  legHi
+    float  legLo
+    float  bbHi
+    float  bbLo
+    int    bbBar
+    int    dispBar
+    float  bodyPct
+    float  fvgTop
+    float  fvgBot
+    int    fvgBar
+    bool   uni     = false
+    float  zTop
+    float  zBot
+    float  entry
+    float  stop
+    float  target
+    float  risk
+    float  qty
+    bool   pdOk    = false
+    bool   ctxOk   = false
+    bool   dolOk   = false
+    bool   po3Ok   = false
+    bool   sbOk    = false
+    int    conf    = 0
+    bool   ordered = false
+    string block   = ""
+
+var Setup s        = Setup.new()
+var string ctxBias = "NONE"
+var float  ctxTgt  = na
+var string lastMsg = "waiting for kill zone"
+var bool   winTraded = false
+
+// day counters for account gates
+var float dayStartNet = 0.0
+var int   dayStartCnt = 0
+if newTD
+    dayStartNet := strategy.netprofit
+    dayStartCnt := strategy.closedtrades + strategy.opentrades
+dayPnl    = strategy.netprofit - dayStartNet
+dayTrades = strategy.closedtrades + strategy.opentrades - dayStartCnt
+filledNow = strategy.opentrades > strategy.opentrades[1] or strategy.closedtrades > strategy.closedtrades[1]
+
+// ── window boundaries ───────────────────────────────────────────
+if winEnd and s.state != "SCANNING" and s.state != "DONE"
+    strategy.cancel("L")
+    strategy.cancel("S")
+    if s.state == "ARMED" and i_showSetup
+        label.new(bar_index - 1, s.dir == "BULL" ? s.zBot : s.zTop, "EXPIRED", color = color.gray, textcolor = color.white, style = s.dir == "BULL" ? label.style_label_up : label.style_label_down, size = size.tiny)
+    lastMsg := "window closed — setup expired"
+if winStart
+    s := Setup.new()
+    ctxBias := "NONE"
+    ctxTgt  := na
+    winTraded := false
+    lastMsg := winName + " kill zone open — scanning"
+
+ctxHi = winName == "LONDON" ? asHi : lrHi
+ctxLo = winName == "LONDON" ? asLo : lrLo
+
+if winName != ""
+    // LAYER 1 — context: first sweep of the session range latches
+    if ctxBias == "NONE" and not na(ctxHi)
+        if low < ctxLo
+            ctxBias := "BULL"
+            ctxTgt := ctxHi
+            if i_showSetup
+                label.new(bar_index, low, (winName == "LONDON" ? "ASIAN" : "LONDON") + " LOW SWEPT", color = color.new(color.green, 20), textcolor = color.white, style = label.style_label_up, size = size.tiny)
+        else if high > ctxHi
+            ctxBias := "BEAR"
+            ctxTgt := ctxLo
+            if i_showSetup
+                label.new(bar_index, high, (winName == "LONDON" ? "ASIAN" : "LONDON") + " HIGH SWEPT", color = color.new(color.red, 20), textcolor = color.white, style = label.style_label_down, size = size.tiny)
+
+    // ── ARMED: fill / invalidation (checked first, mirrors engine) ──
+    if s.state == "ARMED"
+        bull = s.dir == "BULL"
+        touched = bull ? low <= s.zTop : high >= s.zBot
+        if (s.ordered and filledNow) or (not s.ordered and touched)
+            s.state := "DONE"
+            winTraded := s.ordered ? true : winTraded
+            lastMsg := s.ordered ? "FILLED " + (bull ? "LONG" : "SHORT") + " @ " + str.tostring(s.entry, format.mintick) : "retest touched — no order (" + s.block + ")"
+        else if (bull and high >= s.entry + s.risk * i_invR) or (not bull and low <= s.entry - s.risk * i_invR)
+            strategy.cancel("L")
+            strategy.cancel("S")
+            if i_showSetup
+                label.new(bar_index, bull ? high : low, "RAN — NO FILL", color = color.gray, textcolor = color.white, style = bull ? label.style_label_down : label.style_label_up, size = size.tiny)
+            s := Setup.new()
+            lastMsg := "zone consumed (+" + str.tostring(i_invR) + "R before retest) — rescanning"
+
+    // ── DISPLACED: look for the FVG the displacement left ──
+    else if s.state == "DISPLACED"
+        bull = s.dir == "BULL"
+        s.legHi := math.max(s.legHi, high)
+        s.legLo := math.min(s.legLo, low)
+        gotFvg = false
+        if bar_index - 1 >= s.dispBar
+            top = bull ? low : low[2]
+            bot = bull ? high[2] : high
+            if top > bot and top - bot >= minFvg
+                gotFvg := true
+                s.fvgTop := top
+                s.fvgBot := bot
+                s.fvgBar := bar_index - 1
+                // unicorn = FVG ∩ breaker
+                oTop = math.min(top, s.bbHi)
+                oBot = math.max(bot, s.bbLo)
+                s.uni  := oTop > oBot
+                s.zTop := s.uni ? oTop : top
+                s.zBot := s.uni ? oBot : bot
+                buf = math.max((s.zTop - s.zBot) * i_slBuf, tick)
+                s.entry := bull ? roundDown(s.zTop) : roundUp(s.zBot)
+                s.stop  := bull ? roundDown(math.min(s.extreme - buf, s.entry - 2 * buf)) : roundUp(math.max(s.extreme + buf, s.entry + 2 * buf))
+                s.risk  := math.abs(s.entry - s.stop)
+                s.target := bull ? roundDown(s.entry + s.risk * i_targetR) : roundUp(s.entry - s.risk * i_targetR)
+                eq   = (s.legHi + s.legLo) / 2
+                zMid = (s.zTop + s.zBot) / 2
+                s.pdOk  := bull ? zMid <= eq : zMid >= eq
+                s.ctxOk := bull ? ctxBias == "BULL" : ctxBias == "BEAR"
+                s.dolOk := na(ctxTgt) or (bull ? ctxTgt > s.entry : ctxTgt < s.entry)
+                s.po3Ok := not na(midOpen) and (bull ? s.entry < midOpen : s.entry > midOpen)
+                s.sbOk  := inSB
+                s.conf  := (s.uni and not i_reqUni ? 1 : 0) + (s.ctxOk ? 1 : 0) + (s.dolOk ? 1 : 0) + (s.po3Ok ? 1 : 0) + (s.sbOk ? 1 : 0)
+                // sizing + gates
+                rawQty = s.risk > 0 ? i_risk / (s.risk * pv) : 0.0
+                s.qty := math.min(i_whole ? math.floor(rawQty) : math.round(rawQty, 2), i_maxQty)
+                riskUsd = s.qty * s.risk * pv
+                fees = s.qty * i_feeSide * 2
+                blk = ""
+                blk += (i_reqPD and not s.pdOk) ? "premium/discount " : ""
+                blk += (i_reqUni and not s.uni) ? "no unicorn " : ""
+                blk += s.risk < minStop or s.risk > maxStop ? "stop " + str.tostring(s.risk, format.mintick) + "pts out of range " : ""
+                blk += s.qty <= 0 ? "1 contract > $" + str.tostring(i_risk) + " risk " : ""
+                blk += s.qty > 0 and fees > riskUsd * i_maxFee ? "fee drag " : ""
+                blk += s.conf < i_minConf ? "confluence " + str.tostring(s.conf) + "<" + str.tostring(i_minConf) + " " : ""
+                blk += dayPnl <= -i_dayLoss ? "daily loss limit " : ""
+                blk += dayTrades >= i_maxDay ? "max trades/day " : ""
+                blk += winTraded ? "window already traded " : ""
+                blk += not inRange ? "outside backtest dates " : ""
+                s.block := blk
+                s.state := "ARMED"
+                if blk == ""
+                    s.ordered := true
+                    msg = '{"action":"' + (bull ? "buy" : "sell") + '","symbol":"' + syminfo.ticker + '","qty":' + str.tostring(s.qty) + ',"limit":' + str.tostring(s.entry) + ',"stop":' + str.tostring(s.stop) + ',"target":' + str.tostring(s.target) + '}'
+                    if bull
+                        strategy.entry("L", strategy.long, qty = s.qty, limit = s.entry, comment = (s.uni ? "UNI " : "") + "BUY " + winName, alert_message = msg)
+                        strategy.exit("XL", "L", stop = s.stop, limit = s.target, comment_loss = "SL", comment_profit = "TP")
+                    else
+                        strategy.entry("S", strategy.short, qty = s.qty, limit = s.entry, comment = (s.uni ? "UNI " : "") + "SELL " + winName, alert_message = msg)
+                        strategy.exit("XS", "S", stop = s.stop, limit = s.target, comment_loss = "SL", comment_profit = "TP")
+                lastMsg := blk == "" ? "ARMED — limit " + str.tostring(s.entry, format.mintick) : "BLOCKED: " + blk
+                if i_showSetup
+                    fc = bull ? color.green : color.red
+                    box.new(s.fvgBar - 1, s.fvgTop, bar_index + 6, s.fvgBot, border_color = color.new(fc, 10), bgcolor = color.new(fc, 75), text = "FVG", text_color = color.new(fc, 0), text_size = size.tiny, text_halign = text.align_right)
+                    if s.uni
+                        box.new(s.fvgBar - 1, s.zTop, bar_index + 6, s.zBot, border_color = color.fuchsia, bgcolor = color.new(color.fuchsia, 60), border_width = 2, text = "UNICORN", text_color = color.white, text_size = size.tiny)
+                    if blk != ""
+                        label.new(bar_index, bull ? low : high, "BLOCKED\n" + blk, color = color.new(color.gray, 10), textcolor = color.white, style = bull ? label.style_label_up : label.style_label_down, size = size.tiny)
+                if i_showLv
+                    lc = blk == "" ? 0 : 60
+                    line.new(bar_index, s.entry,  bar_index + 12, s.entry,  color = color.new(color.blue, lc),  width = 2, style = line.style_dashed)
+                    line.new(bar_index, s.stop,   bar_index + 12, s.stop,   color = color.new(color.red, lc),   width = 2)
+                    line.new(bar_index, s.target, bar_index + 12, s.target, color = color.new(color.lime, lc),  width = 2)
+                    tp4 = bull ? s.entry + 4 * s.risk : s.entry - 4 * s.risk
+                    tp5 = bull ? s.entry + 5 * s.risk : s.entry - 5 * s.risk
+                    line.new(bar_index, tp4, bar_index + 12, tp4, color = color.new(color.green, 50), style = line.style_dotted)
+                    line.new(bar_index, tp5, bar_index + 12, tp5, color = color.new(color.teal, 50), style = line.style_dotted)
+                    label.new(bar_index + 12, s.entry,  "ENTRY " + str.tostring(s.entry, format.mintick) + (blk == "" ? "  x" + str.tostring(s.qty) : ""), color = color.new(color.blue, 20), textcolor = color.white, style = label.style_label_left, size = size.tiny)
+                    label.new(bar_index + 12, s.stop,   "SL " + str.tostring(s.stop, format.mintick) + "  (" + str.tostring(s.risk, format.mintick) + " pts)", color = color.new(color.red, 20), textcolor = color.white, style = label.style_label_left, size = size.tiny)
+                    label.new(bar_index + 12, s.target, "TP " + str.tostring(i_targetR) + "R " + str.tostring(s.target, format.mintick), color = color.new(color.lime, 20), textcolor = color.black, style = label.style_label_left, size = size.tiny)
+        if not gotFvg and bar_index - s.dispBar >= i_fvgSearch
+            if i_showSetup
+                label.new(bar_index, s.dir == "BULL" ? high : low, "NO FVG — NO TRADE", color = color.gray, textcolor = color.white, style = s.dir == "BULL" ? label.style_label_down : label.style_label_up, size = size.tiny)
+            s := Setup.new()
+            lastMsg := "displacement left no qualifying FVG — rescanning"
+
+    // ── SWEPT: wait for displacement through the breaker ──
+    else if s.state == "SWEPT"
+        bull = s.dir == "BULL"
+        rng = high - low == 0 ? tick : high - low
+        bp  = math.abs(close - open) / rng * 100
+        disp = bull ? (close > open and close > s.bbHi) : (close < open and close < s.bbLo)
+        if disp and bp >= i_bodyPct
+            s.state := "DISPLACED"
+            s.dispBar := bar_index
+            s.bodyPct := bp
+            s.legHi := math.max(s.legHi, high)
+            s.legLo := math.min(s.legLo, low)
+            lastMsg := "displacement " + str.tostring(math.round(bp)) + "% body — scanning FVG"
+            if i_showSetup
+                label.new(bar_index, bull ? low : high, "DISP", color = color.new(bull ? color.green : color.red, 10), textcolor = color.white, style = bull ? label.style_label_up : label.style_label_down, size = size.tiny)
+        else
+            s.extreme := bull ? math.min(s.extreme, low) : math.max(s.extreme, high)
+            s.legHi := math.max(s.legHi, high)
+            s.legLo := math.min(s.legLo, low)
+            if bar_index - s.sweepBar > i_dispMax
+                s := Setup.new()
+                lastMsg := "no displacement within " + str.tostring(i_dispMax) + " bars — rescanning"
+
+    // ── SCANNING: liquidity sweep ──
+    else if s.state == "SCANNING"
+        bullSweep = not na(sweptLoLvl) and allowBull and (ctxBias == "BULL" or ctxBias == "NONE")
+        bearSweep = not bullSweep and not na(sweptHiLvl) and allowBear and (ctxBias == "BEAR" or ctxBias == "NONE")
+        if bullSweep or bearSweep
+            bull = bullSweep
+            s.dir := bull ? "BULL" : "BEAR"
+            s.state := "SWEPT"
+            s.sweepBar := bar_index
+            s.swingBar := bull ? sweptLoBar : sweptHiBar
+            s.level    := bull ? sweptLoLvl : sweptHiLvl
+            s.extreme  := bull ? low : high
+            s.legHi := high
+            s.legLo := low
+            // ICT breaker: highest up-close (bull) / lowest down-close (bear) candle
+            // between the swept swing and the sweep, within the lookback
+            float bestP = na
+            int   bestJ = na
+            float anyP  = na
+            int   anyJ  = na
+            for j = 1 to i_bbLb
+                if bar_index - j > s.swingBar
+                    pick = bull ? close[j] > open[j] : close[j] < open[j]
+                    v = bull ? high[j] : low[j]
+                    if na(anyP) or (bull ? v > anyP : v < anyP)
+                        anyP := v
+                        anyJ := j
+                    if pick and (na(bestP) or (bull ? v > bestP : v < bestP))
+                        bestP := v
+                        bestJ := j
+            if na(anyJ)
+                for j = 1 to i_bbLb
+                    v = bull ? high[j] : low[j]
+                    if na(anyP) or (bull ? v > anyP : v < anyP)
+                        anyP := v
+                        anyJ := j
+            jj = na(bestJ) ? anyJ : bestJ
+            s.bbHi  := high[jj]
+            s.bbLo  := low[jj]
+            s.bbBar := bar_index - jj
+            lastMsg := (bull ? "swing LOW " : "swing HIGH ") + str.tostring(s.level, format.mintick) + " swept — waiting for displacement"
+            if i_showSetup
+                line.new(s.swingBar, s.level, bar_index, s.level, color = bull ? color.lime : color.red, style = line.style_dashed)
+                label.new(bar_index, bull ? low : high, bull ? "SSL SWEPT" : "BSL SWEPT", color = bull ? color.lime : color.red, textcolor = color.black, style = bull ? label.style_label_up : label.style_label_down, size = size.tiny)
+                box.new(s.bbBar, s.bbHi, bar_index + 3, s.bbLo, border_color = color.new(color.gray, 20), bgcolor = color.new(color.gray, 85), border_style = line.style_dotted, text = "BREAKER", text_color = color.gray, text_size = size.tiny, text_halign = text.align_left)
+
+// ================================================================
+// EXITS beyond stop/target: time stop + NY flatten
+// ================================================================
+if strategy.position_size != 0
+    et = strategy.opentrades.entry_time(0)
+    if time - et >= i_maxHold * 60000
+        strategy.close_all(comment = "TIME")
+    else if nyHour == i_flatHour and hour(et, NY) != i_flatHour
+        strategy.close_all(comment = "FLATTEN")
+
+// ================================================================
+// CHECKLIST TABLE
+// ================================================================
+tPos = switch i_tblPos
+    "Top Left"     => position.top_left
+    "Bottom Left"  => position.bottom_left
+    "Bottom Right" => position.bottom_right
+    => position.top_right
+var table tb = table.new(tPos, 2, 22, bgcolor = color.new(color.black, 10), border_width = 1, border_color = color.new(color.gray, 60), frame_color = color.new(color.gray, 40), frame_width = 1)
+
+ok(b) => b ? color.new(color.green, 30) : color.new(color.red, 40)
+na_(b) => b ? color.new(color.green, 30) : color.new(color.gray, 60)
+row(r, k, v, c) =>
+    table.cell(tb, 0, r, k, text_color = color.white, bgcolor = c, text_size = size.small, text_halign = text.align_left)
+    table.cell(tb, 1, r, v, text_color = color.white, bgcolor = c, text_size = size.small)
+
+if barstate.islast and i_showTbl
+    st  = s.state
+    has = st == "ARMED" or st == "DONE"
+    sw  = st != "SCANNING"
+    dp  = st == "DISPLACED" or has
+    row(0, "ICT SB v7", winName == "" ? "OFF HOURS" : winName + (inSB ? " · SB HOUR" : ""), color.new(color.navy, 10))
+    row(1, "HTF daily bias", htf, htf == "BULLISH" ? color.new(color.green, 40) : htf == "BEARISH" ? color.new(color.red, 40) : color.new(color.gray, 60))
+    row(2, "Context range", na(ctxHi) ? "building" : str.tostring(ctxLo, format.mintick) + " – " + str.tostring(ctxHi, format.mintick), color.new(color.gray, 60))
+    row(3, "Context sweep", ctxBias == "NONE" ? "none yet" : ctxBias + " → " + str.tostring(ctxTgt, format.mintick), ctxBias == "BULL" ? color.new(color.green, 40) : ctxBias == "BEAR" ? color.new(color.red, 40) : color.new(color.gray, 60))
+    row(4, "Midnight open (PO3)", na(midOpen) ? "-" : str.tostring(midOpen, format.mintick) + (close < midOpen ? "  price DISCOUNT" : "  price PREMIUM"), color.new(color.gray, 60))
+    row(5, "1 Liquidity sweep", sw ? s.dir + " " + str.tostring(s.level, format.mintick) : "watching", na_(sw))
+    row(6, "2 Breaker block", sw ? str.tostring(s.bbLo, format.mintick) + " – " + str.tostring(s.bbHi, format.mintick) : "-", na_(sw))
+    row(7, "3 Displacement", dp ? str.tostring(math.round(s.bodyPct)) + "% body" : sw ? "waiting" : "-", na_(dp))
+    row(8, "4 FVG", has ? str.tostring(s.fvgBot, format.mintick) + " – " + str.tostring(s.fvgTop, format.mintick) : dp ? "scanning" : "-", na_(has))
+    row(9, "5 Unicorn" + (i_reqUni ? " *" : ""), has ? (s.uni ? "YES" : "no") : "-", has ? ok(s.uni) : color.new(color.gray, 60))
+    row(10, "6 Premium/discount" + (i_reqPD ? " *" : ""), has ? (s.pdOk ? "OK" : "WRONG HALF") : "-", has ? ok(s.pdOk) : color.new(color.gray, 60))
+    row(11, "Draw on liquidity", has ? (s.dolOk ? "beyond entry" : "behind entry") : "-", has ? ok(s.dolOk) : color.new(color.gray, 60))
+    row(12, "PO3 vs midnight", has ? (s.po3Ok ? "correct side" : "wrong side") : "-", has ? ok(s.po3Ok) : color.new(color.gray, 60))
+    row(13, "Silver Bullet hour", has ? (s.sbOk ? "yes" : "no") : "-", has ? ok(s.sbOk) : color.new(color.gray, 60))
+    row(14, "Confluence", has ? str.tostring(s.conf) + " / 5" : "-", color.new(color.purple, 40))
+    row(15, "Gates", has ? (s.block == "" ? "PASS  " + str.tostring(s.qty) + " x $" + str.tostring(pv) + "/pt" : s.block) : "-", has ? ok(s.block == "") : color.new(color.gray, 60))
+    row(16, "Entry / Stop", has ? str.tostring(s.entry, format.mintick) + " / " + str.tostring(s.stop, format.mintick) : "-", color.new(color.blue, 50))
+    row(17, "Target " + str.tostring(i_targetR) + "R", has ? str.tostring(s.target, format.mintick) + "  risk $" + str.tostring(math.round(s.qty * s.risk * pv)) : "-", color.new(color.blue, 50))
+    row(18, "Status", lastMsg, color.new(color.navy, 30))
+    row(19, "Day P&L / trades", "$" + str.tostring(math.round(dayPnl)) + "  ·  " + str.tostring(dayTrades) + "/" + str.tostring(i_maxDay), color.new(color.gray, 60))
+    n  = strategy.closedtrades
+    pf = strategy.grossloss > 0 ? strategy.grossprofit / strategy.grossloss : 0.0
+    row(20, "Backtest", str.tostring(n) + " trades  " + (n > 0 ? str.tostring(math.round(100.0 * strategy.wintrades / n, 1)) : "0") + "% win  PF " + str.tostring(math.round(pf, 2)), color.new(color.navy, 30))
+    row(21, "Net P&L", "$" + str.tostring(math.round(strategy.netprofit)), strategy.netprofit >= 0 ? color.new(color.green, 30) : color.new(color.red, 30))
+
+// ================================================================
+// ALERTS (in addition to order-fill alerts carrying JSON alert_message)
+// ================================================================
+stNow = s.state
+alertcondition(stNow == "ARMED" and stNow[1] != "ARMED", "Setup armed", "ICT SB v7: setup armed — limit order placed")
+alertcondition(stNow == "SWEPT" and stNow[1] == "SCANNING", "Liquidity swept", "ICT SB v7: liquidity swept — watching for displacement")

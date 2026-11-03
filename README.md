@@ -82,3 +82,6 @@ python backtest/backtest.py  --year 2025     # → backtest/results/report_2025.
 - The backtest calls the live `SilverBulletEngine.evaluate()` on every closed 5m bar and then applies the same rules, gates, rule-based swarm, sizing and fees as the live bot.
 - Fills and exits are modelled conservatively: a touch and a stop in the same bar counts as a loss, a stop and a target in the same bar counts as a stop, and stop exits pay 1 tick of slippage.
 - The report covers the funnel (sessions → setups found → rule and gate failures → swarm → fills), trades, wins and losses, win %, planned versus realised R, expectancy, profit factor, max drawdown and a monthly breakdown. It shows the live config (swarm ≥ 7) and a rules-only variant.
+
+## TradingView
+`tradingview/ICT_SB_Strategy_v7.pine` is a Pine v6 strategy with the same rules. It gives you the Strategy Tester backtest and draws every sweep, breaker, FVG, unicorn, entry/SL/TP and the full checklist table on the chart. See `tradingview/README.md`.
