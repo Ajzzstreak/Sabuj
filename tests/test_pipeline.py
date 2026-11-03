@@ -194,6 +194,22 @@ def test_cme_calendar_and_sizing_gates():
     assert "contract_sizing" in failed, failed
 
 
+def test_engine_survives_reset_then_new_setup():
+    """Regression: _reset() used to swap the state dict while evaluate() held the old one (KeyError)."""
+    import random
+    random.seed(7)
+    eng, p, bars = SilverBulletEngine("NQ"), 21000.0, []
+    t0 = ts(18, 0, (2026, 10, 25))
+    for m in range(0, 7 * 288):
+        o = p
+        c = p + random.gauss(0, 12) + (random.random() < 0.05) * random.choice([-1, 1]) * 60
+        bars.append(Candle(t0 + m * 300, o, max(o, c) + abs(random.gauss(0, 6)),
+                           min(o, c) - abs(random.gauss(0, 6)), c, 1, 5, True))
+        p = c
+    for k in range(300, len(bars)):
+        eng.evaluate(bars[max(0, k - 432):k + 1], bars[k].end_time - 1, DAILY)
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_"):

@@ -71,3 +71,14 @@ CME holidays and early closes are not modelled.
 ## Live-trading gate
 `stats()["live_ready"]` turns True only after 50+ closed trades with a win rate above 50% and a profit factor above 1.5.
 No live execution code is included.
+
+## Backtesting a full year
+```bash
+python backtest/dukascopy.py --year 2025     # free 1m data → data/{NQ,ES,GC}_2025_m1.csv
+python backtest/backtest.py  --year 2025     # → backtest/results/report_2025.md, trades_2025.csv
+```
+- Data sources: Dukascopy `USATECHIDXUSD` (Nasdaq-100 cash, NQ proxy), `USA500IDXUSD` (S&P 500 cash, ES proxy) and `XAUUSD` (spot gold). They're free and need no account.
+- Any other CSV works too: `--data NQ=nq.csv,ES=es.csv,GC=gc.csv` (Databento, HistData, generic OHLC; add `--tz` for naive timestamps).
+- The backtest calls the live `SilverBulletEngine.evaluate()` on every closed 5m bar and then applies the same rules, gates, rule-based swarm, sizing and fees as the live bot.
+- Fills and exits are modelled conservatively: a touch and a stop in the same bar counts as a loss, a stop and a target in the same bar counts as a stop, and stop exits pay 1 tick of slippage.
+- The report covers the funnel (sessions → setups found → rule and gate failures → swarm → fills), trades, wins and losses, win %, planned versus realised R, expectancy, profit factor, max drawdown and a monthly breakdown. It shows the live config (swarm ≥ 7) and a rules-only variant.

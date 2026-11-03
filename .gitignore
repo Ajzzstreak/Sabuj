@@ -4,3 +4,4 @@ __pycache__/
 master/briefings/*.html
 trading_bot/trade_log.json
 trading_bot/futures_trade_log.json
+data/

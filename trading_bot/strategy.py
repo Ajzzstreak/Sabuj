@@ -462,7 +462,11 @@ class SilverBulletEngine:
         state.status = "SCANNING"
         state.signal = None
         state.setup_id = ""
-        state._s = {}  # type: ignore[attr-defined]
+        # clear IN PLACE: evaluate() holds a reference to this dict across resets
+        if hasattr(state, "_s"):
+            state._s.clear()  # type: ignore[attr-defined]
+        else:
+            state._s = {}  # type: ignore[attr-defined]
 
     @staticmethod
     def _breaker(c, s):
