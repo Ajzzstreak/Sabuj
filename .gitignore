@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.env
+master/briefings/*.html
+trading_bot/trade_log.json
