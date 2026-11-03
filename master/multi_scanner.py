@@ -1,6 +1,6 @@
 """
-multi_scanner.py — runs the Silver Bullet engine across BTC / ETH / SOL,
-plus optional BTC/ETH ratio mean-reversion (SPREAD_ENABLED).
+multi_scanner.py — runs the Silver Bullet engine across NQ / ES / GC
+(CME futures). Spread code is dormant (SPREAD_PAIRS empty).
 """
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 """
-strategy.py — ICT PO3 + Silver Bullet / Unicorn rule engine.
+strategy.py — ICT PO3 + Silver Bullet / Unicorn rule engine (CME futures: NQ, ES, GC).
 
 A deterministic port of "ICT Silver Bullet v6.4" (Pine) cross-referenced with
 the ICT 2022 Mentorship notes and the Stat-Map Unicorn document.
@@ -151,6 +151,9 @@ class TradeSignal:
         sgn = 1 if self.is_long else -1
         self.tp_levels = [entry + sgn * r * m for m in config.TP_LEVELS_R]
         self.target = entry + sgn * r * config.TARGET_R
+        tick = config.INSTRUMENT_UNIVERSE.get(self.instrument, {}).get("tick")
+        if tick:   # target rounded toward entry so it is a reachable price
+            self.target = round_tick(self.target, tick, "down" if self.is_long else "up")
 
     def to_dict(self) -> dict:
         d = asdict(self)
@@ -219,7 +222,29 @@ def _bounds(day: datetime, start: str, end: str) -> tuple[int, int]:
     return int(s.timestamp()), int(e.timestamp())
 
 
+def market_open(ts: float) -> bool:
+    """CME Globex: Sun 18:00 → Fri 17:00 NY, daily break 17:00-18:00. (Holidays not modelled.)"""
+    d = ny_dt(ts)
+    wd, h = d.weekday(), d.hour            # Mon=0 … Sun=6
+    if wd == 5:                            # Saturday
+        return False
+    if wd == 6:                            # Sunday opens 18:00
+        return h >= config.TRADING_DAY_ROLL_HOUR
+    if wd == 4 and h >= config.GLOBEX_CLOSE_HOUR:
+        return False
+    return not (config.GLOBEX_CLOSE_HOUR <= h < config.TRADING_DAY_ROLL_HOUR)
+
+
+def round_tick(price: float, tick: float, mode: str = "near") -> float:
+    import math
+    n = price / tick
+    n = math.floor(n + 1e-9) if mode == "down" else math.ceil(n - 1e-9) if mode == "up" else round(n)
+    return round(n * tick, 10)
+
+
 def active_window(ts: float) -> tuple[str, int, int] | None:
+    if not market_open(ts):
+        return None
     d = ny_dt(ts)
     for name, w in config.TRADE_WINDOWS.items():
         if not w["enabled"]:
@@ -259,7 +284,9 @@ class SilverBulletEngine:
 
     def __init__(self, instrument: str):
         self.instrument = instrument
-        self.min_fvg = config.INSTRUMENT_UNIVERSE[instrument]["min_fvg"]
+        spec = config.INSTRUMENT_UNIVERSE[instrument]
+        self.min_fvg = spec["min_fvg"]
+        self.tick = spec.get("tick", 0.01)
 
     # ── HTF + PO3 ──────────────────────────────────────────────
     @staticmethod
@@ -461,11 +488,13 @@ class SilverBulletEngine:
         z_top, z_bot = (o_top, o_bot) if uni else (fvg.top, fvg.bottom)
         size = z_top - z_bot
         buf = size * config.SL_BUFFER
-        entry = z_top if bull else z_bot              # limit at near edge of zone
+        tk = self.tick
+        buf = max(buf, tk)                            # at least one tick beyond the extreme
+        entry = round_tick(z_top if bull else z_bot, tk, "down" if bull else "up")  # limit at near edge
         if bull:
-            stop = min(s["extreme"] - buf, entry - buf * 2)
+            stop = round_tick(min(s["extreme"] - buf, entry - buf * 2), tk, "down")
         else:
-            stop = max(s["extreme"] + buf, entry + buf * 2)
+            stop = round_tick(max(s["extreme"] + buf, entry + buf * 2), tk, "up")
 
         leg = c[s["sweep_i"]:i + 1]
         leg_hi, leg_lo = max(x.high for x in leg), min(x.low for x in leg)

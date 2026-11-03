@@ -10,20 +10,32 @@ ROOT_DIR      = Path(__file__).resolve().parent.parent
 MASTER_DIR    = ROOT_DIR / "master"
 BOT_DIR       = ROOT_DIR / "trading_bot"
 BRIEFINGS_DIR = MASTER_DIR / "briefings"
-TRADE_LOG     = BOT_DIR / "trade_log.json"
+TRADE_LOG     = BOT_DIR / "futures_trade_log.json"
 
 # ════════════════════════════════════════════════════════════════
 # INSTRUMENTS
 # ════════════════════════════════════════════════════════════════
+# CME futures. Price data comes from the full-size contract (NQ/ES/GC — same
+# price as the micro); orders are sized in MICRO contracts so $100 risk is
+# reachable with integer contracts. Swap to full-size by changing
+# "contract"/"point_value" (NQ $20, ES $50, GC $100 per point).
+#   point_value : $ per 1.00 price move per contract
+#   min_fvg     : minimum FVG size in points (5m chart)
+#   min_stop / max_stop : allowed stop distance in points
 INSTRUMENT_UNIVERSE = {
-    "BTC": {"type": "crypto", "exchange": "KRAKEN", "min_fvg": 50.0, "tick": 0.01, "session": "24/7"},
-    "ETH": {"type": "crypto", "exchange": "KRAKEN", "min_fvg": 5.0,  "tick": 0.01, "session": "24/7"},
-    "SOL": {"type": "crypto", "exchange": "KRAKEN", "min_fvg": 0.5,  "tick": 0.01, "session": "24/7"},
+    "NQ": {"type": "future", "exchange": "CME",   "name": "Nasdaq-100",  "data_symbol": "NQ=F",
+           "contract": "MNQ", "point_value": 2.0,  "tick": 0.25, "min_fvg": 5.0,
+           "min_stop": 8.0,  "max_stop": 60.0, "max_contracts": 10, "session": "CME_GLOBEX"},
+    "ES": {"type": "future", "exchange": "CME",   "name": "S&P 500",     "data_symbol": "ES=F",
+           "contract": "MES", "point_value": 5.0,  "tick": 0.25, "min_fvg": 1.25,
+           "min_stop": 2.0,  "max_stop": 20.0, "max_contracts": 10, "session": "CME_GLOBEX"},
+    "GC": {"type": "future", "exchange": "COMEX", "name": "Gold",        "data_symbol": "GC=F",
+           "contract": "MGC", "point_value": 10.0, "tick": 0.10, "min_fvg": 1.0,
+           "min_stop": 2.0,  "max_stop": 10.0, "max_contracts": 10, "session": "CME_GLOBEX"},
 }
 
-SPREAD_PAIRS = [
-    {"name": "BTC/ETH", "leg1": "BTC", "leg2": "ETH", "ratio": 15.0, "threshold_pct": 0.20},
-]
+# Pair trading not used for futures (NQ/ES correlation is SMT context, not a trade).
+SPREAD_PAIRS = []
 # Pair mean-reversion is NOT part of the ICT rule set. Off by default.
 SPREAD_ENABLED          = False
 SPREAD_LOOKBACK_BARS    = 288          # 24h of 5m bars for the rolling mean ratio
@@ -62,14 +74,13 @@ AUTO_EXECUTE_SCORE  = 7            # swarm SETUP QUALITY needed to auto-fire
 PAPER_BALANCE  = 50000
 RISK_PER_TRADE = 100
 
-# Fees are what kill tight-stop intraday crypto. Default = Kraken Futures
-# taker (0.05%). Kraken *spot* Pro taker is 0.40% at the lowest tier — at
-# that rate a $100-risk BTC trade with a 0.3% stop pays ~$265 in fees.
-FEE_RATE_PER_SIDE   = 0.0005
-MAX_FEE_TO_RISK     = 0.30         # skip trade if round-trip fees > 30% of risk
-MAX_LEVERAGE        = 3.0          # skip trade if notional > 3x balance
-MIN_RISK_PCT        = 0.0010       # stop must be >= 0.10% from entry (noise floor)
-MAX_RISK_PCT        = 0.0300       # stop must be <= 3% from entry
+# Futures fees are flat per contract. Micro all-in (commission + CME exchange
+# + NFA) at discount brokers is ~$0.50-0.85/side. A 2-contract MNQ trade
+# costs ~$2.50 round trip = 2.5% of a $100 risk (vs 33-265% on crypto).
+FEE_PER_CONTRACT_SIDE = 0.62
+SLIPPAGE_TICKS        = 1          # stop/market exits fill 1 tick worse
+MAX_FEE_TO_RISK       = 0.15       # skip trade if round-trip fees > 15% of risk
+MIN_CONTRACTS         = 1          # stop too wide for $RISK with 1 micro → no trade
 
 MAX_OPEN_POSITIONS      = 3
 MAX_TRADES_PER_DAY      = 6
@@ -82,7 +93,8 @@ FLATTEN_HOUR_NY         = 16       # hard flat at 16:00 New York
 # SESSIONS  (New York time, ICT convention)
 # ════════════════════════════════════════════════════════════════
 NY_TZ = "America/New_York"
-TRADING_DAY_ROLL_HOUR = 18         # trading day starts 18:00 NY (Asian belongs to next day)
+TRADING_DAY_ROLL_HOUR = 18         # CME Globex day starts 18:00 NY (Asian belongs to next day)
+GLOBEX_CLOSE_HOUR     = 17         # daily maintenance break 17:00-18:00 NY, Fri 17:00 → Sun 18:00 closed
 
 # Context ranges (liquidity pools)
 ASIAN_RANGE  = ("20:00", "00:00")
@@ -99,7 +111,7 @@ SILVER_BULLET = {"LONDON": ("03:00", "04:00"), "NY_AM": ("10:00", "11:00"), "NY_
 # ════════════════════════════════════════════════════════════════
 # SETUP RULES  (Pine "ICT Silver Bullet v6.4" inputs)
 # ════════════════════════════════════════════════════════════════
-CANDLE_INTERVAL_MIN   = 5          # 1 or 5. Kraken REST returns max 720 bars.
+CANDLE_INTERVAL_MIN   = 5          # 1, 2, 5 or 15
 SWING_LEN             = 2          # swing confirm bars each side
 SWING_LOOKBACK_BARS   = 36         # how far back a swing may be to count as liquidity
 DISP_BODY_PCT         = 50.0       # min displacement body %
@@ -116,8 +128,11 @@ TP_LEVELS_R           = (2.0, 4.0, 5.0)
 # ════════════════════════════════════════════════════════════════
 # FEED / LOOP
 # ════════════════════════════════════════════════════════════════
-KRAKEN_REST_URL   = "https://api.kraken.com/0/public/"
-KRAKEN_WS_URL     = "wss://ws.kraken.com/v2"
-USE_WEBSOCKET     = True
-SCAN_LOOP_SEC     = 1.0            # tick/exit check cadence
+# Free source: Yahoo Finance chart API (no key). CME data there is DELAYED
+# ~10 min — fine for paper-validating the rules, not for live execution.
+# For live: Tradovate / Rithmic / IBKR / Databento feeds plug into the same
+# get_candles/get_tick interface.
+DATA_SOURCE_URL   = "https://query1.finance.yahoo.com/v8/finance/chart/"
+FEED_CACHE_SEC    = 8              # min seconds between HTTP pulls per symbol
+SCAN_LOOP_SEC     = 5.0            # tick/exit check cadence
 PNL_MONITOR_SEC   = 30

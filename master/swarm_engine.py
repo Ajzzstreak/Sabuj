@@ -45,7 +45,7 @@ ROLE_PROMPTS = {
                  "Asian/London range sweeps, draw on liquidity, PO3 phase.",
     "risk":      "You are the risk manager. Judge stop placement, R:R, invalidation, and whether the "
                  "setup deserves capital. Be strict.",
-    "sentiment": "You judge crypto order-flow sentiment for this instrument at this time of day.",
+    "sentiment": "You judge index/gold futures order flow: NQ-ES correlation (SMT divergence), USD and yields for gold, scheduled news (8:30 CPI/NFP, 10:00 data, FOMC) at this time of day.",
     "devil":     "You are the devil's advocate. Find the strongest reason this trade fails.",
 }
 

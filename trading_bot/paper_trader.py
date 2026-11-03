@@ -1,7 +1,9 @@
 """
-paper_trader.py — position tracking, rule-based exits, live P&L, persistence.
+paper_trader.py — futures position tracking, rule-based exits, live P&L, persistence.
 
-Sizing: units = RISK_PER_TRADE / risk_points  → every stop-out loses $100 (+fees).
+Sizing: contracts = floor(RISK_PER_TRADE / (risk_points × point_value)), capped
+at max_contracts. Stop-out loses <= $100 + fees + 1 tick slippage. If even one
+contract risks more than $100, the trade is not taken.
 Exits are mechanical: stop, target, time stop, NY flatten hour. No discretion.
 State survives restarts via a JSON trade log (config.TRADE_LOG).
 """
@@ -20,7 +22,20 @@ if str(_MASTER) not in sys.path:
     sys.path.insert(0, str(_MASTER))
 
 import config  # noqa: E402
-from strategy import TradeSignal, CheckItem, trading_day, ny_dt  # noqa: E402
+from strategy import TradeSignal, CheckItem, trading_day, ny_dt, market_open  # noqa: E402
+
+
+def _spec(instrument: str) -> dict:
+    return config.INSTRUMENT_UNIVERSE.get(instrument, {})
+
+
+def contracts_for(instrument: str, risk_points: float) -> int:
+    sp = _spec(instrument)
+    pv = sp.get("point_value", 1.0)
+    if risk_points <= 0:
+        return 0
+    n = int(config.RISK_PER_TRADE // (risk_points * pv))
+    return max(0, min(n, sp.get("max_contracts", 10)))
 
 _DIR_MAP = {"LONG": "LONG", "BUY": "LONG", "BULL": "LONG",
             "SHORT": "SHORT", "SELL": "SHORT", "BEAR": "SHORT"}
@@ -47,6 +62,9 @@ class Position:
     session: str = ""
     id: int = 0
     tp_levels: list = field(default_factory=list)
+    contracts: int = 0
+    point_value: float = 1.0
+    contract: str = ""
 
     @property
     def is_long(self) -> bool:
@@ -57,7 +75,12 @@ class Position:
         return self.close_time is None
 
     def _size(self) -> float:
-        return config.RISK_PER_TRADE / self.risk_points if self.risk_points > 0 else 0.0
+        """$ per 1.00 point move for the whole position (contracts × point value)."""
+        return self.contracts * self.point_value
+
+    @property
+    def risk_dollars(self) -> float:
+        return self.risk_points * self._size()
 
     @property
     def notional(self) -> float:
@@ -74,10 +97,10 @@ class Position:
 
 class PaperTrader:
     def __init__(self, balance: float = config.PAPER_BALANCE, log_path: Path | str | None = config.TRADE_LOG,
-                 fee_rate: float = config.FEE_RATE_PER_SIDE):
+                 fee_per_contract: float = config.FEE_PER_CONTRACT_SIDE):
         self.start_balance = balance
         self.balance = balance
-        self.fee_rate = fee_rate
+        self.fee_per_contract = fee_per_contract
         self.log_path = Path(log_path) if log_path else None
         self.open_positions: list[Position] = []
         self.closed: list[Position] = []
@@ -132,10 +155,10 @@ class PaperTrader:
         now = now or time.time()
         day = trading_day(now)
         r = signal.risk_points
-        risk_pct = r / signal.entry if signal.entry else 0
-        size = config.RISK_PER_TRADE / r if r > 0 else 0
-        notional = size * signal.entry
-        fees = notional * self.fee_rate * 2
+        sp = _spec(signal.instrument)
+        n = contracts_for(signal.instrument, r)
+        risk_usd = n * sp.get("point_value", 1.0) * r
+        fees = n * self.fee_per_contract * 2
         geometry = (signal.stop < signal.entry < signal.target) if signal.is_long else \
                    (signal.target < signal.entry < signal.stop)
         window_key = f"{signal.instrument}-{day}-{signal.session}"
@@ -143,12 +166,14 @@ class PaperTrader:
         return [
             CheckItem("order_geometry", geometry, True, "stop < entry < target" if signal.is_long
                       else "target < entry < stop"),
-            CheckItem("stop_distance", config.MIN_RISK_PCT <= risk_pct <= config.MAX_RISK_PCT, True,
-                      f"{risk_pct * 100:.2f}% (allowed {config.MIN_RISK_PCT * 100:.2f}-{config.MAX_RISK_PCT * 100:.1f}%)"),
-            CheckItem("fee_drag", fees <= config.RISK_PER_TRADE * config.MAX_FEE_TO_RISK, True,
-                      f"round-trip fees ${fees:.2f} vs max ${config.RISK_PER_TRADE * config.MAX_FEE_TO_RISK:.0f}"),
-            CheckItem("leverage", notional <= self.balance * config.MAX_LEVERAGE, True,
-                      f"notional ${notional:,.0f} ({notional / self.balance:.2f}x)"),
+            CheckItem("market_open", market_open(now), True, "CME Globex session open"),
+            CheckItem("stop_distance", sp.get("min_stop", 0) <= r <= sp.get("max_stop", 1e18), True,
+                      f"{r:.2f} pts (allowed {sp.get('min_stop')}-{sp.get('max_stop')})"),
+            CheckItem("contract_sizing", n >= config.MIN_CONTRACTS, True,
+                      f"{n} x {sp.get('contract', signal.instrument)} = ${risk_usd:.2f} risk "
+                      f"(${sp.get('point_value')}/pt)"),
+            CheckItem("fee_drag", n > 0 and fees <= risk_usd * config.MAX_FEE_TO_RISK, True,
+                      f"round-trip fees ${fees:.2f} vs {config.MAX_FEE_TO_RISK * 100:.0f}% of risk"),
             CheckItem("max_open_positions", len(self.open_positions) < config.MAX_OPEN_POSITIONS, True,
                       f"{len(self.open_positions)}/{config.MAX_OPEN_POSITIONS} open"),
             CheckItem("no_duplicate_instrument",
@@ -166,7 +191,7 @@ class PaperTrader:
     # ── orders ─────────────────────────────────────────────────
     def open_trade(self, signal: TradeSignal | None = None, *, instrument: str | None = None,
                    direction: str | None = None, entry: float | None = None, stop: float | None = None,
-                   target: float | None = None, label: str = "") -> Position:
+                   target: float | None = None, label: str = "", contracts: int | None = None) -> Position:
         if signal is not None:
             instrument, direction = signal.instrument, signal.direction
             entry, stop, target = signal.entry, signal.stop, signal.target
@@ -177,28 +202,36 @@ class PaperTrader:
         risk = abs(entry - stop)
         if risk <= 0:
             raise ValueError("risk_points must be > 0")
+        sp = _spec(instrument)
+        contracts = contracts if contracts is not None else contracts_for(instrument, risk)
+        if contracts < 1:
+            raise ValueError(f"{instrument}: 1 contract risks more than ${config.RISK_PER_TRADE}")
         pos = Position(instrument=instrument, direction=direction, entry_price=float(entry),
                        stop_price=float(stop), target_price=float(target), risk_points=risk,
                        open_time=time.time(), label=label, id=self._next_id,
                        setup_id=signal.setup_id if signal else "",
                        session=signal.session if signal else "",
-                       tp_levels=list(signal.tp_levels) if signal else [])
-        pos.fees = pos.notional * self.fee_rate          # entry fee
+                       tp_levels=list(signal.tp_levels) if signal else [],
+                       contracts=contracts, point_value=sp.get("point_value", 1.0),
+                       contract=sp.get("contract", instrument))
+        pos.fees = contracts * self.fee_per_contract          # entry commission
         self._next_id += 1
         self.open_positions.append(pos)
         if pos.setup_id:
             self.taken_setups.add(pos.setup_id)
         self._save()
         print(f"\n▶ OPEN  #{pos.id} {pos.direction} {instrument} @ {entry:,.2f}  SL {stop:,.2f}  "
-              f"TP {target:,.2f}  size {pos._size():.6f}  risk ${config.RISK_PER_TRADE}  [{label}]")
+              f"TP {target:,.2f}  {contracts} x {pos.contract}  risk ${pos.risk_dollars:,.2f}  [{label}]")
         return pos
 
     def close_position(self, pos: Position, price: float, reason: str) -> Position:
+        if reason in ("STOP", "TIME", "FLATTEN", "FORCED") and config.SLIPPAGE_TICKS:
+            slip = config.SLIPPAGE_TICKS * _spec(pos.instrument).get("tick", 0)
+            price = price - slip if pos.is_long else price + slip     # market/stop orders slip
         pos.close_time = time.time()
         pos.close_price = price
         pos.pnl_points = (price - pos.entry_price) if pos.is_long else (pos.entry_price - price)
-        exit_fee = pos._size() * price * self.fee_rate
-        pos.fees += exit_fee
+        pos.fees += pos.contracts * self.fee_per_contract           # exit commission
         pos.pnl_dollars = pos.pnl_points * pos._size() - pos.fees
         pos.outcome = "WIN" if pos.pnl_dollars > 0 else "LOSS" if pos.pnl_dollars < 0 else "BE"
         pos.exit_reason = reason
@@ -260,7 +293,7 @@ class PaperTrader:
             pts, usd = p.unrealized_pnl(px)
             total += usd
             mins = (time.time() - p.open_time) / 60
-            lines.append(f" #{p.id:<3} {p.instrument:<4} {p.direction:<5} entry {p.entry_price:>11,.2f} "
+            lines.append(f" #{p.id:<3} {p.contracts}x{p.contract:<4} {p.direction:<5} entry {p.entry_price:>11,.2f} "
                          f"now {px:>11,.2f}  SL {p.stop_price:>11,.2f}  TP {p.target_price:>11,.2f}")
             lines.append(f"      {pts:+12,.2f} pts  ${usd:+9,.2f}  {p.r_multiple(px):+.2f}R  {mins:5.0f} min  {p.label}")
         realized = sum(p.pnl_dollars for p in self.closed)

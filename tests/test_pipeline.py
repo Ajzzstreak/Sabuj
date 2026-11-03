@@ -1,5 +1,5 @@
 """
-Offline end-to-end test: synthetic BTC 5m tape with a textbook NY AM unicorn
+Offline end-to-end test: synthetic NQ 5m tape with a textbook NY AM unicorn
 long. Verifies engine → checklist → swarm (rule-based) → fill → target exit
 → persistence. Run:  python tests/test_pipeline.py   (or pytest)
 """
@@ -16,7 +16,7 @@ sys.path[:0] = [str(ROOT / "master"), str(ROOT / "trading_bot")]
 
 import config  # noqa: E402
 from market_data import Candle, Tick  # noqa: E402
-from strategy import SilverBulletEngine  # noqa: E402
+from strategy import SilverBulletEngine, market_open  # noqa: E402
 from paper_trader import PaperTrader  # noqa: E402
 from swarm_engine import SwarmEngine, parse_score  # noqa: E402
 from orchestrator import Orchestrator  # noqa: E402
@@ -50,6 +50,11 @@ KEY = {  # NY time: (o, h, l, c)
 }
 
 
+def f(p):
+    """Rescale the template (drawn at 70000) to NQ ~21000 with 1/10 the range."""
+    return 21000 + (p - 70000) / 10
+
+
 def tape(until=(9, 45)):
     out = []
     t = ts(18, 0, (2026, 11, 2))
@@ -63,23 +68,24 @@ def tape(until=(9, 45)):
         else:
             c = 70300 + 60 * math.sin(i / 5)
             o, h, l = c - 5, c + 30, c - 30
-        out.append(Candle(t, o, h, l, c, 1.0, 5, closed=True))
+        out.append(Candle(t, f(o), f(h), f(l), f(c), 1.0, 5, closed=True))
         t += 300
         i += 1
     return out
 
 
-DAILY = [Candle(ts(0, 0, (2026, 11, 2)) - 86400, 68000, 70500, 67800, 70200, 1, 1440, True)]
+DAILY = [Candle(ts(0, 0, (2026, 11, 2)) - 86400, f(68000), f(70500), f(67800), f(70200), 1, 1440, True)]
 
 
 def test_engine_finds_unicorn():
-    eng = SilverBulletEngine("BTC")
+    eng = SilverBulletEngine("NQ")
     st = eng.evaluate(tape((9, 30)), ts(9, 34), DAILY)
     assert st.status == "ARMED", (st.status, st.notes)
     s = st.signal
     assert s.direction == "LONG" and s.unicorn
-    assert (s.zone_bot, s.zone_top) == (70240, 70280)
-    assert s.entry == 70280 and abs(s.stop - 70016) < 1e-6
+    assert (s.zone_bot, s.zone_top) == (21024, 21028)
+    assert s.entry == 21028.0 and s.stop == 21001.5          # tick-rounded (0.25)
+    assert s.target == 21081.0
     assert s.hard_rules_pass(), s.failed_rules()
     st2 = eng.evaluate(tape((9, 35)), ts(9, 39), DAILY)
     assert st2.status == "TRIGGERED" and st2.setup_id == st.setup_id
@@ -87,13 +93,13 @@ def test_engine_finds_unicorn():
 
 
 def test_htf_filter_blocks_counter_trend():
-    bear_daily = [Candle(DAILY[0].time, 70200, 70500, 67800, 68000, 1, 1440, True)]
-    st = SilverBulletEngine("BTC").evaluate(tape((9, 30)), ts(9, 34), bear_daily)
+    bear_daily = [Candle(DAILY[0].time, f(70200), f(70500), f(67800), f(68000), 1, 1440, True)]
+    st = SilverBulletEngine("NQ").evaluate(tape((9, 30)), ts(9, 34), bear_daily)
     assert st.status != "ARMED" or not st.signal.is_long
 
 
 def test_rule_based_chairman_scores():
-    st = SilverBulletEngine("BTC").evaluate(tape((9, 30)), ts(9, 34), DAILY)
+    st = SilverBulletEngine("NQ").evaluate(tape((9, 30)), ts(9, 34), DAILY)
     sw = SwarmEngine(api_key="")
     res = asyncio.run(sw.deliberate(st.signal))
     print(res["briefing"])
@@ -105,7 +111,7 @@ def test_rule_based_chairman_scores():
 class FakeFeed:
     def __init__(self):
         self.until = (9, 30)
-        self.price = 70420.0
+        self.price = 21042.0
 
     def get_candles(self, inst, interval=5):
         return DAILY if interval == 1440 else tape(self.until)
@@ -123,28 +129,29 @@ def test_orchestrator_end_to_end():
         clock = {"t": ts(9, 34)}
         feed = FakeFeed()
         orch = Orchestrator(feed=feed, trader=PaperTrader(log_path=log), swarm=SwarmEngine(api_key=""),
-                            instruments=["BTC"], clock=lambda: clock["t"])
+                            instruments=["NQ"], clock=lambda: clock["t"])
         from multi_scanner import MultiScanner
-        orch.scanner = MultiScanner(feed, ["BTC"])
+        orch.scanner = MultiScanner(feed, ["NQ"])
 
         async def run():
             await orch.step()                                  # ARMED, swarm spawned
             await asyncio.gather(*orch._tasks)
             ev = next(iter(orch.monitor.events.values()))
             assert ev.status == "APPROVED", (ev.status, ev.briefing)
-            feed.until, feed.price, clock["t"] = (9, 35), 70275.0, ts(9, 36)
+            feed.until, feed.price, clock["t"] = (9, 35), 21027.5, ts(9, 36)
             await orch.step()                                  # touch → fill at limit
             assert ev.status == "FIRED", (ev.status, ev.reasons)
             pos = orch.trader.open_positions[0]
-            assert pos.entry_price == 70280
-            feed.until, feed.price, clock["t"] = (9, 45), 70880.0, ts(9, 49)
+            assert pos.entry_price == 21028.0 and pos.contracts == 1 and pos.contract == "MNQ"
+            feed.until, feed.price, clock["t"] = (9, 45), 21088.0, ts(9, 49)
             await orch.step()                                  # target hit
         asyncio.run(run())
         assert not orch.trader.open_positions
         p = orch.trader.closed[0]
         assert p.exit_reason == "TARGET" and p.outcome == "WIN"
         assert abs(p.pnl_points / p.risk_points - 2.0) < 1e-9
-        print(orch.trader.mark_to_market({"BTC": 70880.0}))
+        assert abs(p.pnl_dollars - (53.0 * 2.0 - 4 * 0.0 - 2 * config.FEE_PER_CONTRACT_SIDE)) < 1e-9
+        print(orch.trader.mark_to_market({"NQ": 21088.0}))
         orch.trader.print_trade_log()
         orch.trader.print_stats()
         # persistence
@@ -156,15 +163,35 @@ def test_orchestrator_end_to_end():
 
 def test_paper_trader_dual_style_and_force_close():
     t = PaperTrader(log_path=None)
-    t.open_trade(instrument="ETH", direction="SELL", entry=3000, stop=3015, target=2970, label="kw")
-    assert t.open_positions[0].direction == "SHORT"
-    assert t.check_exits("ETH", 3020, 2960)[0].exit_reason == "STOP"   # both hit → stop
-    t.open_trade(instrument="SOL", direction="BUY", entry=150, stop=148, target=154)
+    t.open_trade(instrument="ES", direction="SELL", entry=6000, stop=6010, target=5980, label="kw")
+    pos = t.open_positions[0]
+    assert pos.direction == "SHORT" and pos.contracts == 2 and pos.contract == "MES"   # 10pt x $5 x 2 = $100
+    c = t.check_exits("ES", 6012, 5975)[0]                       # both hit → stop
+    assert c.exit_reason == "STOP" and c.close_price == 6010.25  # 1 tick slippage
+    assert abs(c.pnl_dollars - (-10.25 * 10 - 4 * config.FEE_PER_CONTRACT_SIDE)) < 1e-9
+    t.open_trade(instrument="GC", direction="BUY", entry=2400, stop=2395, target=2410)
+    assert t.open_positions[0].contracts == 2 and t.open_positions[0].contract == "MGC"
     t.force_close_all()
-    assert t.closed[-1].close_price == 150 and t.closed[-1].exit_reason == "FORCED"
+    assert abs(t.closed[-1].close_price - 2399.9) < 1e-9 and t.closed[-1].exit_reason == "FORCED"
     s = t.stats()
     assert set(["trades", "wins", "losses", "win_pct", "avg_win", "avg_loss", "profit_factor",
                 "net_pnl", "final_balance", "return_pct"]) <= set(s)
+
+
+def test_cme_calendar_and_sizing_gates():
+    assert market_open(ts(9, 30))                                   # Tuesday NY AM
+    assert not market_open(ts(17, 30))                              # daily maintenance break
+    assert not market_open(ts(10, 0, (2026, 11, 7)))                # Saturday
+    assert not market_open(ts(12, 0, (2026, 11, 8)))                # Sunday before 18:00
+    assert market_open(ts(19, 0, (2026, 11, 8)))                    # Sunday Globex open
+    assert SilverBulletEngine("NQ").evaluate(tape((9, 30)), ts(10, 0, (2026, 11, 7)), DAILY) is None
+    st = SilverBulletEngine("NQ").evaluate(tape((9, 30)), ts(9, 34), DAILY)
+    sig = st.signal
+    sig.stop = sig.entry - 55                                       # 1 MNQ = $110 > $100 risk
+    sig.reprice(sig.entry)
+    t = PaperTrader(log_path=None)
+    failed = {c.name for c in t.pre_trade_checks(sig, ts(9, 36)) if not c.passed}
+    assert "contract_sizing" in failed, failed
 
 
 if __name__ == "__main__":

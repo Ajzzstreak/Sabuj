@@ -1,8 +1,8 @@
 """
 orchestrator.py — main async loop.
 
-    cd master && python orchestrator.py            # WebSocket feed (default)
-    python orchestrator.py --rest                  # REST polling only
+    cd master && python orchestrator.py            # NQ, ES, GC (micro contracts)
+    python orchestrator.py --instruments NQ,ES     # subset
     python orchestrator.py --no-swarm              # rules only, rule-based chairman
     python orchestrator.py --once                  # one scan pass, print checklist, exit
 
@@ -29,7 +29,7 @@ for p in (ROOT / "master", ROOT / "trading_bot"):
         sys.path.insert(0, str(p))
 
 import config  # noqa: E402
-from market_data import KrakenFeed, KrakenWSFeed  # noqa: E402
+from market_data import FuturesFeed  # noqa: E402
 from multi_scanner import MultiScanner  # noqa: E402
 from paper_trader import PaperTrader  # noqa: E402
 from signal_monitor import SignalMonitor, SignalEvent  # noqa: E402
@@ -74,11 +74,13 @@ class Orchestrator:
         wins = ", ".join(f"{k} {w['start']}-{w['end']}" for k, w in config.TRADE_WINDOWS.items() if w["enabled"])
         feed = type(self.feed).__name__
         print("═" * 78)
-        print(" ICT PO3 + SILVER BULLET / UNICORN — CRYPTO PAPER TRADER")
-        print(f" Instruments : {', '.join(self.instruments)}  (Kraken spot data, {feed})")
+        u = config.INSTRUMENT_UNIVERSE
+        print(" ICT PO3 + SILVER BULLET / UNICORN — CME FUTURES PAPER TRADER")
+        print(" Instruments : " + ", ".join(f"{i}→{u[i]['contract']} (${u[i]['point_value']:g}/pt)"
+                                           for i in self.instruments) + f"  [{feed}]")
         print(f" Kill zones  : {wins} New York time")
         print(f" Risk        : ${config.RISK_PER_TRADE}/trade  balance ${self.trader.balance:,.2f}  "
-              f"daily stop -${config.MAX_DAILY_LOSS}  fee {config.FEE_RATE_PER_SIDE * 100:.3f}%/side")
+              f"daily stop -${config.MAX_DAILY_LOSS}  fee ${config.FEE_PER_CONTRACT_SIDE}/contract/side")
         print(f" Execution   : auto-fire at swarm score >= {config.AUTO_EXECUTE_SCORE}  target {config.TARGET_R}R  "
               f"time stop {config.MAX_HOLD_MINUTES}m")
         print(f" Swarm       : {'LLM council (OpenRouter)' if self.swarm.llm_enabled else 'rule-based (no API key)'}")
@@ -170,8 +172,9 @@ td{{padding:4px 8px;border-bottom:1px solid #333}}pre{{background:#1a1d24;paddin
             if px is None:
                 continue
             hi = lo = px
-            if not isinstance(self.feed, KrakenWSFeed) or not self.feed.live:
-                # REST is slow: include the forming candle's range since entry
+            # polled feed: include the forming candle's range since entry so
+            # wicks between polls still hit stops/targets
+            if True:
                 try:
                     c = self.feed.get_candles(inst, config.CANDLE_INTERVAL_MIN)[-1]
                     if any(p.instrument == inst and c.time >= p.open_time for p in self.trader.open_positions):
@@ -279,9 +282,7 @@ td{{padding:4px 8px;border-bottom:1px solid #333}}pre{{background:#1a1d24;paddin
     # ── lifecycle ──────────────────────────────────────────────
     async def run(self, once: bool = False):
         if self.feed is None:
-            self.feed = KrakenWSFeed(self.instruments) if config.USE_WEBSOCKET else KrakenFeed()
-        if isinstance(self.feed, KrakenWSFeed):
-            await self.feed.start()
+            self.feed = FuturesFeed()
         self.scanner = MultiScanner(self.feed, self.instruments)
         self.banner()
 
@@ -322,8 +323,6 @@ td{{padding:4px 8px;border-bottom:1px solid #333}}pre{{background:#1a1d24;paddin
                 pass
             # last known market price; entry_price only if no price was ever seen
             self.trader.force_close_all(self._last_prices or None)
-        if isinstance(self.feed, KrakenWSFeed):
-            await self.feed.stop()
         self.trader.print_trade_log()
         self.trader.print_stats()
 
@@ -333,8 +332,7 @@ ARGS_KEEP_OPEN = False
 
 def main():
     global ARGS_KEEP_OPEN
-    ap = argparse.ArgumentParser(description="ICT Silver Bullet crypto paper trader")
-    ap.add_argument("--rest", action="store_true", help="REST polling instead of WebSocket")
+    ap = argparse.ArgumentParser(description="ICT Silver Bullet CME futures paper trader")
     ap.add_argument("--no-swarm", action="store_true", help="skip LLMs, rule-based chairman only")
     ap.add_argument("--once", action="store_true", help="single scan pass then exit")
     ap.add_argument("--keep-open", action="store_true", help="persist open positions on exit instead of closing")
@@ -343,14 +341,11 @@ def main():
     a = ap.parse_args()
     logging.basicConfig(level=logging.DEBUG if a.verbose else logging.WARNING,
                         format="%(asctime)s %(name)s %(levelname)s %(message)s")
-    if a.rest:
-        config.USE_WEBSOCKET = False
     if a.no_swarm:
         config.SWARM_ENABLED = False
     ARGS_KEEP_OPEN = a.keep_open
     insts = [i.strip().upper() for i in a.instruments.split(",") if i.strip()]
-    loop_sec = config.SCAN_LOOP_SEC if config.USE_WEBSOCKET else 5.0
-    orch = Orchestrator(instruments=insts, swarm=SwarmEngine(), loop_sec=loop_sec)
+    orch = Orchestrator(instruments=insts, swarm=SwarmEngine(), loop_sec=config.SCAN_LOOP_SEC)
     asyncio.run(orch.run(once=a.once))
 
 
