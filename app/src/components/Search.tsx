@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { forwardRef, useState } from 'react';
+import { useState } from 'react';
 import { Platform, StyleSheet, TextInput, View, type TextStyle } from 'react-native';
 import { haptic } from '@/lib/haptics';
 import { continuous, radius, space, type as typeScale, useTheme } from '@/theme';
@@ -16,10 +16,7 @@ export interface SearchFieldProps {
   placeholder?: string;
 }
 
-export const SearchField = forwardRef<TextInput, SearchFieldProps>(function SearchField(
-  { value, onChangeText, onSubmit, onFocusChange, large, autoFocus, placeholder = 'Search any product' },
-  ref,
-) {
+export function SearchField({ value, onChangeText, onSubmit, onFocusChange, large, autoFocus, placeholder = 'Search any product' }: SearchFieldProps) {
   const t = useTheme();
   const { c } = t;
   const [focused, setFocused] = useState(false);
@@ -35,7 +32,6 @@ export const SearchField = forwardRef<TextInput, SearchFieldProps>(function Sear
     >
       <Ionicons name="search" size={large ? 22 : 18} color={focused ? c.accent : c.textTertiary} />
       <TextInput
-        ref={ref}
         testID="search-input"
         value={value}
         onChangeText={onChangeText}
@@ -77,7 +73,7 @@ export const SearchField = forwardRef<TextInput, SearchFieldProps>(function Sear
       ) : null}
     </View>
   );
-});
+}
 
 const webNoOutline = (Platform.OS === 'web' ? { outlineStyle: 'none' } : null) as TextStyle | null;
 

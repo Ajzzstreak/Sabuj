@@ -1,5 +1,4 @@
-import { forwardRef } from 'react';
-import { Platform, Pressable, type GestureResponderEvent, type PressableProps, type StyleProp, type View, type ViewStyle } from 'react-native';
+import { Platform, Pressable, type GestureResponderEvent, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -11,10 +10,7 @@ export interface PressableScaleProps extends Omit<PressableProps, 'style'> {
 }
 
 /** A touchable that gives a little under the finger, then springs back. */
-export const PressableScale = forwardRef<View, PressableScaleProps>(function PressableScale(
-  { style, scaleTo = 0.97, onPressIn, onPressOut, onHoverIn, onHoverOut, disabled, ...rest },
-  ref,
-) {
+export function PressableScale({ style, scaleTo = 0.97, onPressIn, onPressOut, onHoverIn, onHoverOut, disabled, ...rest }: PressableScaleProps) {
   const pressed = useSharedValue(0);
   const hovered = useSharedValue(0);
   const animated = useAnimatedStyle(() => ({
@@ -23,7 +19,6 @@ export const PressableScale = forwardRef<View, PressableScaleProps>(function Pre
   }));
   return (
     <AnimatedPressable
-      ref={ref}
       accessibilityRole="button"
       disabled={disabled}
       {...rest}
@@ -46,6 +41,6 @@ export const PressableScale = forwardRef<View, PressableScaleProps>(function Pre
       style={[Platform.OS === 'web' && !disabled ? webCursor : null, style, animated]}
     />
   );
-});
+}
 
 const webCursor = { cursor: 'pointer' } as ViewStyle;
