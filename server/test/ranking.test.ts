@@ -83,7 +83,42 @@ describe('personalizeProduct', () => {
     expect(p.cheapestOfferId).toBe('p1:amazon');
     expect(p.recommendedOfferId).toBe('p1:target');
     expect(p.offers[0]!.id).toBe('p1:target');
-    expect(p.recommendationReason).toMatch(/^You usually choose Target when it's within \$\d+$/);
+    expect(p.recommendationReason).toBe('Target is $3 more — a store you often choose over the lowest price');
+  });
+
+  it('states the real price gap, never a figure derived from profile weights', () => {
+    const cents = [offer('target', 100.5), offer('amazon', 99.99)];
+    const p = profile({ priceSensitivity: 0, retailerAffinity: { target: 1 } });
+    expect(personalizeProduct(base(cents), p).recommendationReason).toMatch(/^Target is \$0\.51 more /);
+    const tie = [offer('target', 100), offer('amazon', 100)];
+    expect(personalizeProduct(base(tie), p).recommendationReason).toMatch(/^Target is the same price /);
+    // Recommended only because the cheapest store is disliked: do not claim a liking for it.
+    const avoid = profile({ priceSensitivity: 0, retailerAffinity: { amazon: -1 } });
+    expect(personalizeProduct(base(cents), avoid).recommendationReason).toBe('Target is $0.51 more — you tend to skip Amazon');
+  });
+
+  it('says so when the recommended offer needs a membership the shopper has not shown', () => {
+    const two = [offer('costco', 101), offer('amazon', 100)];
+    const loves = { priceSensitivity: 0, retailerAffinity: { costco: 1 } };
+    expect(personalizeProduct(base(two), profile(loves)).recommendationReason).toMatch(/\(Costco membership required\)$/);
+    expect(personalizeProduct(base(two), profile({ ...loves, memberships: ['costco'] })).recommendationReason).not.toMatch(/required/);
+  });
+
+  it('cheapestOfferId is the lowest in-stock total for every mock product under any profile', async () => {
+    const { MockProvider } = await import('../src/providers/mock/index.js');
+    const p = profile({ priceSensitivity: 0, retailerAffinity: { bestbuy: 1, costco: 1 }, speedPreference: 1, qualityPreference: 1 });
+    for (const product of await new MockProvider().browse()) {
+      const r = personalizeProduct(product, p);
+      const inStock = r.offers.filter((o) => o.inStock);
+      const min = Math.min(...inStock.map((o) => o.totalPrice));
+      if (inStock.length === 0) expect(r.cheapestOfferId).toBeNull();
+      else expect(r.offers.find((o) => o.id === r.cheapestOfferId)!.totalPrice).toBe(min);
+      if (inStock.length > 0) expect(r.offers[0]!.inStock).toBe(true);
+      const top = r.offers[0]!;
+      const gap = /\$([\d.]+) more/.exec(r.recommendationReason ?? '');
+      if (gap) expect(Number(gap[1])).toBeCloseTo(top.totalPrice - min, 2);
+      if (r.recommendationReason && top.membershipRequired) expect(r.recommendationReason).toMatch(/membership/);
+    }
   });
 
   it('handles a product with nothing in stock', () => {

@@ -56,10 +56,23 @@ function apiError(code: string, message: string): ApiError {
 
 export async function buildApp(deps: AppDeps): Promise<App> {
   const { config, store } = deps;
+  // Request logs must not carry user data: the query string holds the search
+  // text and the deviceId, so only the path is logged.
+  const logger =
+    typeof deps.logger === 'object'
+      ? {
+          ...deps.logger,
+          serializers: {
+            req: (req: FastifyRequest) => ({ method: req.method, url: req.url.split('?')[0], remoteAddress: req.ip }),
+          },
+        }
+      : (deps.logger ?? false);
   const fastify = Fastify({
-    logger: deps.logger ?? false,
+    logger,
     bodyLimit: config.bodyLimitBytes,
-    trustProxy: config.trustProxy,
+    // Trust only the hops our own proxies appended (see config.ts): never the
+    // client-controlled leftmost X-Forwarded-For entry.
+    trustProxy: config.trustProxy === false ? false : (_addr: string, hop: number) => hop < (config.trustProxy as number),
     // The catalog and profiles are per-request cheap; keep URLs bounded too.
     routerOptions: { maxParamLength: 200 },
   });
@@ -77,6 +90,7 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     debounceMs: config.profileDebounceMs,
     claudeEveryNEvents: config.claudeEveryNEvents,
     claudeCooldownMs: config.claudeCooldownMs,
+    claudeMaxCallsPerHour: config.claudeMaxCallsPerHour,
     log,
   });
   const limiter = new RateLimiter(config.rateLimitWindowMs);

@@ -50,6 +50,7 @@ interface RetailerStats {
   nonCheapestClicks: number;
   premiumSum: number;
   premiumN: number;
+  premiumMax: number;
   impressions: number;
 }
 
@@ -75,7 +76,7 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
   const statFor = (r: RetailerId) => {
     let s = stats.get(r);
     if (!s) {
-      s = { clicks: 0, cheapestClicks: 0, nonCheapestClicks: 0, premiumSum: 0, premiumN: 0, impressions: 0 };
+      s = { clicks: 0, cheapestClicks: 0, nonCheapestClicks: 0, premiumSum: 0, premiumN: 0, premiumMax: 0, impressions: 0 };
       stats.set(r, s);
     }
     return s;
@@ -124,6 +125,7 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
           if (typeof e.premiumPaid === 'number' && e.premiumPaid >= 0) {
             s.premiumSum += e.premiumPaid;
             s.premiumN += 1;
+            s.premiumMax = Math.max(s.premiumMax, e.premiumPaid);
           }
         }
       }
@@ -200,8 +202,10 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
     const s = stats.get(topRetailer[0])!;
     const name = retailerName(topRetailer[0]);
     if (s.nonCheapestClicks >= 2 && s.premiumN > 0) {
-      const avg = s.premiumSum / s.premiumN;
-      insights.push(`You usually pick ${name} when it's within $${Math.max(1, Math.round(avg))} of the lowest price`);
+      // Largest premium actually paid, rounded up, so the bound covers every
+      // observed pick. A mean would say "within $8" for $1 once and $15 once.
+      const bound = Math.max(1, Math.ceil(s.premiumMax - 1e-9));
+      insights.push(`You usually pick ${name} when it's within $${bound} of the lowest price`);
     } else if (s.nonCheapestClicks >= 2) {
       insights.push(`You often pick ${name} even when it isn't the cheapest`);
     } else {

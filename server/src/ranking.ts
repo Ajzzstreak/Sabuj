@@ -118,7 +118,6 @@ export function rankOffers(offers: readonly Offer[], profile: RankingProfile = N
 
 /** Why `recommended` beat `cheapest` for this profile. */
 export function recommendationReason(recommended: Offer, cheapest: Offer, profile: RankingProfile): string {
-  const budget = preferenceBudget(cheapest.totalPrice, profile);
   const a = utilityParts(recommended, profile);
   const b = utilityParts(cheapest, profile);
   const deltas: Array<[keyof UtilityParts, number]> = [
@@ -128,29 +127,47 @@ export function recommendationReason(recommended: Offer, cheapest: Offer, profil
     ['membership', a.membership - b.membership],
   ];
   deltas.sort((x, y) => y[1] - x[1]);
-  const [driver, delta] = deltas[0]!;
+  const [driver] = deltas[0]!;
   const name = retailerName(recommended.retailerId);
+  // The only dollar figure stated is the real gap between these two offers —
+  // never a threshold derived from profile weights.
+  const gap = round2(recommended.totalPrice - cheapest.totalPrice);
+  const more = gap > 0 ? `$${Number.isInteger(gap) ? gap : gap.toFixed(2)} more` : 'the same price';
+  let reason: string;
   switch (driver) {
-    case 'affinity': {
-      // Dollars of premium the retailer preference alone is worth; never state
-      // less than the gap actually being recommended.
-      const gap = Math.ceil(recommended.totalPrice - cheapest.totalPrice - 1e-9);
-      const within = Math.max(1, Math.round(budget * delta), gap);
-      return `You usually choose ${name} when it's within $${within}`;
-    }
+    case 'affinity':
+      // The affinity gap comes either from liking the recommended store or
+      // from avoiding the cheapest one; say whichever is actually the case.
+      reason =
+        a.affinity > 0
+          ? `${name} is ${more} — a store you often choose over the lowest price`
+          : `${name} is ${more} — you tend to skip ${retailerName(cheapest.retailerId)}`;
+      break;
     case 'speed':
-      return recommended.delivery
+      reason = recommended.delivery
         ? `${name} gets it to you faster (${recommended.delivery}) — you tend to pick quicker delivery`
         : `${name} usually delivers faster — you tend to pick quicker delivery`;
+      break;
     case 'quality':
-      return recommended.rating !== null
-        ? `Better reviewed at ${name} (${recommended.rating.toFixed(1)}★) — you tend to favor ratings`
-        : `Better reviewed at ${name} — you tend to favor ratings`;
+      // qualityScore mixes rating and review volume: only claim a better
+      // rating when the star rating really is higher.
+      reason =
+        recommended.rating !== null && (cheapest.rating === null || recommended.rating > cheapest.rating)
+          ? `Better reviewed at ${name} (${recommended.rating.toFixed(1)}★) — you tend to favor ratings`
+          : `More reviews at ${name} — you tend to favor well-reviewed listings`;
+      break;
     case 'membership':
-      return cheapest.membershipRequired
+      reason = cheapest.membershipRequired
         ? `The lowest price needs a ${retailerName(cheapest.retailerId)} membership`
         : `Included with your ${name} membership`;
+      break;
   }
+  // Never recommend a members-only offer to someone with no membership signal
+  // without saying so.
+  if (recommended.membershipRequired && !profile.memberships.includes(recommended.retailerId)) {
+    reason += ` (${name} membership required)`;
+  }
+  return reason;
 }
 
 function aggregateRating(offers: readonly Offer[]): { rating: number | null; reviewCount: number } {

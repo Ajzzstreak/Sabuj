@@ -31,6 +31,8 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
     notes.push(shippingNote(offer));
     if (offer.delivery) notes.push(offer.delivery);
   }
+  // The roomier table row wraps, so membership joins the note text instead of a fixed badge.
+  if (table && offer.membershipRequired) notes.unshift('Membership required');
   const tint = isCheapest ? c.bestSoft : isRecommended ? c.accentSoft : 'transparent';
 
   const label = [
@@ -67,7 +69,7 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
           {isRecommended ? <Pill kind="foryou" label="For you" icon="sparkles" /> : null}
         </View>
         <View style={styles.noteLine}>
-          {offer.membershipRequired ? (
+          {offer.membershipRequired && !table ? (
             <View style={styles.member}>
               <Ionicons name="card-outline" size={12} color={c.textSecondary} />
               <Text variant="caption" tone="textSecondary">
@@ -78,7 +80,7 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
               </Text>
             </View>
           ) : null}
-          <Text variant="caption" tone={out ? 'danger' : 'textSecondary'} numberOfLines={1} style={styles.note}>
+          <Text variant="caption" tone={out ? 'danger' : 'textSecondary'} numberOfLines={table ? 2 : 1} style={styles.note}>
             {notes.join(' · ')}
           </Text>
         </View>

@@ -183,6 +183,51 @@ describe('errors use the ApiError shape', () => {
   });
 });
 
+describe('abuse and privacy hardening', () => {
+  it('a client-supplied X-Forwarded-For cannot dodge the per-IP limit behind a trusted proxy', async () => {
+    await app.fastify.close();
+    store.close();
+    await start({ trustProxy: 1, rateLimitMax: 3 });
+    // The proxy appends the real client address (203.0.113.7); the client forges the rest.
+    const hit = (forged: string) =>
+      app.fastify.inject({ method: 'GET', url: '/v1/health', headers: { 'x-forwarded-for': `${forged}, 203.0.113.7` } });
+    for (let i = 0; i < 3; i++) expect((await hit(`10.0.0.${i}`)).statusCode).toBe(200);
+    expect((await hit('10.0.0.99')).statusCode).toBe(429);
+    // A different real client is unaffected.
+    const other = await app.fastify.inject({ method: 'GET', url: '/v1/health', headers: { 'x-forwarded-for': '198.51.100.1' } });
+    expect(other.statusCode).toBe(200);
+  });
+
+  it('ignores X-Forwarded-For entirely when no proxy is trusted', async () => {
+    await app.fastify.close();
+    store.close();
+    await start({ rateLimitMax: 2 });
+    const hit = (ip: string) => app.fastify.inject({ method: 'GET', url: '/v1/health', headers: { 'x-forwarded-for': ip } });
+    expect((await hit('1.1.1.1')).statusCode).toBe(200);
+    expect((await hit('2.2.2.2')).statusCode).toBe(200);
+    expect((await hit('3.3.3.3')).statusCode).toBe(429);
+  });
+
+  it('request logs never contain the search text or the deviceId', async () => {
+    await app.fastify.close();
+    store.close();
+    const lines: string[] = [];
+    store = new Store(':memory:');
+    app = await buildApp({
+      config: testConfig(),
+      store,
+      providers: [new MockProvider()],
+      logger: { level: 'info', stream: { write: (l: string) => void lines.push(l) } } as { level: string },
+    });
+    await get(`/v1/search?q=very-private-query&deviceId=${DEVICE}`);
+    await get(`/v1/profile?deviceId=${DEVICE}`);
+    const log = lines.join('');
+    expect(log).toContain('/v1/search');
+    expect(log).not.toContain('very-private-query');
+    expect(log).not.toContain(DEVICE);
+  });
+});
+
 describe('learning loop', () => {
   /** Find a rice cooker where some retailer is in stock, not cheapest, and close in price. */
   async function pickTarget() {
@@ -235,7 +280,10 @@ describe('learning loop', () => {
     expect(mine.recommendedOfferId).toBe(alt.id);
     expect(mine.offers[0]!.id).toBe(alt.id);
     expect(mine.cheapestOfferId).toBe(cheapest.id);
-    expect(mine.recommendationReason).toMatch(/^You usually choose .+ when it's within \$\d+$/);
+    // The stated figure is the real gap between the two offers.
+    const stated = /is \$([\d.]+) more — a store you often choose/.exec(mine.recommendationReason ?? '');
+    expect(stated).not.toBeNull();
+    expect(Number(stated![1])).toBeCloseTo(alt.totalPrice - cheapest.totalPrice, 2);
 
     // Another device (and anonymous requests) still get the neutral ordering.
     const anon = (await get('/v1/search?q=rice%20cooker')).json() as SearchResponse;

@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Offer, Product, ProductDetail } from '@/api/contract';
 import { getSeed, useProduct } from '@/api/queries';
@@ -126,7 +126,7 @@ export default function ProductScreen() {
 
     body = isDesktop ? (
       <View style={styles.columns}>
-        <View style={styles.left}>
+        <View style={[styles.left, stickyOnWeb]}>
           {tile}
           {highlights}
           {about}
@@ -329,6 +329,9 @@ function DetailSkeleton({ wide }: { wide: boolean }) {
     </View>
   );
 }
+
+/** On desktop web the picture column stays in view while the longer price column scrolls. */
+const stickyOnWeb = (Platform.OS === 'web' ? { position: 'sticky', top: 0 } : null) as ViewStyle | null;
 
 const styles = StyleSheet.create({
   scroll: { paddingBottom: space.xxxl + space.lg },

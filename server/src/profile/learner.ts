@@ -17,6 +17,8 @@ export interface LearnerOptions {
   debounceMs: number;
   claudeEveryNEvents: number;
   claudeCooldownMs: number;
+  /** Global ceiling on Claude calls per hour across all devices. Unset = no ceiling. */
+  claudeMaxCallsPerHour?: number;
   /** Recent-event window the profilers read. */
   eventWindow?: number;
   now?: () => number;
@@ -33,6 +35,8 @@ export class ProfileLearner {
   /** Bumped on erase so in-flight jobs cannot write a profile back. */
   private readonly epochs = new Map<string, number>();
   private readonly cache = new Map<string, UserProfile>();
+  private claudeWindowStart = 0;
+  private claudeCallsInWindow = 0;
   private readonly now: () => number;
   private readonly eventWindow: number;
 
@@ -73,7 +77,10 @@ export class ProfileLearner {
     const timer = this.timers.get(deviceId);
     if (timer) clearTimeout(timer);
     this.timers.delete(deviceId);
-    this.epochs.set(deviceId, (this.epochs.get(deviceId) ?? 0) + 1);
+    // Only a job that is running right now can write stale data back, so the
+    // epoch is only tracked while one is (and dropped when it ends). Tracking it
+    // for every erased id would grow without bound.
+    if (this.running.has(deviceId)) this.epochs.set(deviceId, (this.epochs.get(deviceId) ?? 0) + 1);
     this.store.deleteDevice(deviceId);
     this.cache.delete(deviceId);
   }
@@ -104,7 +111,10 @@ export class ProfileLearner {
       .then(() => this.run(deviceId))
       .catch((err) => this.opts.log?.('profile learner failed', { error: err instanceof Error ? err.message : String(err) }))
       .finally(() => {
-        if (this.running.get(deviceId) === next) this.running.delete(deviceId);
+        if (this.running.get(deviceId) === next) {
+          this.running.delete(deviceId);
+          this.epochs.delete(deviceId);
+        }
       });
     this.running.set(deviceId, next);
     return next;
@@ -129,6 +139,7 @@ export class ProfileLearner {
     const newEvents = row.totalEvents - row.claudeEventCount;
     const cooledDown = row.claudeAt === null || now - row.claudeAt >= this.opts.claudeCooldownMs;
     if (newEvents < this.opts.claudeEveryNEvents || !cooledDown) return;
+    if (!this.takeClaudeSlot(now)) return; // global cost ceiling reached; heuristic profile stays
 
     const refined = await this.claude.refine(events, heuristic, now);
     if (!alive()) return; // erased while the request was in flight: drop the result
@@ -140,6 +151,23 @@ export class ProfileLearner {
     }
     this.store.saveClaude(deviceId, refined, row.totalEvents, this.now());
     this.cache.delete(deviceId);
+  }
+
+  /**
+   * The per-device cooldown does not bound total spend: device ids are free to
+   * mint, so without a global ceiling one client could trigger a Claude call
+   * per fabricated device.
+   */
+  private takeClaudeSlot(now: number): boolean {
+    const max = this.opts.claudeMaxCallsPerHour;
+    if (max === undefined) return true;
+    if (now - this.claudeWindowStart >= 3_600_000) {
+      this.claudeWindowStart = now;
+      this.claudeCallsInWindow = 0;
+    }
+    if (this.claudeCallsInWindow >= max) return false;
+    this.claudeCallsInWindow += 1;
+    return true;
   }
 
   /** Look up delivery/rating facts for clicked offers (cached catalog reads, off the request path). */

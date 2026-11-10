@@ -142,7 +142,7 @@ describe('buildActivityDigest', () => {
 });
 
 describe('ProfileLearner with Claude', () => {
-  function setup(impl: () => Promise<Anthropic.Message>, opts: { cooldownMs?: number } = {}) {
+  function setup(impl: () => Promise<Anthropic.Message>, opts: { cooldownMs?: number; maxPerHour?: number } = {}) {
     const store = new Store(':memory:');
     const { client, create } = fakeClient(impl);
     let now = NOW;
@@ -150,6 +150,7 @@ describe('ProfileLearner with Claude', () => {
       debounceMs: 1,
       claudeEveryNEvents: 25,
       claudeCooldownMs: opts.cooldownMs ?? 60_000,
+      claudeMaxCallsPerHour: opts.maxPerHour,
       now: () => now,
     });
     const ingest = async (n: number) => {
@@ -157,7 +158,12 @@ describe('ProfileLearner with Claude', () => {
       learner.notify(DEVICE);
       await learner.flush();
     };
-    return { store, learner, create, ingest, advance: (ms: number) => (now += ms) };
+    const ingestAs = async (deviceId: string, n: number) => {
+      store.insertEvents(deviceId, Array.from({ length: n }, () => click('target', { wasCheapest: false, premiumPaid: 3 })));
+      learner.notify(deviceId);
+      await learner.flush();
+    };
+    return { store, learner, create, ingest, ingestAs, advance: (ms: number) => (now += ms) };
   }
 
   it('runs only after N events, then respects the cooldown', async () => {
@@ -199,6 +205,40 @@ describe('ProfileLearner with Claude', () => {
     expect(t.learner.getProfile(DEVICE).source).toBe('claude');
     await t.ingest(100); // 4 x N new events with no refresh allowed
     expect(t.learner.getProfile(DEVICE).source).toBe('heuristic');
+  });
+
+  it('caps Claude calls globally, however many device ids are minted', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]), { maxPerHour: 2 });
+    for (let i = 0; i < 5; i++) await t.ingestAs(`device-flood-${i}`, 30);
+    expect(t.create).toHaveBeenCalledTimes(2);
+    expect(t.learner.getProfile('device-flood-4').source).toBe('heuristic');
+    t.advance(3_600_001);
+    await t.ingestAs('device-flood-4', 1);
+    expect(t.create).toHaveBeenCalledTimes(3);
+  });
+
+  it('erase mid-request: data re-created afterwards never receives the old Claude result', async () => {
+    let release!: (m: Anthropic.Message) => void;
+    const t = setup(() => new Promise<Anthropic.Message>((r) => (release = r)));
+    t.store.insertEvents(DEVICE, Array.from({ length: 30 }, () => click('target')));
+    t.learner.notify(DEVICE);
+    const flushed = t.learner.flush();
+    await vi.waitFor(() => expect(t.create).toHaveBeenCalledTimes(1));
+    t.learner.forget(DEVICE);
+    t.store.insertEvents(DEVICE, [click('amazon')]); // the same device starts over
+    release(message([toolUse(goodInput)]));
+    await flushed;
+    expect(t.store.getRow(DEVICE)).toMatchObject({ totalEvents: 1, claude: null, claudeAt: null });
+  });
+
+  it('keeps no per-device state for erased ids (no unbounded growth)', () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    for (let i = 0; i < 1000; i++) t.learner.forget(`device-never-seen-${i}`);
+    const sizes = Object.values(t.learner as unknown as Record<string, unknown>)
+      .filter((v): v is Map<string, unknown> => v instanceof Map)
+      .map((m) => m.size);
+    expect(sizes.length).toBeGreaterThan(0);
+    expect(Math.max(...sizes)).toBe(0);
   });
 
   it('does not write a profile back if the device is erased mid-request', async () => {

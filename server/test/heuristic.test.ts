@@ -37,6 +37,14 @@ describe('buildHeuristicProfile', () => {
     expect(rankOffers([offer('amazon', 100), offer('target', 103)], p)[0]!.retailerId).toBe('target');
   });
 
+  it('states a premium bound that covers every observed pick, not the average', () => {
+    const p = build([
+      ...Array.from({ length: 10 }, () => click('target', { wasCheapest: false, premiumPaid: 1, price: 100 })),
+      ...Array.from({ length: 10 }, () => click('target', { wasCheapest: false, premiumPaid: 14.5, price: 100 })),
+    ]);
+    expect(p.insights[0]).toBe("You usually pick Target when it's within $15 of the lowest price");
+  });
+
   it('keeps a price-first shopper price-first', () => {
     const events = [
       ...Array.from({ length: 6 }, () => click('amazon', { wasCheapest: true })),

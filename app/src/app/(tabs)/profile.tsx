@@ -202,7 +202,7 @@ export default function ProfileScreen() {
 
   const controlColumn = (
     <View style={{ gap: space.lg }}>
-      <Block title="Your controls">
+      <Block title="Your controls" first={isDesktop}>
         <Card style={styles.pad}>
           <View style={styles.toggleRow}>
             <View style={{ flex: 1 }}>
@@ -320,9 +320,9 @@ export default function ProfileScreen() {
   );
 }
 
-function Block({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+function Block({ title, subtitle, children, first }: { title: string; subtitle?: string; children: ReactNode; first?: boolean }) {
   return (
-    <View style={styles.block}>
+    <View style={[styles.block, first && styles.blockFirst]}>
       <Text variant="title2" accessibilityRole="header">
         {title}
       </Text>
@@ -458,7 +458,8 @@ const styles = StyleSheet.create({
   main: { flex: 6, minWidth: 0 },
   aside: { flex: 5, minWidth: 0 },
   pad: { padding: space.xl },
-  block: { marginTop: space.md },
+  block: { marginTop: space.sm },
+  blockFirst: { marginTop: 0 },
   sourceRow: { flexDirection: 'row' },
   summary: { marginTop: space.md, lineHeight: 26 },
   facts: { flexDirection: 'row', gap: space.md, marginTop: space.lg, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth },

@@ -138,7 +138,7 @@ export default function ResultsScreen() {
         </View>
       ) : (
         <Text variant="callout" tone="textSecondary" style={styles.subMeta}>
-          {q ? 'Comparing stores…' : 'Type a product to compare prices.'}
+          {!q ? 'Type a product to compare prices.' : search.isError ? 'Could not load results.' : 'Comparing stores…'}
         </Text>
       )}
 
