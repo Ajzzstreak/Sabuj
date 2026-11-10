@@ -132,7 +132,10 @@ export function recommendationReason(recommended: Offer, cheapest: Offer, profil
   const name = retailerName(recommended.retailerId);
   switch (driver) {
     case 'affinity': {
-      const within = Math.max(1, Math.round(budget * delta));
+      // Dollars of premium the retailer preference alone is worth; never state
+      // less than the gap actually being recommended.
+      const gap = Math.ceil(recommended.totalPrice - cheapest.totalPrice - 1e-9);
+      const within = Math.max(1, Math.round(budget * delta), gap);
       return `You usually choose ${name} when it's within $${within}`;
     }
     case 'speed':

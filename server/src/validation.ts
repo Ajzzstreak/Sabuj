@@ -62,5 +62,7 @@ export function parse<S extends z.ZodType>(schema: S, data: unknown): z.output<S
   if (result.success) return result.data;
   const issue = result.error.issues[0];
   const where = issue?.path.length ? `${issue.path.join('.')}: ` : '';
-  throw new HttpError(400, 'invalid_request', `${where}${issue?.message ?? 'invalid request'}`);
+  const missing = issue?.code === 'invalid_type' && /received undefined$/.test(issue.message);
+  const message = missing ? 'is required' : (issue?.message ?? 'invalid request');
+  throw new HttpError(400, 'invalid_request', `${where}${message}`);
 }

@@ -81,7 +81,7 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   });
   const limiter = new RateLimiter(config.rateLimitWindowMs);
 
-  const corsOrigin = config.corsOrigin === '*' ? true : config.corsOrigin.split(',').map((s) => s.trim());
+  const corsOrigin = config.corsOrigin === '*' ? '*' : config.corsOrigin.split(',').map((s) => s.trim());
   await fastify.register(cors, { origin: corsOrigin, methods: ['GET', 'POST', 'DELETE', 'OPTIONS'] });
 
   const limit = (key: string, max: number) => {
