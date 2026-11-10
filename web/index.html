@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DealLens — Every store. One price check.</title>
+<meta name="description" content="Compare prices across Amazon, Walmart, Target, Costco, Sam's Club and Best Buy in one search.">
+<meta name="color-scheme" content="light dark">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fbfbfd; --surface: #ffffff; --text: #1d1d1f; --muted: #6e6e73;
+    --line: rgba(0,0,0,.08); --accent: #0a66ff; --good: #12853f; --good-bg: #e6f6ec;
+    --shadow: 0 1px 2px rgba(0,0,0,.04), 0 12px 40px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #000000; --surface: #1c1c1e; --text: #f5f5f7; --muted: #a1a1a6;
+      --line: rgba(255,255,255,.12); --accent: #4d94ff; --good: #4cd17e; --good-bg: #12301f;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 12px 40px rgba(0,0,0,.6);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+  header { display: flex; align-items: center; justify-content: space-between; padding: 20px 0; }
+  .brand { font: 800 20px/1 "Plus Jakarta Sans", sans-serif; letter-spacing: -.02em; }
+  .brand span { color: var(--accent); }
+  main { display: grid; gap: 48px; align-items: center; padding: 40px 0 72px; }
+  @media (min-width: 860px) { main { grid-template-columns: 1.05fr .95fr; padding: 72px 0 96px; } }
+  h1 {
+    font: 800 clamp(40px, 7vw, 68px)/1.02 "Plus Jakarta Sans", sans-serif;
+    letter-spacing: -.035em; margin: 0 0 20px; text-wrap: balance;
+  }
+  .lede { font-size: clamp(18px, 2.2vw, 21px); color: var(--muted); margin: 0 0 32px; max-width: 34ch; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; min-height: 52px;
+    padding: 0 26px; border-radius: 999px; font-weight: 600; text-decoration: none;
+    background: var(--text); color: var(--bg); border: 1px solid transparent;
+  }
+  .btn.secondary { background: transparent; color: var(--text); border-color: var(--line); }
+  .btn[aria-disabled="true"] { opacity: .45; pointer-events: none; }
+  .btn:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+  .note { margin-top: 16px; font-size: 14px; color: var(--muted); min-height: 21px; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 28px; padding: 22px; box-shadow: var(--shadow); }
+  .card h2 { font: 700 19px/1.25 "Plus Jakarta Sans", sans-serif; letter-spacing: -.01em; margin: 0 0 4px; }
+  .card .sub { color: var(--muted); font-size: 14px; margin: 0 0 14px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid var(--line); }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+  .store { flex: 1; min-width: 0; }
+  .price { font: 700 18px/1 "Plus Jakarta Sans", sans-serif; font-variant-numeric: tabular-nums; }
+  .badge { font-size: 12px; font-weight: 600; color: var(--good); background: var(--good-bg); padding: 4px 9px; border-radius: 999px; }
+  .demo { font-size: 12px; color: var(--muted); margin: 14px 0 0; }
+  .features { display: grid; gap: 28px; padding: 0 0 80px; }
+  @media (min-width: 760px) { .features { grid-template-columns: repeat(3, 1fr); } }
+  .features h3 { font: 700 20px/1.2 "Plus Jakarta Sans", sans-serif; letter-spacing: -.015em; margin: 0 0 6px; }
+  .features p { margin: 0; color: var(--muted); }
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand" id="brand">Deal<span>Lens</span></div></header>
+  <main>
+    <section>
+      <h1 id="tagline">Every store. One price check.</h1>
+      <p class="lede">Search once and see what Amazon, Walmart, Target, Costco, Sam's Club and Best Buy charge, side by side, with the reviews to back it up.</p>
+      <div class="cta">
+        <a class="btn" id="ios" href="#" data-store="App Store">Download on the App Store</a>
+        <a class="btn secondary" id="android" href="#" data-store="Google Play">Get it on Google Play</a>
+      </div>
+      <p class="note" id="note" role="status"></p>
+    </section>
+    <aside class="card" aria-label="Example price comparison">
+      <h2>6-Cup Rice Cooker</h2>
+      <p class="sub">Example comparison</p>
+      <div class="row"><span class="dot" style="background:#0067a0"></span><span class="store">Sam's Club</span><span class="badge">Best price</span><span class="price">$18.00</span></div>
+      <div class="row"><span class="dot" style="background:#ff9900"></span><span class="store">Amazon</span><span class="price">$20.00</span></div>
+      <div class="row"><span class="dot" style="background:#0071dc"></span><span class="store">Walmart</span><span class="price">$22.00</span></div>
+      <p class="demo">Illustrative prices, not live data.</p>
+    </aside>
+  </main>
+  <section class="features">
+    <div><h3>All prices at once</h3><p>Item price, shipping and membership requirements in one view, so the cheapest total is obvious.</p></div>
+    <div><h3>Learns how you shop</h3><p>The more you use it, the better it ranks stores and deals for you.</p></div>
+    <div><h3>Your data, your call</h3><p>See what the app has learned, pause learning, or delete everything in one tap.</p></div>
+  </section>
+  <footer>© <span id="year"></span> <span id="footname">DealLens</span>. Retailer names are trademarks of their owners.</footer>
+</div>
+<script src="config.js"></script>
+<script>
+(function () {
+  var c = window.APP_CONFIG || {};
+  var ua = navigator.userAgent || '';
+  // iPadOS 13+ reports itself as Macintosh; touch points tell them apart.
+  var isIOS = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+  var isAndroid = /Android/i.test(ua);
+  var ios = document.getElementById('ios');
+  var android = document.getElementById('android');
+  var note = document.getElementById('note');
+  document.getElementById('year').textContent = new Date().getFullYear();
+  if (c.name) { document.getElementById('footname').textContent = c.name; }
+  if (c.tagline) { document.getElementById('tagline').textContent = c.tagline; }
+
+  function wire(el, url) {
+    if (url) { el.href = url; }
+    else { el.removeAttribute('href'); el.setAttribute('aria-disabled', 'true'); el.textContent = el.dataset.store + ' · coming soon'; }
+  }
+  wire(ios, c.appStoreUrl);
+  wire(android, c.playStoreUrl);
+
+  var target = isIOS ? c.appStoreUrl : isAndroid ? c.playStoreUrl : '';
+  if (isIOS) { android.style.display = 'none'; }
+  if (isAndroid) { ios.style.display = 'none'; }
+  // ?stay=1 lets people read the page on a phone without being bounced.
+  var stay = /[?&]stay=1/.test(location.search);
+  if (target && !stay) {
+    note.textContent = 'Taking you to the store…';
+    setTimeout(function () { location.href = target; }, 600);
+  } else if (!isIOS && !isAndroid) {
+    note.textContent = 'Open this page on your phone or tablet to install.';
+  }
+})();
+</script>
+</body>
+</html>
