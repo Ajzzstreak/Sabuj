@@ -150,7 +150,7 @@ function AlertForm({ product, onClose }: { product: Product; onClose: () => void
       visible
       onClose={onClose}
       dismissable={busy == null}
-      title={existing ? 'Edit price alert' : 'Alert me when the price drops'}
+      title={existing ? 'Edit price alert' : 'Set a price alert'}
       testID="alert-sheet"
       footer={
         <>

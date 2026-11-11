@@ -45,6 +45,9 @@ export const persistOptions: PersistQueryClientProviderProps['persistOptions'] =
 
 /** After a restore, rebuild the in-memory lookups the fetchers normally fill. */
 export function onCacheRestored(): void {
+  // Alerts restored from disk are shown at once but always re-checked on launch:
+  // that check is how a triggered alert is noticed when there is no push.
+  void queryClient.invalidateQueries({ queryKey: ['alerts'] });
   for (const query of queryClient.getQueryCache().getAll()) {
     const kind = query.queryKey[0];
     if (kind === 'search') {

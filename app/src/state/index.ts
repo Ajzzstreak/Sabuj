@@ -113,6 +113,8 @@ function migrateSaved(): void {
 export function clearLocalState(): void {
   recentsStore.set([]);
   savedStore.set({});
-  shopperStore.set(SHOPPER_DEFAULT);
+  // ZIP and memberships go back to "not given". The first-run flow is not replayed over the
+  // confirmation; the same two questions are right there in Shopping settings.
+  shopperStore.set({ ...SHOPPER_DEFAULT, onboarded: true });
   alertPrefsStore.set(ALERT_PREFS_DEFAULT);
 }

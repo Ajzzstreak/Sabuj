@@ -58,7 +58,7 @@ export function SegmentedControl<T extends string>({ options, value, onChange, a
             style={fullWidth ? styles.grow : undefined}
           >
             {({ focusVisible }) => (
-              <View style={[styles.segment, on && { backgroundColor: c.text }, focusVisible && ring]}>
+              <View style={[styles.segment, fullWidth && styles.segmentTight, on && { backgroundColor: c.text }, focusVisible && ring]}>
                 <Text variant="calloutStrong" color={on ? c.bg : c.text} numberOfLines={1}>
                   {o.label}
                 </Text>
@@ -77,5 +77,6 @@ const styles = StyleSheet.create({
   hug: { alignSelf: 'flex-start' },
   full: { alignSelf: 'stretch' },
   grow: { flex: 1 },
+  segmentTight: { paddingHorizontal: space.sm },
   segment: { minHeight: 38, paddingHorizontal: space.lg, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
 });
