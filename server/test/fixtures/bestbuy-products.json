@@ -1,0 +1,71 @@
+{
+  "_note": "HAND-WRITTEN from memory of the Best Buy Products API documentation. NOT a captured live response. Replace with a real capture before trusting the adapter.",
+  "from": 1,
+  "to": 3,
+  "currentPage": 1,
+  "total": 3,
+  "totalPages": 1,
+  "products": [
+    {
+      "sku": 6505727,
+      "name": "Sony - WH-1000XM5 Wireless Noise-Canceling Over-the-Ear Headphones - Black",
+      "manufacturer": "Sony",
+      "upc": "027242923232",
+      "salePrice": 329.99,
+      "regularPrice": 399.99,
+      "onlineAvailability": true,
+      "customerReviewAverage": 4.7,
+      "customerReviewCount": 12894,
+      "url": "https://api.bestbuy.com/click/-/6505727/pdp",
+      "image": "https://pisces.bbystatic.com/image2/BestBuy_US/images/products/6505/6505727_sd.jpg",
+      "categoryPath": [
+        { "id": "cat00000", "name": "Best Buy" },
+        { "id": "abcat0200000", "name": "Audio" },
+        { "id": "abcat0204000", "name": "Headphones" },
+        { "id": "pcmcat144700050004", "name": "Over-Ear Headphones" }
+      ],
+      "shippingCost": 0,
+      "freeShipping": true,
+      "shortDescription": "Industry-leading noise cancellation",
+      "longDescription": "<p>The WH-1000XM5 headphones rewrite the rules for distraction-free listening.&nbsp;Two processors control 8 microphones.</p>",
+      "features": [
+        { "feature": "Industry-leading noise cancellation\nTwo processors control eight microphones." },
+        { "feature": "Up to 30-hour battery life" },
+        { "feature": "" }
+      ]
+    },
+    {
+      "sku": 6418599,
+      "name": "Insignia - 2.6 Qt. Rice Cooker - Stainless Steel",
+      "manufacturer": "Insignia",
+      "upc": "600603250910",
+      "salePrice": 19.99,
+      "regularPrice": 19.99,
+      "onlineAvailability": false,
+      "customerReviewAverage": null,
+      "customerReviewCount": null,
+      "url": "https://evil.example.com/phish",
+      "image": null,
+      "categoryPath": [
+        { "id": "cat00000", "name": "Best Buy" },
+        { "id": "abcat0900000", "name": "Appliances" },
+        { "id": "abcat0912000", "name": "Small Kitchen Appliances" },
+        { "id": "abcat0912025", "name": "Rice Cookers" }
+      ],
+      "shippingCost": "",
+      "freeShipping": false,
+      "shortDescription": null,
+      "longDescription": null,
+      "features": []
+    },
+    {
+      "sku": 9999999,
+      "name": "Placeholder without a price",
+      "manufacturer": "Nobody",
+      "upc": "",
+      "salePrice": null,
+      "regularPrice": null,
+      "onlineAvailability": true
+    }
+  ]
+}

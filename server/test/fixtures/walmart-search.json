@@ -1,0 +1,52 @@
+{
+  "_note": "HAND-WRITTEN from memory of the Walmart Affiliate API documentation. NOT a captured live response. Replace with a real capture before trusting the adapter.",
+  "query": "sony wh-1000xm5",
+  "sort": "relevance",
+  "responseGroup": "base",
+  "totalResults": 3,
+  "start": 1,
+  "numItems": 3,
+  "items": [
+    {
+      "itemId": 782016027,
+      "parentItemId": 782016027,
+      "name": "Sony WH-1000XM5 Wireless Noise Canceling Headphones, Black",
+      "msrp": 399.99,
+      "salePrice": 318.0,
+      "upc": "027242923232",
+      "categoryPath": "Electronics/Audio/Headphones/Over-Ear Headphones",
+      "shortDescription": "&lt;p&gt;Industry leading noise cancellation&lt;/p&gt;",
+      "longDescription": "Long description",
+      "brandName": "Sony",
+      "thumbnailImage": "https://i5.walmartimages.com/asr/thumb.jpeg",
+      "mediumImage": "https://i5.walmartimages.com/asr/medium.jpeg",
+      "largeImage": "https://i5.walmartimages.com/asr/large.jpeg",
+      "productTrackingUrl": "https://goto.walmart.com/c/123/456/9383?veh=aff&sourceid=imp_000011112222333344&u=https%3A%2F%2Fwww.walmart.com%2Fip%2F782016027",
+      "standardShipRate": 0.0,
+      "freeShippingOver35Dollars": true,
+      "customerRating": "4.6",
+      "numReviews": 2231,
+      "stock": "Available",
+      "availableOnline": true
+    },
+    {
+      "itemId": 55501234,
+      "name": "Aroma 8-Cup Digital Rice Cooker",
+      "salePrice": 24.96,
+      "upc": "021241109147",
+      "categoryPath": "Home/Appliances/Kitchen Appliances/Rice Cookers",
+      "brandName": "Aroma",
+      "thumbnailImage": "https://i5.walmartimages.com/asr/aroma-thumb.jpeg",
+      "productUrl": "https://www.walmart.com/ip/55501234",
+      "standardShipRate": 6.99,
+      "freeShippingOver35Dollars": true,
+      "stock": "Not available",
+      "availableOnline": true
+    },
+    {
+      "itemId": "not-a-number",
+      "name": "Broken item",
+      "salePrice": 5
+    }
+  ]
+}
