@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   input: { flex: 1, minWidth: 0, paddingVertical: Platform.OS === 'web' ? 10 : 8, lineHeight: undefined },
   largeText: { fontSize: 18 },
   actions: { flexDirection: 'row', alignItems: 'center' },
-  tight: { width: 40 },
+  tight: { marginLeft: -4 },
   rowIcon: { marginHorizontal: 4 },
   fill: { transform: [{ rotate: '-45deg' }], marginRight: 4 },
 });
