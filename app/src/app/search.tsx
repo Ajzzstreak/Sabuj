@@ -5,13 +5,15 @@ import { FlatList, Keyboard, Platform, RefreshControl, ScrollView, StyleSheet, V
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Product, RetailerId } from '@/api/contract';
 import { useSearch } from '@/api/queries';
-import { Button, Chip, RetailerMark } from '@/components/bits';
+import { RetailerMark } from '@/components/bits';
+import { DemoNotice } from '@/components/DemoNotice';
 import { ProductCard } from '@/components/ProductCard';
 import { Page, Screen, StackHeader } from '@/components/Screen';
 import { SearchField, SuggestionList } from '@/components/Search';
 import { ProductCardSkeleton } from '@/components/Skeleton';
-import { ErrorState, OfflineBanner, StateView } from '@/components/StateView';
+import { ErrorState, OfflineBanner } from '@/components/StateView';
 import { Text } from '@/components/Text';
+import { Button, Chip, EmptyState, SegmentedControl } from '@/components/ui';
 import { useLayout } from '@/hooks/useLayout';
 import { useTypeahead } from '@/hooks/useTypeahead';
 import { haptic } from '@/lib/haptics';
@@ -79,6 +81,9 @@ export default function ResultsScreen() {
     [q, router],
   );
 
+  /** The explicit plain-English path. Keyword search above never goes through it. */
+  const ask = useCallback((raw: string) => router.push({ pathname: '/ask', params: raw.trim() ? { text: raw.trim() } : {} }), [router]);
+
   const filters = useMemo<OfferFilters>(() => ({ retailers, inStockOnly }), [retailers, inStockOnly]);
   const all = search.data?.products;
   const products = useMemo(() => applyResultsView(all ?? [], sort, filters), [all, sort, filters]);
@@ -114,6 +119,7 @@ export default function ResultsScreen() {
   const header = (
     <View style={styles.listHeader}>
       <OfflineBanner />
+      <DemoNotice products={products} style={styles.notice} />
       <View style={styles.meta}>
         <Text variant="title1" accessibilityRole="header" numberOfLines={2} style={{ flexShrink: 1 }}>
           {q ? `“${q}”` : 'Search'}
@@ -149,21 +155,7 @@ export default function ResultsScreen() {
         contentContainerStyle={[styles.controls, { paddingHorizontal: side }]}
         keyboardShouldPersistTaps="handled"
       >
-        <View accessibilityRole="radiogroup" accessibilityLabel="Sort by" style={[styles.segment, { backgroundColor: c.fill }]}>
-          {SORTS.map((s) => (
-            <Chip
-              key={s.key}
-              role="radio"
-              label={s.label}
-              selected={sort === s.key}
-              onPress={() => {
-                haptic.selection();
-                setSort(s.key);
-              }}
-              style={[styles.segmentItem, sort !== s.key && styles.segmentIdle]}
-            />
-          ))}
-        </View>
+        <SegmentedControl testID="sort" accessibilityLabel="Sort by" options={SORTS} value={sort} onChange={setSort} />
         <View style={[styles.divider, { backgroundColor: c.borderStrong }]} />
         <Chip
           role="checkbox"
@@ -202,20 +194,25 @@ export default function ResultsScreen() {
   ) : search.isError ? (
     <ErrorState error={search.error} onRetry={() => void search.refetch()} />
   ) : !q ? undefined : filtered ? (
-    <StateView
+    <EmptyState
       icon="funnel-outline"
       title="Nothing matches these filters"
       detail="Try another store or include out-of-stock offers."
-      action={<Button label="Clear filters" kind="secondary" onPress={resetFilters} />}
+      action={<Button label="Clear filters" variant="secondary" onPress={resetFilters} />}
     />
   ) : (
-    <StateView icon="search-outline" title={`No results for “${q}”`} detail="Check the spelling or try a more general term, like the product type." />
+    <EmptyState
+      icon="search-outline"
+      title={`No results for “${q}”`}
+      detail="Check the spelling or try a more general term. If you described what you need in a sentence, ask instead."
+      action={<Button label="Ask in plain English" icon="sparkles" variant="secondary" onPress={() => ask(q)} />}
+    />
   );
 
   return (
     <Screen>
       <StackHeader>
-        <SearchField value={text} onChangeText={onChangeText} onSubmit={submit} />
+        <SearchField value={text} onChangeText={onChangeText} onSubmit={submit} onScan={() => router.push('/scan')} onAsk={ask} />
       </StackHeader>
       <View style={styles.body}>
         <FlatList
@@ -259,10 +256,8 @@ const styles = StyleSheet.create({
   meta: { flexDirection: 'row', alignItems: 'center' },
   subMeta: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', columnGap: space.md, rowGap: 4, marginTop: 4 },
   personalized: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  controls: { alignItems: 'center', gap: space.sm, paddingTop: space.lg, paddingBottom: 2 },
-  segment: { flexDirection: 'row', borderRadius: 999, padding: 3, gap: 2 },
-  segmentItem: { minHeight: 36 },
-  segmentIdle: { backgroundColor: 'transparent', borderColor: 'transparent' },
+  controls: { alignItems: 'center', gap: space.sm, paddingTop: space.md, paddingBottom: 2 },
+  notice: { marginBottom: space.md },
   divider: { width: StyleSheet.hairlineWidth, height: 22, marginHorizontal: 4 },
   cell: { marginBottom: GAP },
   cellSingle: { marginBottom: GAP },

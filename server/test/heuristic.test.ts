@@ -4,7 +4,7 @@ import { buildHeuristicProfile } from '../src/profile/heuristic.js';
 import { rankOffers } from '../src/ranking.js';
 import { click, NOW, offer } from './helpers.js';
 
-const build = (events: ActivityEvent[], extra = {}) => buildHeuristicProfile('device-test-0001', events, { now: NOW, ...extra });
+const build = (events: ActivityEvent[], extra = {}) => buildHeuristicProfile(events, { now: NOW, ...extra });
 
 describe('buildHeuristicProfile', () => {
   it('returns a ranking-neutral profile for no events', () => {
@@ -63,10 +63,39 @@ describe('buildHeuristicProfile', () => {
   });
 
   it('infers memberships from clicks on membership retailers', () => {
-    expect(build([click('costco'), click('costco')]).memberships).toEqual(['costco']);
-    expect(build([click('samsclub', { wasCheapest: false })]).memberships).toEqual(['samsclub']);
+    expect(build([click('costco'), click('costco'), click('costco')]).memberships).toEqual(['costco']);
+    // One click — even a non-cheapest one — or two is curiosity, not a membership.
+    expect(build([click('samsclub', { wasCheapest: false })]).memberships).toEqual([]);
     expect(build([click('costco')]).memberships).toEqual([]);
-    expect(build([click('amazon'), click('amazon')]).memberships).toEqual([]);
+    expect(build([click('costco'), click('costco')]).memberships).toEqual([]);
+    expect(build([click('amazon'), click('amazon'), click('amazon')]).memberships).toEqual([]);
+  });
+
+  it('records the largest premium actually paid, relative to the cheapest price', () => {
+    expect(build([]).maxObservedPremiumPct).toBe(0);
+    expect(build([click('target', { wasCheapest: true, price: 100 })]).maxObservedPremiumPct).toBe(0);
+    // Paid $101 when the cheapest was $100 -> 1%.
+    const one = build(Array.from({ length: 30 }, () => click('target', { wasCheapest: false, premiumPaid: 1, price: 101 })));
+    expect(one.maxObservedPremiumPct).toBeCloseTo(0.01, 4);
+    // The maximum wins, not the average or the count.
+    const mixed = build([
+      click('target', { wasCheapest: false, premiumPaid: 1, price: 101 }),
+      click('target', { wasCheapest: false, premiumPaid: 10, price: 110 }),
+    ]);
+    expect(mixed.maxObservedPremiumPct).toBeCloseTo(0.1, 4);
+    // Missing or nonsensical figures never raise the bound; absurd ones are capped.
+    expect(build([click('target', { wasCheapest: false })]).maxObservedPremiumPct).toBe(0);
+    expect(build([click('target', { wasCheapest: false, premiumPaid: 500, price: 100 })]).maxObservedPremiumPct).toBe(0);
+    expect(build([click('target', { wasCheapest: false, premiumPaid: 99, price: 100 })]).maxObservedPremiumPct).toBe(1);
+  });
+
+  it('30 clicks paying $1 extra never lead to recommending $30 extra (reviewer finding)', () => {
+    const p = build(Array.from({ length: 30 }, () => click('target', { wasCheapest: false, premiumPaid: 1, price: 101 })));
+    expect(p.retailerAffinity.target).toBeGreaterThan(0.7);
+    // $2 more on $300 is under 1%: allowed. $30 more is 10%: never.
+    expect(rankOffers([offer('target', 302), offer('amazon', 300)], p)[0]!.retailerId).toBe('target');
+    expect(rankOffers([offer('target', 330), offer('amazon', 300)], p)[0]!.retailerId).toBe('amazon');
+    expect(rankOffers([offer('target', 304), offer('amazon', 300)], p)[0]!.retailerId).toBe('amazon');
   });
 
   it('gives negative affinity to a retailer that is seen but never chosen', () => {

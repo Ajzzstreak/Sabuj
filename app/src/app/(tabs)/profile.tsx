@@ -1,23 +1,26 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { describeError } from '@/api/client';
 import type { RetailerId, UserProfile } from '@/api/contract';
-import { deleteProfile, useProfile } from '@/api/queries';
-import { Button, Card, Chip, Pill, RetailerMark } from '@/components/bits';
+import { clearSeeds, deleteProfile, useProfile } from '@/api/queries';
+import { Card, RetailerMark } from '@/components/bits';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Page, Screen } from '@/components/Screen';
+import { ShoppingSettings } from '@/components/Shopper';
 import { Skeleton } from '@/components/Skeleton';
 import { ErrorState, OfflineBanner } from '@/components/StateView';
 import { Text } from '@/components/Text';
-import { APP_NAME } from '@/config';
+import { Badge, Banner, Button, Chip, ListRow, ToggleRow } from '@/components/ui';
+import { APP_NAME, DEV_ROUTES } from '@/config';
+import { LEGAL_DOCS, LEGAL_ORDER } from '@/content/legal';
 import { useLayout } from '@/hooks/useLayout';
-import { rotateDeviceId, useDeviceId } from '@/lib/deviceId';
 import { relativeTime } from '@/lib/format';
 import { haptic } from '@/lib/haptics';
 import { wipeQueryCache } from '@/lib/queryClient';
 import { getRetailer, RETAILER_ORDER } from '@/lib/retailers';
+import { replaceSession, useDeviceId } from '@/lib/session';
 import { clearQueue, flush, usePendingEvents } from '@/lib/tracker';
 import { addRecent, clearLocalState, settingsStore } from '@/state';
 import { radius, space, useTheme } from '@/theme';
@@ -74,12 +77,15 @@ export default function ProfileScreen() {
     setDeleting(true);
     setDeleteError(null);
     try {
-      // Server first: if it cannot be reached, keep the id so the request can be retried.
-      await deleteProfile(deviceId);
+      // Server first: if it cannot be reached, nothing local is touched and the request can be retried.
+      await deleteProfile();
+      // The server has erased the data and revoked the token. Now everything on this device...
       clearQueue();
       clearLocalState();
-      await rotateDeviceId();
+      clearSeeds();
       await wipeQueryCache();
+      // ...and a fresh anonymous device. The old token is never sent again.
+      await replaceSession();
       haptic.success();
       setConfirming(false);
       setDeleted(true);
@@ -112,7 +118,7 @@ export default function ProfileScreen() {
     <View style={{ gap: space.lg }}>
       <Card style={styles.pad}>
         <View style={styles.sourceRow}>
-          <Pill kind={profile.source === 'claude' ? 'foryou' : 'neutral'} label={source.label} icon={source.icon} />
+          <Badge kind={profile.source === 'claude' ? 'accent' : 'neutral'} label={source.label} icon={source.icon} />
         </View>
         <Text variant="title3" style={styles.summary} testID="profile-summary">
           {learned && profile.summary
@@ -202,43 +208,32 @@ export default function ProfileScreen() {
 
   const controlColumn = (
     <View style={{ gap: space.lg }}>
-      <Block title="Your controls" first={isDesktop}>
+      <Block title="Shopping settings" subtitle="What turns a shelf price into the total you would pay." first={isDesktop}>
+        <ShoppingSettings />
+      </Block>
+
+      <Block title="Your controls">
         <Card style={styles.pad}>
-          <View style={styles.toggleRow}>
-            <View style={{ flex: 1 }}>
-              <Text variant="bodyStrong" nativeID="learn-label">
-                Learn from my activity
-              </Text>
-              <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }}>
-                {paused
-                  ? 'Paused. Nothing you do is recorded or sent. Results are no longer tailored by new activity.'
-                  : 'On. Your activity is used to order offers the way you tend to choose.'}
-              </Text>
-            </View>
-            <Switch
-              testID="learning-toggle"
-              value={!paused}
-              onValueChange={(on) => setPaused(!on)}
-              trackColor={{ false: c.fillStrong, true: c.accent }}
-              thumbColor="#FFFFFF"
-              ios_backgroundColor={c.fillStrong}
-              accessibilityLabel="Learn from my activity"
-              accessibilityLabelledBy="learn-label"
-              {...({ activeThumbColor: '#FFFFFF' } as object)}
-            />
-          </View>
+          <ToggleRow
+            testID="learning-toggle"
+            label="Learn from my activity"
+            detail={
+              paused
+                ? 'Paused. Nothing you do is recorded or sent. Results are no longer tailored by new activity.'
+                : 'On. Your activity is used to order offers the way you tend to choose.'
+            }
+            value={!paused}
+            onValueChange={(on) => setPaused(!on)}
+          />
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">Delete my data</Text>
           <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }}>
-            Erases your profile and activity from the server, clears saved items and recent searches on this device, and gives you a new anonymous ID.
+            Erases your profile, activity and price alerts from the server, clears saved items, recent searches, ZIP code and memberships on this device, and gives you a new anonymous ID.
           </Text>
-          <Button testID="delete-data" kind="danger" icon="trash-outline" label="Delete my data" onPress={() => { setDeleteError(null); setConfirming(true); }} style={{ marginTop: space.lg }} />
+          <Button testID="delete-data" variant="destructive" icon="trash-outline" label="Delete my data" onPress={() => { setDeleteError(null); setConfirming(true); }} style={{ marginTop: space.md }} />
           {deleted ? (
-            <View style={styles.done} accessibilityRole="alert">
-              <Ionicons name="checkmark-circle" size={17} color={c.textSecondary} />
-              <Text variant="callout" tone="textSecondary" style={{ flex: 1 }} testID="delete-done">
-                Deleted. You are starting fresh with a new anonymous ID.
-              </Text>
+            <View testID="delete-done">
+              <Banner tone="info" compact icon="checkmark-circle" text="Deleted. You are starting fresh with a new anonymous ID." style={{ marginTop: space.md }} />
             </View>
           ) : null}
         </Card>
@@ -246,23 +241,40 @@ export default function ProfileScreen() {
 
       <Block title="What is collected">
         <Card style={styles.pad}>
-          <Collected icon="search-outline" title="Searches" detail="The words you search for." />
+          <Collected icon="search-outline" title="Searches and questions" detail="The words you search for, and the full text of anything you ask in plain English." />
+          <Collected icon="location-outline" title="ZIP code and memberships" detail="If you set them, they are sent with every search, product and alert request, to estimate tax and decide which member prices apply. They are stored on this device." />
           <Collected icon="eye-outline" title="Products you open" detail="Which product, its category and brand." />
           <Collected icon="open-outline" title="Offers you tap" detail="The store, the price, where it sat in the list, and whether it was the cheapest — or how much more you chose to pay." />
           <Collected icon="bookmark-outline" title="Saves" detail="When you save or remove a product. The saved list itself stays on this device." />
+          <Collected icon="notifications-outline" title="Price alerts" detail="The product and target price of each alert and, only if you allow notifications, a push token so the alert can reach this device." />
+          <Collected icon="barcode-outline" title="Barcodes" detail="Only the number of a code you scan or type. Camera images never leave your device." />
+          <View style={[styles.rule, { backgroundColor: c.border }]} />
+          <Text variant="bodyStrong">How an AI model is involved</Text>
+          <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }} testID="ai-disclosure">
+            On the server, your activity may be summarized by an AI model (Anthropic’s Claude) to write the description of how you shop, and plain-English questions may be interpreted by the same model. When it is not used, fixed rules do the job, and the screen says which one it was.
+          </Text>
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">What is not collected</Text>
           <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }}>
-            No name, email, account, location or contacts. Activity is tied only to a random ID made on this device, and events are sent in small batches every few seconds.
+            No name, email, account, contacts or precise location; the only location is a ZIP code you choose to enter. Activity is tied only to an anonymous ID issued to this device, and events are sent in small batches every few seconds.
           </Text>
           <View style={[styles.idBox, { backgroundColor: c.fill }]}>
             <Text variant="caption" tone="textTertiary">
               Anonymous ID
             </Text>
             <Text variant="footnote" tone="textSecondary" selectable testID="device-id" style={styles.mono}>
-              {deviceId}
+              {deviceId || 'Not registered yet (offline)'}
             </Text>
           </View>
+        </Card>
+      </Block>
+
+      <Block title="About & legal">
+        <Card style={styles.rows}>
+          {LEGAL_ORDER.map((doc, i) => (
+            <ListRow key={doc} testID={`legal-${doc}`} icon={LEGAL_DOCS[doc].icon} title={LEGAL_DOCS[doc].title} divider={i > 0} onPress={() => router.push({ pathname: '/legal/[doc]', params: { doc } })} />
+          ))}
+          {DEV_ROUTES ? <ListRow testID="dev-components" icon="construct-outline" title="Component gallery" subtitle="Development builds only" divider onPress={() => router.push('/dev/components')} /> : null}
         </Card>
       </Block>
     </View>
@@ -288,7 +300,7 @@ export default function ProfileScreen() {
               Your profile
             </Text>
             <Text variant="body" tone="textSecondary" style={styles.sub}>
-              Everything {APP_NAME} has worked out about how you shop, in plain language — and the controls to pause or erase it.
+              Everything {APP_NAME} has worked out about how you shop, in plain language — with your shopping settings and the controls to pause or erase it.
             </Text>
             <OfflineBanner />
           </View>
@@ -394,7 +406,7 @@ function AffinityRow({ id, value, member }: { id: RetailerId; value: number; mem
         <Text variant="calloutStrong" numberOfLines={1} style={{ flexShrink: 1 }}>
           {name}
         </Text>
-        {member ? <Pill kind="neutral" label="Member" icon="card-outline" /> : null}
+        {member ? <Badge kind="neutral" label="Member" icon="card-outline" /> : null}
         <Text variant="footnote" tone="textSecondary" style={styles.affinityWords}>
           {affinityWords(v)}
         </Text>
@@ -422,7 +434,7 @@ function Interests({ label, items }: { label: string; items: string[] }) {
       <Text variant="caption" tone="textTertiary" style={{ marginBottom: 6 }}>
         {label}
       </Text>
-      <View style={styles.chips}>
+      <View style={styles.tags}>
         {items.map((item) => (
           <View key={item} style={[styles.tag, { backgroundColor: c.fill }]}>
             <Text variant="footnoteStrong">{item}</Text>
@@ -478,10 +490,10 @@ const styles = StyleSheet.create({
   divergeFill: { position: 'absolute', top: 0, bottom: 0 },
   zero: { position: 'absolute', left: '50%', marginLeft: -1, top: 0, bottom: 0, width: 2 },
   interests: { marginBottom: space.md },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.sm },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', gap: space.sm },
   tag: { paddingHorizontal: space.md, paddingVertical: 6, borderRadius: radius.pill },
-  toggleRow: { flexDirection: 'row', alignItems: 'center', gap: space.lg },
-  done: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.md },
+  rows: { paddingHorizontal: space.xl, paddingVertical: space.xs },
   collected: { flexDirection: 'row', gap: space.md, marginBottom: space.lg },
   collectedIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   idBox: { marginTop: space.lg, padding: space.md, borderRadius: radius.sm, gap: 2 },

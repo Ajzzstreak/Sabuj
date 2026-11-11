@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Offer, Product, ProductDetail } from '@/api/contract';
 import { getSeed, useProduct } from '@/api/queries';
-import { Button, Card, Pill, Rating, RetailerMark } from '@/components/bits';
+import { AlertButton } from '@/components/AlertSheet';
+import { Card, Rating, RetailerMark } from '@/components/bits';
+import { DemoNotice } from '@/components/DemoNotice';
 import { OfferRow } from '@/components/OfferRow';
 import { PriceChart } from '@/components/PriceChart';
 import { ProductTile } from '@/components/ProductTile';
@@ -14,19 +16,24 @@ import { Page, Screen, StackHeader } from '@/components/Screen';
 import { Skeleton } from '@/components/Skeleton';
 import { ErrorState, OfflineBanner } from '@/components/StateView';
 import { Text } from '@/components/Text';
+import { Badge, Button } from '@/components/ui';
+import { AFFILIATE_LINKS_ENABLED } from '@/config';
 import { useLayout } from '@/hooks/useLayout';
 import { goToStore, toSnapshot } from '@/lib/actions';
-import { money, moneyShort, shippingNote } from '@/lib/format';
-import { viewOffers } from '@/lib/offers';
+import { breakdownLine, money, moneyShort, relativeTime, shippingNote } from '@/lib/format';
+import { hasPrice, viewOffers } from '@/lib/offers';
+import { showBreakdown } from '@/lib/overlays';
 import { getRetailer } from '@/lib/retailers';
 import { track } from '@/lib/tracker';
-import { refreshSaved, savedStore } from '@/state';
+import { refreshSaved, savedStore, shopperStore } from '@/state';
 import { radius, space, useTheme } from '@/theme';
 
 export default function ProductScreen() {
   const params = useLocalSearchParams<{ id?: string }>();
   const id = (Array.isArray(params.id) ? params.id[0] : params.id) ?? '';
   const { isDesktop } = useLayout();
+  const router = useRouter();
+  const hasZip = shopperStore.use((s) => s.zip != null);
   const query = useProduct(id);
   const detail: ProductDetail | undefined = query.data;
   // Paint at once from what a list already showed (or the saved snapshot) while the full record loads.
@@ -46,6 +53,7 @@ export default function ProductScreen() {
   }, [detail]);
 
   const onOffer = useCallback((offer: Offer) => product && goToStore(product, offer), [product]);
+  const onBreakdown = useCallback((offer: Offer) => product && showBreakdown(product, offer), [product]);
 
   let body: ReactNode;
   if (!product) {
@@ -69,8 +77,14 @@ export default function ProductScreen() {
     const failedRest = !detail && query.isError;
 
     const offers = (
-      <Section title="Compare prices" subtitle={`${product.offers.length} ${product.offers.length === 1 ? 'store' : 'stores'} · totals include shipping`}>
-        <OffersTable product={product} onOffer={onOffer} />
+      <Section title="Compare prices" subtitle={`${product.offers.length} ${product.offers.length === 1 ? 'store' : 'stores'} · totals include shipping${hasZip ? ' and estimated tax' : ''}`}>
+        <OffersTable product={product} onOffer={onOffer} onBreakdown={onBreakdown} />
+        {AFFILIATE_LINKS_ENABLED ? (
+          <Text variant="footnote" tone="textSecondary" style={styles.disclosure} testID="affiliate-disclosure">
+            We may earn a commission when you buy through these links. It never changes the order or the prices shown.
+          </Text>
+        ) : null}
+        <Button label="How we rank offers" variant="tertiary" size="sm" icon="information-circle-outline" onPress={() => router.push('/legal/ranking')} style={styles.rankLink} />
       </Section>
     );
     const history = (
@@ -159,6 +173,7 @@ export default function ProductScreen() {
       <ScrollView contentContainerStyle={styles.scroll}>
         <Page>
           <OfflineBanner />
+          {product ? <DemoNotice products={[product]} style={styles.notice} /> : null}
           <Animated.View entering={FadeIn.duration(160)}>{body}</Animated.View>
         </Page>
       </ScrollView>
@@ -191,15 +206,24 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
 
   if (!best) {
     const first = product.offers[0];
+    const inStock = product.offers.filter((o) => o.inStock);
+    // Be specific about why nothing can be called the best price.
+    const why =
+      inStock.length === 0
+        ? { badge: 'Out of stock everywhere', text: 'No store has this in stock right now. Save it and check back.' }
+        : inStock.every((o) => !hasPrice(o))
+          ? { badge: 'No prices to compare', text: 'Stores carry this, but none of them gave us a price. Check each store directly.' }
+          : { badge: 'Members only right now', text: 'The only in-stock offers need a membership you said you do not hold.' };
     return (
       <Card style={styles.buy}>
-        <Pill kind="danger" label="Out of stock everywhere" />
+        <Badge kind={inStock.length === 0 ? 'danger' : 'neutral'} label={why.badge} />
         <Text variant="body" tone="textSecondary" style={{ marginTop: space.sm }}>
-          No store has this in stock right now. Save it and check back.
+          {why.text}
         </Text>
         {first ? (
-          <Button testID="go-to-store" kind="secondary" label={`View at ${getRetailer(first.retailerId).name}`} trailingIcon="open-outline" onPress={() => onOffer(first)} style={styles.cta} />
+          <Button testID="go-to-store" variant="secondary" size="lg" fullWidth accessibilityRole="link" label={`View at ${getRetailer(first.retailerId).name}`} trailingIcon="open-outline" onPress={() => onOffer(first)} style={styles.cta} />
         ) : null}
+        <AlertButton product={product} fullWidth />
       </Card>
     );
   }
@@ -213,7 +237,9 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
         </Text>
       </View>
       <View style={styles.priceLine}>
-        <Text variant="priceHero">{money(best.totalPrice)}</Text>
+        <Text variant="priceHero" testID="best-total">
+          {money(best.landedPrice)}
+        </Text>
         {best.listPrice != null && best.listPrice > best.price ? (
           <Text variant="body" tone="textTertiary" style={styles.strike}>
             {money(best.listPrice)}
@@ -225,9 +251,13 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
         <Text variant="callout" tone="textSecondary" style={{ flex: 1 }}>
           <Text variant="calloutStrong">{store.name}</Text> · {shippingNote(best)}
           {best.delivery ? ` · ${best.delivery}` : ''}
-          {best.membershipRequired ? ' · Membership required' : ''}
+          {best.membershipRequired ? ' · Member price' : ''}
         </Text>
       </View>
+      <Text variant="footnote" tone="textSecondary" style={{ marginTop: space.sm }} testID="best-breakdown">
+        {breakdownLine(best)}
+        {best.priceSource === 'live' ? ` · as of ${relativeTime(best.observedAt)}` : ''}
+      </Text>
       {view.savings >= 0.01 ? (
         <Text variant="calloutStrong" tone="best" style={{ marginTop: space.sm }}>
           Save up to {moneyShort(view.savings)} compared with the highest price
@@ -236,27 +266,33 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
       <Button
         testID="go-to-store"
         label={`Go to ${store.name}`}
+        size="lg"
+        fullWidth
+        accessibilityRole="link"
         trailingIcon="open-outline"
         accessibilityHint="Opens the store's product page"
         onPress={() => onOffer(best)}
         style={styles.cta}
       />
+      <AlertButton product={product} fullWidth />
 
       {pick ? (
         <View style={[styles.pick, { borderTopColor: c.border }]}>
           <View style={styles.pickHead}>
-            <Pill kind="foryou" label="Picked for you" icon="sparkles" />
+            <Badge kind="accent" label="Picked for you" icon="sparkles" />
           </View>
           {view.reason ? (
-            <Text variant="callout" tone="textSecondary" style={{ marginTop: 6 }}>
+            <Text variant="callout" tone="textSecondary" style={{ marginTop: 6 }} testID="recommendation-reason">
               {view.reason}
             </Text>
           ) : null}
           <Button
-            kind="secondary"
-            label={`${getRetailer(pick.retailerId).name} · ${money(pick.totalPrice)}`}
+            variant="secondary"
+            fullWidth
+            accessibilityRole="link"
+            label={`${getRetailer(pick.retailerId).name} · ${money(pick.landedPrice)}`}
             trailingIcon="open-outline"
-            accessibilityLabel={`Go to ${getRetailer(pick.retailerId).name}, ${money(pick.totalPrice)}`}
+            accessibilityLabel={`Go to ${getRetailer(pick.retailerId).name}, ${money(pick.landedPrice)}`}
             onPress={() => onOffer(pick)}
             style={{ marginTop: space.md }}
           />
@@ -266,7 +302,7 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
   );
 }
 
-function OffersTable({ product, onOffer }: { product: Product; onOffer: (o: Offer) => void }) {
+function OffersTable({ product, onOffer, onBreakdown }: { product: Product; onOffer: (o: Offer) => void; onBreakdown: (o: Offer) => void }) {
   const { c } = useTheme();
   const view = useMemo(() => viewOffers(product), [product]);
   return (
@@ -274,7 +310,7 @@ function OffersTable({ product, onOffer }: { product: Product; onOffer: (o: Offe
       {view.offers.map((offer, i) => (
         <View key={offer.id} style={i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }}>
           <View style={styles.tableRow}>
-            <OfferRow density="table" offer={offer} isCheapest={offer.id === view.cheapestId} isRecommended={offer.id === view.recommendedId} onPress={onOffer} />
+            <OfferRow density="table" offer={offer} isCheapest={offer.id === view.cheapestId} isRecommended={offer.id === view.recommendedId} onPress={onOffer} onBreakdown={onBreakdown} />
           </View>
         </View>
       ))}
@@ -347,7 +383,10 @@ const styles = StyleSheet.create({
   priceLine: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, marginTop: 4 },
   strike: { textDecorationLine: 'line-through' },
   at: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm },
-  cta: { marginTop: space.lg },
+  cta: { marginTop: space.lg, marginBottom: space.xs },
+  notice: { marginBottom: space.md },
+  disclosure: { marginTop: space.md },
+  rankLink: { marginTop: space.xs, marginLeft: -space.sm },
   pick: { marginTop: space.xl, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth },
   pickHead: { flexDirection: 'row' },
   section: { marginTop: space.xxl + 4 },

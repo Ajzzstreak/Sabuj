@@ -7,26 +7,36 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider, usePathname, useRouter } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useMemo, useState } from 'react';
 import { Platform } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AlertSheet } from '@/components/AlertSheet';
+import { PriceBreakdownSheet } from '@/components/PriceBreakdownSheet';
+import { Onboarding } from '@/components/Shopper';
 import { useConnectivitySync } from '@/components/StateView';
+import { ToastHost } from '@/components/ui';
 import { APP_NAME } from '@/config';
-import { loadDeviceId } from '@/lib/deviceId';
+import { initNotifications } from '@/lib/push';
 import { onCacheRestored, persistOptions, queryClient } from '@/lib/queryClient';
+import { loadSession } from '@/lib/session';
 import { startTracker } from '@/lib/tracker';
-import { hydrateStores } from '@/state';
+import { hydrateStores, shopperStore } from '@/state';
 import { useTheme } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
-/** Local state every screen assumes is ready: device id, settings, watchlist, unsent events. */
+/**
+ * Local state every screen assumes is ready: the device session (registered
+ * with POST /v1/devices on first launch), settings, watchlist, unsent events.
+ * If registration fails (offline) the app still opens; the first request that
+ * needs a token registers then.
+ */
 async function bootstrap(): Promise<void> {
-  await Promise.all([loadDeviceId(), hydrateStores()]);
+  await Promise.all([loadSession(), hydrateStores()]);
   await startTracker();
 }
 
@@ -40,6 +50,9 @@ export default function RootLayout() {
     ...Ionicons.font,
   });
   const [booted, setBooted] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const onboarded = shopperStore.use((s) => s.onboarded);
   useConnectivitySync();
 
   useEffect(() => {
@@ -75,6 +88,12 @@ export default function RootLayout() {
     };
   }, [theme]);
 
+  // Tapping a price-alert notification opens that product (also from a cold start).
+  useEffect(() => {
+    if (!ready) return;
+    return initNotifications((productId) => router.push({ pathname: '/product/[id]', params: { id: productId } }));
+  }, [ready, router]);
+
   if (!ready) return null;
 
   return (
@@ -86,7 +105,16 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" />
             <Stack.Screen name="search" options={{ animation: 'fade', animationDuration: 180 }} />
             <Stack.Screen name="product/[id]" />
+            <Stack.Screen name="ask" options={{ animation: 'fade', animationDuration: 180 }} />
+            <Stack.Screen name="scan" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="legal/[doc]" />
+            <Stack.Screen name="dev/components" />
           </Stack>
+          <PriceBreakdownSheet />
+          <AlertSheet />
+          <ToastHost />
+          {/* First run only. The component gallery is reviewable without answering it. */}
+          {!onboarded && !pathname.startsWith('/dev') ? <Onboarding /> : null}
         </ThemeProvider>
       </PersistQueryClientProvider>
     </GestureHandlerRootView>

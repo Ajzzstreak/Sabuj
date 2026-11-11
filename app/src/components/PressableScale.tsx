@@ -95,5 +95,5 @@ export function PressableScale({
 }
 
 const webCursor = { cursor: 'pointer' } as ViewStyle;
-const webDisabled = { cursor: 'not-allowed' } as ViewStyle;
+const webDisabled = { cursor: 'not-allowed' } as unknown as ViewStyle;
 const webNoOutline = (Platform.OS === 'web' ? { outlineStyle: 'none' } : null) as ViewStyle | null;

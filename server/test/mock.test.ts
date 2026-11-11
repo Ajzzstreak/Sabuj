@@ -33,6 +33,10 @@ describe('mock catalog', () => {
         expect(o.membershipRequired).toBe(o.retailerId === 'costco' || o.retailerId === 'samsclub');
         expect(o.url).toBe(buildOutboundUrl(o.retailerId, p.title));
         expect(o.url).not.toMatch(/tag=|affiliate|ref=/);
+        expect(o.priceSource).toBe('demo');
+        // Per-shopper fields are not a provider concern.
+        expect(o).not.toHaveProperty('landedPrice');
+        expect(o).not.toHaveProperty('eligible');
       }
     }
     expect(seen.size).toBe(6);
@@ -102,6 +106,7 @@ describe('Catalog fan-out', () => {
     name: 'hanging',
     search: () => new Promise(() => undefined),
     getProduct: () => new Promise(() => undefined),
+    lookupGtin: () => new Promise(() => undefined),
   };
   const failing: PriceProvider = {
     name: 'failing',
@@ -109,6 +114,9 @@ describe('Catalog fan-out', () => {
       throw new Error('boom');
     },
     getProduct: async () => {
+      throw new Error('boom');
+    },
+    lookupGtin: async () => {
       throw new Error('boom');
     },
   };

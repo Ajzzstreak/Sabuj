@@ -36,7 +36,7 @@ const events: ActivityEvent[] = [
   { type: 'search', ts: NOW - 5000, query: 'rice cooker' },
   ...Array.from({ length: 30 }, () => click('target', { wasCheapest: false, premiumPaid: 3, category: 'Rice Cookers', brand: 'Zojirushi' })),
 ];
-const heuristic = buildHeuristicProfile(DEVICE, events, { now: NOW });
+const heuristic = buildHeuristicProfile(events, { now: NOW });
 const profiler = (client: ProfilerClient) => new ClaudeProfiler({ client, model: 'claude-haiku-5-5', timeoutMs: 1000 });
 
 describe('ClaudeProfiler.refine', () => {
@@ -44,8 +44,8 @@ describe('ClaudeProfiler.refine', () => {
     const { client, create } = fakeClient(async () => message([toolUse(goodInput)]));
     const refined = await profiler(client).refine(events, heuristic, NOW);
 
+    expect(refined).not.toHaveProperty('deviceId');
     expect(refined).toMatchObject({
-      deviceId: DEVICE,
       eventCount: heuristic.eventCount,
       source: 'claude',
       priceSensitivity: 0.35,
@@ -70,7 +70,7 @@ describe('ClaudeProfiler.refine', () => {
   it('keeps the system prompt byte-identical across users (cacheable prefix)', async () => {
     const { client, create } = fakeClient(async () => message([toolUse(goodInput)]));
     await profiler(client).refine(events, heuristic, NOW);
-    await profiler(client).refine(events.slice(0, 5), { ...heuristic, deviceId: 'device-other-0002' }, NOW + 99_999);
+    await profiler(client).refine(events.slice(0, 5), { ...heuristic, eventCount: 999 }, NOW + 99_999);
     expect(create.mock.calls[0]![0].system).toEqual(create.mock.calls[1]![0].system);
     expect(create.mock.calls[0]![0].tools).toEqual(create.mock.calls[1]![0].tools);
   });
@@ -114,7 +114,7 @@ describe('ClaudeProfiler.refine', () => {
 
   it('parseRefinedProfile never lets the model set identity or provenance', () => {
     const p = parseRefinedProfile({ ...goodInput, deviceId: 'evil', eventCount: 1e9, source: 'none' }, heuristic, NOW) as UserProfile;
-    expect(p.deviceId).toBe(DEVICE);
+    expect(p).not.toHaveProperty('deviceId');
     expect(p.eventCount).toBe(heuristic.eventCount);
     expect(p.source).toBe('claude');
   });
