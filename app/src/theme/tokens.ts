@@ -26,6 +26,9 @@ export interface Palette {
   bestSoft: string;
   danger: string;
   dangerSoft: string;
+  /** Amber: cautions such as "demo prices" and DRAFT copy. */
+  notice: string;
+  noticeSoft: string;
   star: string;
   overlay: string;
   skeleton: string;
@@ -51,6 +54,8 @@ export const palettes: Record<ColorScheme, Palette> = {
     bestSoft: '#E1F4E8',
     danger: '#C22F2F',
     dangerSoft: '#FCE9E7',
+    notice: '#7A4E00',
+    noticeSoft: '#FBEFD0',
     star: '#E8A100',
     overlay: 'rgba(19,19,22,0.36)',
     skeleton: '#E7E5DF',
@@ -74,6 +79,8 @@ export const palettes: Record<ColorScheme, Palette> = {
     bestSoft: '#11301F',
     danger: '#FF7A70',
     dangerSoft: '#3A1917',
+    notice: '#F0C25A',
+    noticeSoft: '#33270A',
     star: '#F2B632',
     overlay: 'rgba(0,0,0,0.6)',
     skeleton: '#232329',

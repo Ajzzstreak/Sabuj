@@ -1,5 +1,13 @@
 import type { Offer, PricePoint } from '../contract.js';
 
+/**
+ * An offer as a price source reports it. The per-shopper fields (estimatedTax,
+ * landedPrice, eligible) are NOT a provider concern: they are filled in after
+ * the shared cache by `applyContext` (src/shopper.ts).
+ * For priceSource 'link_only' every price field must be 0 / null.
+ */
+export type ProviderOffer = Omit<Offer, 'estimatedTax' | 'landedPrice' | 'eligible'>;
+
 /** A product as a price source sees it: normalized, NOT personalized. */
 export interface ProviderProduct {
   /** Stable id. Must be URL-safe; used as /v1/products/:id. */
@@ -11,7 +19,7 @@ export interface ProviderProduct {
   gtin: string | null;
   highlights: string[];
   /** Normalized offers in any order. totalPrice must equal price + (shipping ?? 0). */
-  offers: Offer[];
+  offers: ProviderOffer[];
 }
 
 export interface ProviderProductDetail extends ProviderProduct {
@@ -43,7 +51,10 @@ export interface ProviderSearchOptions extends ProviderCallOptions {
 export interface PriceProvider {
   readonly name: string;
   search(query: string, opts: ProviderSearchOptions): Promise<ProviderSearchHit[]>;
+  /** Must resolve to null for ids this provider does not own. */
   getProduct(id: string, opts?: ProviderCallOptions): Promise<ProviderProductDetail | null>;
+  /** Barcode lookup. `gtin` is the canonical 14-digit form (see src/gtin.ts). */
+  lookupGtin(gtin: string, opts?: ProviderCallOptions): Promise<ProviderProductDetail | null>;
   /** Optional: a browsable slice of the catalog for the home screen. */
   browse?(opts?: ProviderCallOptions): Promise<ProviderProduct[]>;
   /** Optional: query autocompletions for a prefix. */

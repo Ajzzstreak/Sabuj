@@ -36,9 +36,10 @@ const persister = createAsyncStoragePersister({ storage: AsyncStorage, key: CACH
 export const persistOptions: PersistQueryClientProviderProps['persistOptions'] = {
   persister,
   maxAge: QUERY.gcMs,
-  buster: 'v1',
+  // Bumped when Offer gained landedPrice / eligible / priceSource: older cached shapes must not render.
+  buster: 'v2',
   dehydrateOptions: {
-    shouldDehydrateQuery: (query) => query.state.status === 'success' && query.queryKey[0] !== 'suggest',
+    shouldDehydrateQuery: (query) => query.state.status === 'success' && query.queryKey[0] !== 'suggest' && query.queryKey[0] !== 'ask',
   },
 };
 

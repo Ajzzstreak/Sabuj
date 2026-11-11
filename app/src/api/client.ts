@@ -21,8 +21,12 @@ export class ApiRequestError extends Error {
 }
 
 export interface RequestOptions {
-  method?: 'GET' | 'POST' | 'DELETE';
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
   params?: Record<string, string | number | undefined>;
+  /** False sends no Authorization header and never registers (used by POST /devices itself). */
+  auth?: boolean;
+  /** False turns off the "401 -> register again -> retry once" recovery. */
+  retryOn401?: boolean;
   body?: unknown;
   /** Cancels the request (TanStack Query passes one per fetch). */
   signal?: AbortSignal;
@@ -39,8 +43,46 @@ export function apiUrl(path: string, params?: RequestOptions['params']): string 
   return `${API_URL}/${API_VERSION}${path}${query ? `?${query}` : ''}`;
 }
 
+/**
+ * Where the bearer token comes from. src/lib/session.ts installs this at
+ * import time; the indirection keeps this file free of storage concerns.
+ */
+export interface AuthBridge {
+  getToken(): string | null;
+  /** Registers the device if there is no token yet. Null when that is not possible right now. */
+  ensure(): Promise<string | null>;
+  /** The given token was rejected: get a new one (registers a fresh device). */
+  renew(rejected: string | null): Promise<string | null>;
+}
+let bridge: AuthBridge | null = null;
+export function setAuthBridge(next: AuthBridge): void {
+  bridge = next;
+}
+
+/**
+ * Every API call goes through here. Sends `Authorization: Bearer <token>`; if
+ * the server answers 401 the device is registered again and the request is
+ * retried exactly once.
+ */
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const useAuth = options.auth !== false && bridge != null;
+  const token = useAuth ? (bridge?.getToken() ?? (await bridge?.ensure()) ?? null) : null;
+  try {
+    return await send<T>(path, options, token);
+  } catch (err) {
+    if (useAuth && options.retryOn401 !== false && err instanceof ApiRequestError && err.status === 401 && !options.signal?.aborted) {
+      const next = (await bridge?.renew(token)) ?? null;
+      if (next) return send<T>(path, options, next);
+    }
+    throw err;
+  }
+}
+
+async function send<T>(path: string, options: RequestOptions, token: string | null): Promise<T> {
   const { method = 'GET', params, body, signal, keepalive, timeoutMs = QUERY.requestTimeoutMs } = options;
+  const headers: Record<string, string> = { Accept: 'application/json' };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  if (token) headers.Authorization = `Bearer ${token}`;
   const controller = new AbortController();
   let timedOut = false;
   const timer = setTimeout(() => {
@@ -58,7 +100,7 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
         method,
         signal: controller.signal,
         keepalive,
-        headers: body === undefined ? { Accept: 'application/json' } : { Accept: 'application/json', 'Content-Type': 'application/json' },
+        headers,
         body: body === undefined ? undefined : JSON.stringify(body),
       });
     } catch (err) {

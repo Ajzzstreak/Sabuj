@@ -37,7 +37,24 @@ export const QUERY = {
   homeStaleMs: 2 * 60_000,
   productStaleMs: 60_000,
   profileStaleMs: 15_000,
+  alertsStaleMs: 30_000,
+  askStaleMs: 5 * 60_000,
+  /** /v1/ask may wait on an LLM. */
+  askTimeoutMs: 30_000,
   /** How long cached data is kept (in memory and on disk). */
   gcMs: 24 * 60 * 60_000,
   requestTimeoutMs: 10_000,
 } as const;
+
+/**
+ * Routes under /dev (the component gallery) exist in development builds only.
+ * Set EXPO_PUBLIC_DEV_ROUTES=1 to include them in an exported build for review.
+ */
+export const DEV_ROUTES: boolean = __DEV__ || process.env.EXPO_PUBLIC_DEV_ROUTES === '1';
+
+/**
+ * TEMPLATE. Set to true only once outbound links actually carry affiliate
+ * tags; it turns on the disclosure line next to offers. Leave false otherwise:
+ * a disclosure that is not true is as wrong as a missing one.
+ */
+export const AFFILIATE_LINKS_ENABLED = false;

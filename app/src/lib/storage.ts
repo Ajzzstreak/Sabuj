@@ -29,6 +29,14 @@ export const kv = {
       /* ignore */
     }
   },
+  async remove(key: string): Promise<void> {
+    if (Platform.OS === 'web') return kv.remove(key);
+    try {
+      await SecureStore.deleteItemAsync(k(key).replace(/[^A-Za-z0-9._-]/g, '_'));
+    } catch {
+      /* ignore */
+    }
+  },
 };
 
 /** Keychain / Keystore on native. The web has no equivalent, so it uses localStorage. */
@@ -45,6 +53,14 @@ export const secure = {
     if (Platform.OS === 'web') return kv.set(key, value);
     try {
       await SecureStore.setItemAsync(k(key).replace(/[^A-Za-z0-9._-]/g, '_'), value);
+    } catch {
+      /* ignore */
+    }
+  },
+  async remove(key: string): Promise<void> {
+    if (Platform.OS === 'web') return kv.remove(key);
+    try {
+      await SecureStore.deleteItemAsync(k(key).replace(/[^A-Za-z0-9._-]/g, '_'));
     } catch {
       /* ignore */
     }

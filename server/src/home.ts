@@ -1,6 +1,7 @@
 import type { ActivityEvent, HomeSection, Product, UserProfile } from './contract.js';
 import type { ProviderProduct } from './providers/types.js';
 import { personalizeProduct, savingsFraction } from './ranking.js';
+import { NO_CONTEXT, type ShopperContext } from './shopper.js';
 
 const SECTION_SIZE = 10;
 const CATEGORY_SECTIONS = 5;
@@ -26,9 +27,10 @@ export function buildHomeSections(
   catalog: readonly ProviderProduct[],
   profile: UserProfile | null,
   recentEvents: readonly ActivityEvent[],
+  ctx: ShopperContext = NO_CONTEXT,
 ): HomeSection[] {
   const hasProfile = profile !== null && profile.source !== 'none';
-  const products = catalog.map((p) => personalizeProduct(p, hasProfile ? profile : undefined));
+  const products = catalog.map((p) => personalizeProduct(p, hasProfile ? profile : undefined, ctx));
   const byId = new Map(products.map((p) => [p.id, p]));
   const sections: HomeSection[] = [];
   const recentIds = recentProductIds(recentEvents, SECTION_SIZE);

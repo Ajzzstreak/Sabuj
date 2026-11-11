@@ -46,7 +46,8 @@ How the fields are used:
 - retailerAffinity (-1..1 per retailer): how much the shopper prefers a retailer beyond price. Positive only when they choose it while it is NOT the cheapest; choosing the cheapest retailer says little about loyalty. Negative when they are repeatedly shown it and pick others. Use 0 when there is no evidence.
 - priceSensitivity (0..1): 1 = always takes the lowest total price, 0 = price barely matters. Weigh how often they pick the cheapest offer and how large a premium they accept relative to the item price.
 - speedPreference, qualityPreference (0..1): weight on fast delivery and on ratings/review volume. Stay near the baseline unless the events clearly show it.
-- memberships: retailers where the shopper appears to hold a paid membership (clicking through to Sam's Club or Costco offers is the main sign).
+- memberships: retailers where the shopper appears to hold a paid membership (repeatedly clicking through to Sam's Club or Costco offers is the main sign; a single click is not enough).
+- maxObservedPremiumPct in the baseline is the largest premium the shopper has actually paid; it is fixed by the server and you cannot change it.
 - categoryAffinity, brandAffinity: up to 8 entries each, weight 0..1, strongest first. Use the exact category and brand strings that appear in the data.
 - summary: one short paragraph, plain English, third person, no numbers the data does not support.
 - insights: 2-5 short second-person bullets a shopper would recognise, such as "You usually pick Target when it's within $3". Only claim what the data shows.
@@ -153,9 +154,11 @@ export function parseRefinedProfile(input: unknown, base: UserProfile, now: numb
   }
   const memberships = [...new Set(r.memberships.filter(isRetailerId))];
   return {
-    // Identity, counts and provenance always come from the server, never the model.
-    deviceId: base.deviceId,
+    // Counts and provenance always come from the server, never the model.
     eventCount: base.eventCount,
+    // The premium bound is a hard guard on ranking and is computed only from
+    // observed clicks: the model has no field for it and cannot raise it.
+    maxObservedPremiumPct: base.maxObservedPremiumPct ?? 0,
     retailerAffinity,
     priceSensitivity: r.priceSensitivity,
     speedPreference: r.speedPreference,
@@ -218,7 +221,7 @@ export function buildActivityDigest(events: readonly ActivityEvent[], heuristic:
     }
   }
 
-  const { deviceId: _deviceId, updatedAt: _updatedAt, source: _source, ...baseline } = heuristic;
+  const { updatedAt: _updatedAt, source: _source, ...baseline } = heuristic;
   return {
     totalEvents: heuristic.eventCount,
     eventsAnalysed: events.length,

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import { elevation, palettes, type ColorScheme, type Palette } from './tokens';
 
@@ -17,10 +17,15 @@ const themes: Record<ColorScheme, Theme> = {
   dark: { scheme: 'dark', dark: true, c: palettes.dark, shadow1: elevation('dark', 1), shadow2: elevation('dark', 2) },
 };
 
-/** Follows the system appearance. */
+const SchemeOverride = createContext<ColorScheme | null>(null);
+/** Forces a scheme for a subtree. Used by the /dev/components gallery to show light and dark together. */
+export const ThemeScope = SchemeOverride.Provider;
+
+/** Follows the system appearance unless a ThemeScope overrides it. */
 export function useTheme(): Theme {
+  const forced = useContext(SchemeOverride);
   const scheme = useColorScheme();
-  return themes[scheme === 'dark' ? 'dark' : 'light'];
+  return themes[forced ?? (scheme === 'dark' ? 'dark' : 'light')];
 }
 
 /** Memoize a style object derived from the theme. */

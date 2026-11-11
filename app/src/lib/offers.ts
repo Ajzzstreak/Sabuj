@@ -10,14 +10,24 @@ export interface OfferFilters {
 
 export const NO_FILTERS: OfferFilters = { retailers: [], inStockOnly: false };
 
+/** 'link_only' offers carry no price: never show one, never rank one. */
+export const hasPrice = (o: Offer): boolean => o.priceSource !== 'link_only';
+
+/**
+ * Can this offer be called "best price"? Only if the user can actually buy it
+ * at a known price: in stock, eligible (membership) and not link-only.
+ */
+export const rankable = (o: Offer): boolean => o.inStock && o.eligible && hasPrice(o);
+
 export interface OfferView {
   offers: Offer[];
   cheapestId: string | null;
   recommendedId: string | null;
-  /** Why the recommended offer was picked, only when it is not the cheapest. */
+  /** The server's reason for its pick, verbatim, only when that pick is not the cheapest. */
   reason: string | null;
   savings: number;
-  bestTotal: number | null;
+  /** Lowest landed price (item + shipping + estimated tax) among rankable offers. */
+  bestPrice: number | null;
 }
 
 /** The offers of a product as they should be displayed under the given filters. */
@@ -33,33 +43,56 @@ export function viewOffers(product: Product, filters: OfferFilters = NO_FILTERS)
 
   let cheapestId = product.cheapestOfferId;
   let savings = product.maxSavings;
-  const inStock = offers.filter((o) => o.inStock);
-  if (filtered || (cheapestId != null && !offers.some((o) => o.id === cheapestId))) {
-    const totals = inStock.map((o) => o.totalPrice);
-    const min = totals.length ? Math.min(...totals) : null;
-    cheapestId = min == null ? null : (inStock.find((o) => o.totalPrice === min)?.id ?? null);
-    savings = totals.length > 1 ? Math.max(...totals) - (min ?? 0) : 0;
+  const serverPick = offers.find((o) => o.id === cheapestId);
+  // Trust the server's answer unless a filter hid it or it is not something this user can buy at a known price.
+  if (filtered || cheapestId == null || !serverPick || !rankable(serverPick)) {
+    const prices = offers.filter(rankable).map((o) => o.landedPrice);
+    const min = prices.length ? Math.min(...prices) : null;
+    cheapestId = min == null ? null : (offers.find((o) => rankable(o) && o.landedPrice === min)?.id ?? null);
+    savings = prices.length > 1 ? Math.max(...prices) - (min ?? 0) : 0;
   }
   const cheapest = offers.find((o) => o.id === cheapestId) ?? null;
 
   const recommended = offers.find((o) => o.id === product.recommendedOfferId) ?? null;
-  const differs = recommended != null && recommended.inStock && recommended.id !== cheapestId;
+  const differs = recommended != null && rankable(recommended) && recommended.id !== cheapestId;
   return {
     offers,
     cheapestId,
     recommendedId: differs ? recommended.id : null,
     reason: differs ? product.recommendationReason : null,
     savings: Math.max(0, savings),
-    bestTotal: cheapest ? cheapest.totalPrice : null,
+    bestPrice: cheapest ? cheapest.landedPrice : null,
   };
 }
 
-export function applyResultsView(products: Product[], sort: SortKey, filters: OfferFilters): Product[] {
+/** Lowest landed price the user can actually get, or null. */
+export function bestPrice(product: Product): number | null {
+  return viewOffers(product).bestPrice;
+}
+
+export function hasDemoPrices(products: readonly Product[]): boolean {
+  return products.some((p) => p.offers.some((o) => o.priceSource === 'demo'));
+}
+
+export interface ResultConstraints {
+  /** Keep products whose best price is at or under this. */
+  maxPrice?: number | null;
+  minRating?: number | null;
+}
+
+export function applyResultsView(products: Product[], sort: SortKey, filters: OfferFilters, limits: ResultConstraints = {}): Product[] {
   const filtered = filters.retailers.length > 0 || filters.inStockOnly;
+  const { maxPrice, minRating } = limits;
   let list = products;
   if (filtered) list = list.filter((p) => viewOffers(p, filters).offers.length > 0);
+  if (minRating != null) list = list.filter((p) => p.rating != null && p.rating >= minRating);
+  if (maxPrice != null)
+    list = list.filter((p) => {
+      const best = viewOffers(p, filters).bestPrice;
+      return best != null && best <= maxPrice;
+    });
   if (sort === 'best') return list;
-  const keyed = list.map((p, index) => ({ p, index, best: viewOffers(p, filters).bestTotal }));
+  const keyed = list.map((p, index) => ({ p, index, best: viewOffers(p, filters).bestPrice }));
   keyed.sort((a, b) => {
     if (sort === 'price') {
       const d = (a.best ?? Number.POSITIVE_INFINITY) - (b.best ?? Number.POSITIVE_INFINITY);

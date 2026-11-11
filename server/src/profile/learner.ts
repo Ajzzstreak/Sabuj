@@ -10,6 +10,7 @@ import type { Catalog } from '../catalog.js';
 import type { ActivityEvent, UserProfile } from '../contract.js';
 import { emptyProfile, type Store } from '../db.js';
 import { qualityScore, speedScore } from '../ranking.js';
+import { ClaudeBudget } from './budget.js';
 import type { ClaudeProfiler } from './claude.js';
 import { buildHeuristicProfile, type OfferFacts } from './heuristic.js';
 
@@ -19,6 +20,8 @@ export interface LearnerOptions {
   claudeCooldownMs: number;
   /** Global ceiling on Claude calls per hour across all devices. Unset = no ceiling. */
   claudeMaxCallsPerHour?: number;
+  /** Shared hourly budget (also spent by POST /v1/ask). Overrides claudeMaxCallsPerHour. */
+  claudeBudget?: ClaudeBudget;
   /** Recent-event window the profilers read. */
   eventWindow?: number;
   now?: () => number;
@@ -35,8 +38,7 @@ export class ProfileLearner {
   /** Bumped on erase so in-flight jobs cannot write a profile back. */
   private readonly epochs = new Map<string, number>();
   private readonly cache = new Map<string, UserProfile>();
-  private claudeWindowStart = 0;
-  private claudeCallsInWindow = 0;
+  private readonly budget: ClaudeBudget;
   private readonly now: () => number;
   private readonly eventWindow: number;
 
@@ -48,6 +50,7 @@ export class ProfileLearner {
   ) {
     this.now = opts.now ?? Date.now;
     this.eventWindow = opts.eventWindow ?? 2000;
+    this.budget = opts.claudeBudget ?? new ClaudeBudget(opts.claudeMaxCallsPerHour, this.now);
   }
 
   /** Schedule a (debounced) profile rebuild. Never blocks, never throws. */
@@ -97,12 +100,12 @@ export class ProfileLearner {
 
   private readProfile(deviceId: string): UserProfile {
     const row = this.store.getRow(deviceId);
-    if (!row) return emptyProfile(deviceId);
+    if (!row) return emptyProfile();
     const claudeFresh =
       row.claude !== null && row.totalEvents - row.claudeEventCount < this.opts.claudeEveryNEvents * CLAUDE_STALE_FACTOR;
     const chosen = claudeFresh ? row.claude : row.heuristic;
-    if (!chosen) return emptyProfile(deviceId, row.totalEvents);
-    return { ...chosen, deviceId, eventCount: row.totalEvents };
+    if (!chosen) return emptyProfile(row.totalEvents);
+    return { ...emptyProfile(), ...chosen, eventCount: row.totalEvents };
   }
 
   private runExclusive(deviceId: string): Promise<void> {
@@ -131,7 +134,7 @@ export class ProfileLearner {
     if (!alive()) return;
 
     const now = this.now();
-    const heuristic = buildHeuristicProfile(deviceId, events, { now, totalEvents: row.totalEvents, offerFacts });
+    const heuristic = buildHeuristicProfile(events, { now, totalEvents: row.totalEvents, offerFacts });
     this.store.saveHeuristic(deviceId, heuristic);
     this.cache.delete(deviceId);
 
@@ -139,7 +142,7 @@ export class ProfileLearner {
     const newEvents = row.totalEvents - row.claudeEventCount;
     const cooledDown = row.claudeAt === null || now - row.claudeAt >= this.opts.claudeCooldownMs;
     if (newEvents < this.opts.claudeEveryNEvents || !cooledDown) return;
-    if (!this.takeClaudeSlot(now)) return; // global cost ceiling reached; heuristic profile stays
+    if (!this.budget.take()) return; // global cost ceiling reached; heuristic profile stays
 
     const refined = await this.claude.refine(events, heuristic, now);
     if (!alive()) return; // erased while the request was in flight: drop the result
@@ -151,23 +154,6 @@ export class ProfileLearner {
     }
     this.store.saveClaude(deviceId, refined, row.totalEvents, this.now());
     this.cache.delete(deviceId);
-  }
-
-  /**
-   * The per-device cooldown does not bound total spend: device ids are free to
-   * mint, so without a global ceiling one client could trigger a Claude call
-   * per fabricated device.
-   */
-  private takeClaudeSlot(now: number): boolean {
-    const max = this.opts.claudeMaxCallsPerHour;
-    if (max === undefined) return true;
-    if (now - this.claudeWindowStart >= 3_600_000) {
-      this.claudeWindowStart = now;
-      this.claudeCallsInWindow = 0;
-    }
-    if (this.claudeCallsInWindow >= max) return false;
-    this.claudeCallsInWindow += 1;
-    return true;
   }
 
   /** Look up delivery/rating facts for clicked offers (cached catalog reads, off the request path). */
@@ -184,7 +170,7 @@ export class ProfileLearner {
         try {
           const { value: product } = await this.catalog!.product(id);
           if (!product) return;
-          const inStock = product.offers.filter((o) => o.inStock);
+          const inStock = product.offers.filter((o) => o.inStock && o.priceSource !== 'link_only');
           const cheapest = inStock.sort((a, b) => a.totalPrice - b.totalPrice)[0];
           if (!cheapest) return;
           for (const o of product.offers) {

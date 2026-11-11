@@ -35,6 +35,14 @@ export function shortDate(iso: string): string {
   return `${MONTHS[m - 1] ?? ''} ${d}`;
 }
 
+/** "$54.99 item + $5.99 shipping + $4.54 est. tax = $65.52". Tax is always labelled an estimate. */
+export function breakdownLine(offer: Pick<Offer, 'price' | 'shipping' | 'estimatedTax' | 'landedPrice'>): string {
+  const parts = [`${money(offer.price)} item`];
+  parts.push(offer.shipping == null ? 'shipping at checkout' : offer.shipping === 0 ? 'free shipping' : `${money(offer.shipping)} shipping`);
+  parts.push(offer.estimatedTax == null ? 'tax not estimated' : `${money(offer.estimatedTax)} est. tax`);
+  return `${parts.join(' + ')} = ${money(offer.landedPrice)}`;
+}
+
 export function relativeTime(iso: string | null): string {
   if (!iso) return 'never';
   const then = Date.parse(iso);

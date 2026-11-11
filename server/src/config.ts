@@ -54,6 +54,28 @@ const EnvSchema = z.object({
   CLAUDE_PROFILE_COOLDOWN_MS: int(3600000),
   CLAUDE_TIMEOUT_MS: int(30000, 1000),
   CLAUDE_MAX_CALLS_PER_HOUR: int(200, 0),
+  MOCK_PRICE_OVERRIDES: str(''),
+  CATALOG_CATEGORIES: str(''),
+  BESTBUY_API_KEY: z.string().optional(),
+  WALMART_CONSUMER_ID: z.string().optional(),
+  WALMART_PRIVATE_KEY: z.string().optional(),
+  WALMART_KEY_VERSION: str('1'),
+  WALMART_PUBLISHER_ID: z.string().optional(),
+  DEVICE_REGISTRATION_RATE_MAX: int(5, 1),
+  DEVICE_REGISTRATIONS_PER_IP_PER_DAY: int(30, 1),
+  DEVICE_RETENTION_DAYS: int(180, 1, 3650),
+  MAX_DEVICES: int(1_000_000, 1),
+  ASK_TIMEOUT_MS: int(4000, 200, 30000),
+  ASK_RATE_LIMIT_MAX: int(10, 1),
+  MAX_ALERTS_PER_DEVICE: int(20, 1, 500),
+  ALERT_CHECK_INTERVAL_MS: int(900_000, 0),
+  PUSH_PROVIDER: z
+    .string()
+    .optional()
+    .transform((v) => (v ?? '').trim().toLowerCase() || 'expo')
+    .pipe(z.enum(['expo', 'none'])),
+  PUSH_TIMEOUT_MS: int(5000, 100, 60000),
+  EXPO_ACCESS_TOKEN: z.string().optional(),
 });
 
 export interface Config {
@@ -83,7 +105,36 @@ export interface Config {
   claudeTimeoutMs: number;
   /** Global ceiling on Claude profiler calls per hour, across all devices. */
   claudeMaxCallsPerHour: number;
+  /** Raw MOCK_PRICE_OVERRIDES: "productId:retailerId=price,...". Dev/test hook. */
+  mockPriceOverrides: string;
+  /** Lower-cased category names the catalog is limited to; empty = everything. */
+  catalogCategories: string[];
+  bestbuyApiKey: string | null;
+  walmartConsumerId: string | null;
+  walmartPrivateKey: string | null;
+  walmartKeyVersion: string;
+  walmartPublisherId: string | null;
+  /** POST /v1/devices per IP per rate-limit window. */
+  deviceRegistrationRateMax: number;
+  /** POST /v1/devices per IP per 24 hours. */
+  deviceRegistrationsPerIpPerDay: number;
+  /** Devices with no authenticated request for this long are erased. */
+  deviceRetentionDays: number;
+  /** Hard ceiling on registered devices; registration is refused above it. */
+  maxDevices: number;
+  /** Hard deadline for the Claude call in POST /v1/ask before the rules fallback. */
+  askTimeoutMs: number;
+  /** POST /v1/ask per device per rate-limit window. */
+  askRateLimitMax: number;
+  maxAlertsPerDevice: number;
+  /** 0 disables the background alert checker. */
+  alertCheckIntervalMs: number;
+  pushProvider: 'expo' | 'none';
+  pushTimeoutMs: number;
+  expoAccessToken: string | null;
 }
+
+const opt = (v: string | undefined): string | null => (v?.trim() ? v.trim() : null);
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const e = EnvSchema.parse(env);
@@ -112,5 +163,23 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     claudeCooldownMs: e.CLAUDE_PROFILE_COOLDOWN_MS,
     claudeTimeoutMs: e.CLAUDE_TIMEOUT_MS,
     claudeMaxCallsPerHour: e.CLAUDE_MAX_CALLS_PER_HOUR,
+    mockPriceOverrides: e.MOCK_PRICE_OVERRIDES,
+    catalogCategories: e.CATALOG_CATEGORIES.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
+    bestbuyApiKey: opt(e.BESTBUY_API_KEY),
+    walmartConsumerId: opt(e.WALMART_CONSUMER_ID),
+    walmartPrivateKey: opt(e.WALMART_PRIVATE_KEY),
+    walmartKeyVersion: e.WALMART_KEY_VERSION,
+    walmartPublisherId: opt(e.WALMART_PUBLISHER_ID),
+    deviceRegistrationRateMax: e.DEVICE_REGISTRATION_RATE_MAX,
+    deviceRegistrationsPerIpPerDay: e.DEVICE_REGISTRATIONS_PER_IP_PER_DAY,
+    deviceRetentionDays: e.DEVICE_RETENTION_DAYS,
+    maxDevices: e.MAX_DEVICES,
+    askTimeoutMs: e.ASK_TIMEOUT_MS,
+    askRateLimitMax: e.ASK_RATE_LIMIT_MAX,
+    maxAlertsPerDevice: e.MAX_ALERTS_PER_DEVICE,
+    alertCheckIntervalMs: e.ALERT_CHECK_INTERVAL_MS,
+    pushProvider: e.PUSH_PROVIDER,
+    pushTimeoutMs: e.PUSH_TIMEOUT_MS,
+    expoAccessToken: opt(e.EXPO_ACCESS_TOKEN),
   };
 }

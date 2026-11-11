@@ -70,7 +70,15 @@ function joinNames(names: string[]): string {
   return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 }
 
-export function buildHeuristicProfile(deviceId: string, events: readonly ActivityEvent[], ctx: HeuristicContext): UserProfile {
+/**
+ * Clicks on a membership retailer before we assume the shopper is a member.
+ * One click is curiosity, not a membership.
+ */
+export const MEMBERSHIP_MIN_CLICKS = 3;
+/** maxObservedPremiumPct is capped here: beyond it the data is noise or abuse. */
+export const MAX_PREMIUM_PCT = 1;
+
+export function buildHeuristicProfile(events: readonly ActivityEvent[], ctx: HeuristicContext): UserProfile {
   const eventCount = Math.max(ctx.totalEvents ?? 0, events.length);
   const stats = new Map<RetailerId, RetailerStats>();
   const statFor = (r: RetailerId) => {
@@ -94,6 +102,7 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
   let speedHits = 0;
   let qualityHits = 0;
   let factsN = 0;
+  let maxPremiumPct = 0;
 
   for (const e of events) {
     const age = Math.max(0, ctx.now - e.ts);
@@ -128,6 +137,13 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
             s.premiumMax = Math.max(s.premiumMax, e.premiumPaid);
           }
         }
+      }
+      // Largest premium actually paid, relative to the cheapest price at the
+      // time (clicked price minus the premium). This bounds what ranking may
+      // ever recommend, so it only grows from real non-cheapest picks.
+      if (e.wasCheapest === false && typeof e.premiumPaid === 'number' && typeof e.price === 'number') {
+        const cheapestPrice = e.price - e.premiumPaid;
+        if (e.premiumPaid > 0 && cheapestPrice > 0) maxPremiumPct = Math.max(maxPremiumPct, e.premiumPaid / cheapestPrice);
       }
       // Price sensitivity: 1 for a cheapest pick; a non-cheapest pick scores
       // lower the larger the premium was relative to the price.
@@ -184,7 +200,7 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
     }
     affinity = round3(clamp(affinity, -1, 1));
     if (Math.abs(affinity) >= 0.02) retailerAffinity[id] = affinity;
-    if (isMembershipRetailer(id) && (s.clicks >= 2 || s.nonCheapestClicks >= 1)) memberships.push(id);
+    if (isMembershipRetailer(id) && s.clicks >= MEMBERSHIP_MIN_CLICKS) memberships.push(id);
   }
 
   const categoryAffinity = topNormalized(categories);
@@ -244,12 +260,12 @@ export function buildHeuristicProfile(deviceId: string, events: readonly Activit
   for (const cat of topCats) pushQuery(`best ${cat}`);
 
   return {
-    deviceId,
     eventCount,
     retailerAffinity,
     priceSensitivity,
     speedPreference,
     qualityPreference,
+    maxObservedPremiumPct: Math.round(clamp(maxPremiumPct, 0, MAX_PREMIUM_PCT) * 10000) / 10000,
     memberships,
     categoryAffinity,
     brandAffinity,

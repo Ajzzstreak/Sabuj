@@ -4,7 +4,6 @@ import { ApiRequestError, request } from '@/api/client';
 import type { ActivityEvent, EventsRequest, EventsResponse } from '@/api/contract';
 import { TRACKING } from '@/config';
 import { settingsStore } from '@/state';
-import { getDeviceId } from './deviceId';
 import { kv } from './storage';
 
 /**
@@ -69,9 +68,6 @@ export function track(event: TrackInput): void {
 export async function flush(urgent = false): Promise<void> {
   if (flushing || queue.length === 0 || paused()) return;
   if (!urgent && Date.now() < retryAt) return schedule();
-  const deviceId = getDeviceId();
-  if (!deviceId) return schedule();
-
   flushing = true;
   if (flushTimer) clearTimeout(flushTimer);
   flushTimer = null;
@@ -82,10 +78,11 @@ export async function flush(urgent = false): Promise<void> {
   };
 
   try {
-    const body: EventsRequest = { deviceId, events: batch };
+    // The server knows the device from the bearer token; no id goes in the body.
+    const body: EventsRequest = { events: batch };
     await request<EventsResponse>('/events', { method: 'POST', body, keepalive: urgent && Platform.OS === 'web' });
-    // The id may have been rotated ("Delete my data") while this was in flight;
-    // in that case the queue was already cleared and drop() is a no-op.
+    // "Delete my data" may have run while this was in flight; the queue was
+    // then already cleared and drop() is a no-op.
     drop();
     attempts = 0;
     retryAt = 0;

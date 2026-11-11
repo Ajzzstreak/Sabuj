@@ -3,9 +3,9 @@
  * product id, so the catalog is identical across restarts. Only the calendar
  * dates of the price history (and observedAt) move with the clock.
  */
-import type { Offer, PricePoint, RetailerId } from '../../contract.js';
+import type { PricePoint, RetailerId } from '../../contract.js';
 import { buildOutboundUrl, isMembershipRetailer, RETAILER_IDS } from '../../retailers.js';
-import type { ProviderProduct, ProviderProductDetail } from '../types.js';
+import type { ProviderOffer, ProviderProduct, ProviderProductDetail } from '../types.js';
 import { CATEGORY_NOUN, type CatalogSeed } from './catalog.js';
 
 export function hash32(s: string): number {
@@ -88,7 +88,7 @@ function pickRetailers(seed: CatalogSeed, rand: () => number): RetailerId[] {
   return RETAILER_IDS.filter((r) => chosen.includes(r));
 }
 
-export function generateOffers(productId: string, seed: CatalogSeed, observedAt: string): Offer[] {
+export function generateOffers(productId: string, seed: CatalogSeed, observedAt: string): ProviderOffer[] {
   const rand = rng(hash32(`offers:${productId}`));
   const retailers = pickRetailers(seed, rand);
   const popularity = 400 + Math.floor(Math.pow(rand(), 2) * 60000);
@@ -137,6 +137,7 @@ export function generateOffers(productId: string, seed: CatalogSeed, observedAt:
       delivery: inStock ? delivery : null,
       url: buildOutboundUrl(retailerId, seed.title),
       observedAt,
+      priceSource: 'demo',
     };
   });
 }

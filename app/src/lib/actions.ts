@@ -1,13 +1,17 @@
 import * as WebBrowser from 'expo-web-browser';
 import { Linking, Platform } from 'react-native';
 import type { Offer, Product } from '@/api/contract';
-import { bestTotal, savedStore } from '@/state';
+import { savedStore } from '@/state';
 import { haptic } from './haptics';
+import { bestPrice, hasPrice, viewOffers } from './offers';
 import { track } from './tracker';
 
 /** Record the click (the strongest learning signal) and open the retailer page. */
 export function goToStore(product: Product, offer: Offer): void {
-  const cheapest = product.offers.find((o) => o.id === product.cheapestOfferId) ?? null;
+  const cheapestId = viewOffers(product).cheapestId;
+  const cheapest = product.offers.find((o) => o.id === cheapestId) ?? null;
+  // A link-only offer has no price to report or compare.
+  const priced = hasPrice(offer);
   const rank = product.offers.findIndex((o) => o.id === offer.id);
   track({
     type: 'offer_click',
@@ -16,10 +20,10 @@ export function goToStore(product: Product, offer: Offer): void {
     retailerId: offer.retailerId,
     category: product.category,
     brand: product.brand,
-    price: offer.totalPrice,
+    price: priced ? offer.landedPrice : undefined,
     rank: rank < 0 ? undefined : rank,
-    wasCheapest: cheapest ? offer.id === cheapest.id : undefined,
-    premiumPaid: cheapest ? Math.max(0, Math.round((offer.totalPrice - cheapest.totalPrice) * 100) / 100) : undefined,
+    wasCheapest: cheapest && priced ? offer.id === cheapest.id : undefined,
+    premiumPaid: cheapest && priced ? Math.max(0, Math.round((offer.landedPrice - cheapest.landedPrice) * 100) / 100) : undefined,
   });
   haptic.medium();
   void openUrl(offer.url);
@@ -51,7 +55,7 @@ export function toggleSaved(product: Product): boolean {
   } else {
     savedStore.set((prev) => ({
       ...prev,
-      [product.id]: { product: toSnapshot(product), savedAt: Date.now(), priceWhenSaved: bestTotal(product) },
+      [product.id]: { product: toSnapshot(product), savedAt: Date.now(), priceWhenSaved: bestPrice(product) },
     }));
     haptic.success();
   }
@@ -60,7 +64,7 @@ export function toggleSaved(product: Product): boolean {
     productId: product.id,
     category: product.category,
     brand: product.brand,
-    price: bestTotal(product) ?? undefined,
+    price: bestPrice(product) ?? undefined,
   });
   return !isSaved;
 }
