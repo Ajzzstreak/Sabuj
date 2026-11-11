@@ -20,6 +20,9 @@ export const API_VERSION = 'v1';
  *   zip=12345                      -> fills Offer.estimatedTax
  *   memberships=costco,samsclub    -> sets Offer.eligible ("" = holds none)
  * Omit `memberships` entirely when the user has not answered.
+ *   storeIds=wm-123,kr-456         -> price from these store locations
+ * When storeIds is omitted but zip is given, the server uses the nearest
+ * store of each retailer. Without either, prices are national/demo.
  */
 export interface RegisterDeviceResponse {
   deviceId: string;
@@ -32,7 +35,8 @@ export type RetailerId =
   | 'samsclub'
   | 'target'
   | 'costco'
-  | 'bestbuy';
+  | 'bestbuy'
+  | 'kroger';
 
 /**
  * How an offer's price was obtained.
@@ -49,6 +53,23 @@ export interface Retailer {
   color: string;
   /** True when buying generally needs a paid membership (Sam's Club, Costco). */
   membershipRequired: boolean;
+}
+
+export type SizeUnit = 'oz' | 'lb' | 'fl_oz' | 'gal' | 'ct' | 'each';
+
+/** Package size, e.g. { amount: 5, unit: 'lb' }. */
+export interface PackageSize {
+  amount: number;
+  unit: SizeUnit;
+}
+
+/** A physical store location. Grocery prices are per store. */
+export interface Store {
+  id: string;
+  retailerId: RetailerId;
+  name: string;
+  address: string;
+  distanceMiles: number;
 }
 
 export interface Offer {
@@ -84,6 +105,22 @@ export interface Offer {
   /** ISO timestamp of when this price was observed. */
   observedAt: string;
   priceSource: PriceSource;
+  /**
+   * 'exact' = the same item (same GTIN). 'equivalent' = a comparable item at
+   * this store, typically its store brand; the UI must label it and show
+   * offerTitle. Equivalent offers are compared on unitPrice, not shelf price.
+   */
+  matchType: 'exact' | 'equivalent';
+  /** The item's actual name at this store when matchType is 'equivalent'. */
+  offerTitle: string | null;
+  /** Size of the item this offer sells (may differ for equivalents). */
+  size: PackageSize | null;
+  /** price / size in a normalized unit, e.g. 0.08. null when size unknown. */
+  unitPrice: number | null;
+  /** e.g. "per oz", "per lb", "per fl oz", "each". */
+  unitLabel: string | null;
+  /** Store location this price is from, null for online/national prices. */
+  storeId: string | null;
 }
 
 export interface Product {
@@ -91,6 +128,10 @@ export interface Product {
   title: string;
   brand: string;
   category: string;
+  /** Package size of the reference item, null when not applicable. */
+  size: PackageSize | null;
+  /** True for a retailer's own label (Great Value, Kroger, Kirkland...). */
+  isStoreBrand: boolean;
   /** May be null: the app must render a designed placeholder tile. */
   imageUrl: string | null;
   gtin: string | null;
@@ -169,7 +210,9 @@ export type EventType =
   | 'offer_click' // tapped through to a retailer (strongest signal)
   | 'offer_impression' // offer row was visible
   | 'save' // saved / watchlisted a product
-  | 'unsave';
+  | 'unsave'
+  | 'list_add' // added an item to the shopping list
+  | 'list_remove';
 
 export interface ActivityEvent {
   type: EventType;
@@ -302,6 +345,84 @@ export interface AlertsResponse {
 export interface PushTokenRequest {
   /** Expo push token, or null to unregister. */
   token: string | null;
+}
+
+// ---- GET /v1/stores?zip=  -> StoresResponse ---------------------------
+export interface StoresResponse {
+  zip: string;
+  stores: Store[];
+}
+
+// ---- POST /v1/basket  (shopping-list totals) ---------------------------
+// Works with or without a token. The list itself is kept on the device.
+export interface BasketItemInput {
+  /** Client-generated id, echoed back so the app can map lines to items. */
+  id: string;
+  /** A specific product, when the user picked one. */
+  productId?: string;
+  /** Free text such as "milk" when no product was picked. Max 100 chars. */
+  query?: string;
+  quantity: number;
+}
+export interface BasketRequest {
+  items: BasketItemInput[];
+  zip?: string;
+  memberships?: RetailerId[];
+  storeIds?: string[];
+}
+export interface BasketResolvedItem {
+  id: string;
+  quantity: number;
+  /** The product this item resolved to, null when nothing matched. */
+  product: Product | null;
+  /** True when resolved from free text, so the UI can offer "change item". */
+  resolvedFromQuery: boolean;
+}
+export interface BasketLine {
+  itemId: string;
+  offerId: string;
+  matchType: 'exact' | 'equivalent';
+  offerTitle: string | null;
+  /** Offer landedPrice (tax estimate included when zip given). */
+  unitCost: number;
+  quantity: number;
+  lineTotal: number;
+}
+export interface BasketStoreTotal {
+  retailerId: RetailerId;
+  storeId: string | null;
+  lines: BasketLine[];
+  /** Item ids this store cannot supply (no in-stock eligible priced offer). */
+  missingItemIds: string[];
+  /** Sum of lineTotal over the items this store has. */
+  total: number;
+  /** True when missingItemIds is empty. */
+  complete: boolean;
+}
+export interface BasketSplit {
+  /** Exactly two stores. */
+  stores: Array<{ retailerId: RetailerId; storeId: string | null }>;
+  /** Which store each item is bought at, cheapest of the two. */
+  assignments: Array<{ itemId: string; retailerId: RetailerId; line: BasketLine }>;
+  missingItemIds: string[];
+  total: number;
+  /** total of bestSingleStore minus this total; > 0 means the split is cheaper. */
+  savingsVsBestSingle: number;
+}
+export interface BasketResponse {
+  items: BasketResolvedItem[];
+  /** One entry per retailer with at least one priced item, cheapest first. */
+  perStore: BasketStoreTotal[];
+  /**
+   * Cheapest COMPLETE store. When no store has every item, the store covering
+   * the most items (ties broken by total). null when nothing is priced.
+   */
+  bestSingleStore: RetailerId | null;
+  /** Best two-store split, null when it does not beat the best single store
+   *  or fewer than two stores have prices. Compared only on equal coverage. */
+  bestSplit: BasketSplit | null;
+  retailers: Retailer[];
+  tookMs: number;
 }
 
 // ---- Errors ------------------------------------------------------------
