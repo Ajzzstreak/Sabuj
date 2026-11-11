@@ -1,4 +1,5 @@
 import { buildApp } from './app.js';
+import { createClaudeAsk } from './ask/claude.js';
 import { loadConfig } from './config.js';
 import { Store } from './db.js';
 import { createClaudeProfiler } from './profile/claude.js';
@@ -17,7 +18,9 @@ async function main(): Promise<void> {
     log: (msg, detail) => warn(msg, detail),
   });
 
-  const { fastify } = await buildApp({ config, store, providers, claude, logger: { level: config.logLevel } });
+  const claudeAsk = createClaudeAsk({ apiKey: config.anthropicApiKey, model: config.claudeModel, log: (msg, detail) => warn(msg, detail) });
+
+  const { fastify } = await buildApp({ config, store, providers, claude, claudeAsk, logger: { level: config.logLevel } });
   warn = (msg, detail) => fastify.log.warn(detail ?? {}, msg);
 
   let closing = false;
@@ -37,7 +40,13 @@ async function main(): Promise<void> {
 
   await fastify.listen({ port: config.port, host: config.host });
   fastify.log.info(
-    { providers: providers.map((p) => p.name), claudeProfiler: claude ? config.claudeModel : 'disabled (no ANTHROPIC_API_KEY)' },
+    {
+      providers: providers.map((p) => p.name),
+      categories: config.catalogCategories.length ? config.catalogCategories : 'all',
+      claude: claude ? config.claudeModel : 'disabled (no ANTHROPIC_API_KEY): heuristic profiler + rules-based ask',
+      alertCheckIntervalMs: config.alertCheckIntervalMs || 'disabled',
+      push: config.pushProvider,
+    },
     'DealLens API ready',
   );
 }

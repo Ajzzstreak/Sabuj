@@ -4,10 +4,12 @@ import { StyleSheet, View } from 'react-native';
 import { APP_NAME } from '@/config';
 import { useLayout } from '@/hooks/useLayout';
 import { haptic } from '@/lib/haptics';
-import { savedStore } from '@/state';
+import { useAlerts } from '@/api/queries';
+import { alertPrefsStore } from '@/state';
 import { fonts, layout, radius, space, useTheme } from '@/theme';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
+import { CountBadge } from './ui';
 
 type Glyph = keyof typeof Ionicons.glyphMap;
 const TABS: Record<string, { label: string; icon: Glyph; iconActive: Glyph }> = {
@@ -23,20 +25,23 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   const { c } = useTheme();
   const { width, gutter } = useLayout();
   const wide = width >= WIDE_TAB_BAR_MIN;
-  const savedCount = savedStore.use((s) => Object.keys(s).length);
+  // Polled here (refetched whenever the app regains focus) so a triggered alert is visible from any tab.
+  const alerts = useAlerts().data;
+  const seen = alertPrefsStore.use((s) => s.seenTriggered);
+  const triggered = alerts?.filter((a) => a.status === 'triggered' && !seen.includes(a.id)).length ?? 0;
 
   const items = state.routes.map((route, index) => {
     const meta = TABS[route.name];
     if (!meta) return null;
     const focused = state.index === index;
-    const badge = route.name === 'saved' && savedCount > 0 ? savedCount : 0;
+    const badge = route.name === 'saved' ? triggered : 0;
     return (
       <PressableScale
         key={route.key}
         testID={`tab-${route.name}`}
         accessibilityRole="tab"
         accessibilityState={{ selected: focused }}
-        accessibilityLabel={badge ? `${meta.label}, ${badge} items` : meta.label}
+        accessibilityLabel={badge ? `${meta.label}, ${badge} price ${badge === 1 ? 'alert' : 'alerts'} triggered` : meta.label}
         scaleTo={0.94}
         onPress={() => {
           if (!focused) haptic.selection();
@@ -46,7 +51,11 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
       >
         <View>
           <Ionicons name={focused ? meta.iconActive : meta.icon} size={wide ? 17 : 23} color={focused ? c.accent : c.textSecondary} />
-          {badge && !wide ? <View style={[styles.dot, { backgroundColor: c.accent, borderColor: c.surface }]} /> : null}
+          {badge && !wide ? (
+            <View style={styles.dot}>
+              <CountBadge count={badge} testID="alerts-badge" />
+            </View>
+          ) : null}
         </View>
         <Text
           variant={wide ? 'calloutStrong' : 'captionStrong'}
@@ -55,8 +64,8 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
           maxFontSizeMultiplier={1.2}
         >
           {meta.label}
-          {badge && wide ? `  ${badge}` : ''}
         </Text>
+        {badge && wide ? <CountBadge count={badge} testID="alerts-badge" /> : null}
       </PressableScale>
     );
   });
@@ -91,7 +100,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 6 },
   item: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', gap: 3 },
-  dot: { position: 'absolute', top: -2, right: -6, width: 9, height: 9, borderRadius: 5, borderWidth: 1.5 },
+  dot: { position: 'absolute', top: -6, right: -14 },
   wideBar: { borderBottomWidth: StyleSheet.hairlineWidth },
   wideInner: { width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center', height: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { flexDirection: 'row', alignItems: 'center', gap: space.sm + 2 },

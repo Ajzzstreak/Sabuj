@@ -4,7 +4,7 @@ import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLayout } from '@/hooks/useLayout';
 import { layout, space, useTheme } from '@/theme';
-import { IconButton } from './bits';
+import { IconButton } from './ui';
 import { Text } from './Text';
 
 /** Full-screen background plus top safe-area padding. */

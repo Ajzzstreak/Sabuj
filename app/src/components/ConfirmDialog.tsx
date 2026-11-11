@@ -1,7 +1,7 @@
-import { Modal, Pressable, StyleSheet, View } from 'react-native';
-import { continuous, radius, space, useTheme } from '@/theme';
-import { Button } from './bits';
+import { StyleSheet } from 'react-native';
+import { space } from '@/theme';
 import { Text } from './Text';
+import { Banner, Button, Sheet } from './ui';
 
 export interface ConfirmDialogProps {
   visible: boolean;
@@ -15,38 +15,29 @@ export interface ConfirmDialogProps {
 }
 
 /** A destructive-action confirmation that looks the same on every platform. */
-export function ConfirmDialog({ visible, title, message, confirmLabel, busy, error, onConfirm, onCancel }: ConfirmDialogProps) {
-  const t = useTheme();
+export function ConfirmDialog({ visible, title, message, confirmLabel, busy = false, error, onConfirm, onCancel }: ConfirmDialogProps) {
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel} statusBarTranslucent>
-      <View style={styles.center}>
-        <Pressable style={[StyleSheet.absoluteFill, { backgroundColor: t.c.overlay }]} onPress={busy ? undefined : onCancel} accessibilityLabel="Dismiss" />
-        <View style={[styles.sheet, continuous, { backgroundColor: t.c.surface }, t.shadow2]} accessibilityViewIsModal accessibilityRole="alert">
-          <Text variant="title2" accessibilityRole="header">
-            {title}
-          </Text>
-          <Text variant="body" tone="textSecondary" style={styles.message}>
-            {message}
-          </Text>
-          {error ? (
-            <Text variant="callout" tone="danger" style={styles.message} accessibilityRole="alert">
-              {error}
-            </Text>
-          ) : null}
-          <View style={styles.actions}>
-            <Button testID="confirm-cancel" kind="secondary" label="Cancel" onPress={onCancel} disabled={busy} style={styles.action} />
-            <Button testID="confirm-ok" kind="danger" label={busy ? 'Deleting…' : confirmLabel} onPress={onConfirm} disabled={busy} style={styles.action} />
-          </View>
-        </View>
-      </View>
-    </Modal>
+    <Sheet
+      visible={visible}
+      onClose={onCancel}
+      dismissable={!busy}
+      title={title}
+      footer={
+        <>
+          <Button testID="confirm-cancel" variant="secondary" size="lg" label="Cancel" onPress={onCancel} disabled={busy} fullWidth style={styles.action} />
+          <Button testID="confirm-ok" variant="destructive" size="lg" label={confirmLabel} onPress={onConfirm} loading={busy} fullWidth style={styles.action} />
+        </>
+      }
+    >
+      <Text variant="body" tone="textSecondary">
+        {message}
+      </Text>
+      {error ? <Banner tone="danger" compact text={error} style={styles.error} /> : null}
+    </Sheet>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.xl },
-  sheet: { width: '100%', maxWidth: 420, borderRadius: radius.xl, padding: space.xxl },
-  message: { marginTop: space.sm },
-  actions: { flexDirection: 'row', gap: space.md, marginTop: space.xl },
-  action: { flex: 1, paddingHorizontal: space.md },
+  action: { flex: 1 },
+  error: { marginTop: space.md },
 });

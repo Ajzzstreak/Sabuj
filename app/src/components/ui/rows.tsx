@@ -18,6 +18,8 @@ function RowIcon({ icon, danger }: { icon: Glyph; danger?: boolean }) {
 
 export interface ListRowProps {
   title: string;
+  /** Rich replacement for the title text (the plain `title` still labels the row). */
+  titleNode?: ReactNode;
   subtitle?: string;
   /** Right-aligned current value, e.g. a ZIP code. */
   value?: string;
@@ -39,15 +41,17 @@ export interface ListRowProps {
 }
 
 /** A settings / navigation / suggestion row. Full-width, at least 52pt tall. */
-export function ListRow({ title, subtitle, value, icon, leading, trailing, onPress, chevron = true, destructive, disabled = false, divider, accessibilityLabel, accessibilityHint, accessibilityRole = 'button', testID, forceState }: ListRowProps) {
+export function ListRow({ title, titleNode, subtitle, value, icon, leading, trailing, onPress, chevron = true, destructive, disabled = false, divider, accessibilityLabel, accessibilityHint, accessibilityRole = 'button', testID, forceState }: ListRowProps) {
   const { c } = useTheme();
   const content = (
     <>
       {leading ?? (icon ? <RowIcon icon={icon} danger={destructive} /> : null)}
       <View style={styles.text}>
-        <Text variant="body" tone={destructive ? 'danger' : 'text'} numberOfLines={2}>
-          {title}
-        </Text>
+        {titleNode ?? (
+          <Text variant="body" tone={destructive ? 'danger' : 'text'} numberOfLines={2}>
+            {title}
+          </Text>
+        )}
         {subtitle ? (
           <Text variant="footnote" tone="textSecondary">
             {subtitle}

@@ -3,20 +3,44 @@ import { useState } from 'react';
 import { Platform, StyleSheet, TextInput, View, type TextStyle } from 'react-native';
 import { haptic } from '@/lib/haptics';
 import { continuous, radius, space, type as typeScale, useTheme } from '@/theme';
-import { PressableScale } from './PressableScale';
 import { Text } from './Text';
+import { IconButton, ListRow, type Glyph } from './ui';
 
 export interface SearchFieldProps {
   value: string;
   onChangeText: (text: string) => void;
+  /** Enter / the keyboard's search key. Always the fast keyword path. */
   onSubmit: (text: string) => void;
+  /** Shows the barcode button. */
+  onScan?: () => void;
+  /** Shows the sparkle "Ask in plain English" button. */
+  onAsk?: (text: string) => void;
   onFocusChange?: (focused: boolean) => void;
   large?: boolean;
   autoFocus?: boolean;
   placeholder?: string;
+  /** Leading glyph: a magnifier for search, sparkles for the ask field. */
+  icon?: Glyph;
+  accessibilityLabel?: string;
+  maxLength?: number;
+  testID?: string;
 }
 
-export function SearchField({ value, onChangeText, onSubmit, onFocusChange, large, autoFocus, placeholder = 'Search any product' }: SearchFieldProps) {
+export function SearchField({
+  value,
+  onChangeText,
+  onSubmit,
+  onScan,
+  onAsk,
+  onFocusChange,
+  large,
+  autoFocus,
+  placeholder = 'Search any product',
+  icon = 'search',
+  accessibilityLabel = 'Search products',
+  maxLength,
+  testID = 'search-input',
+}: SearchFieldProps) {
   const t = useTheme();
   const { c } = t;
   const [focused, setFocused] = useState(false);
@@ -30,9 +54,9 @@ export function SearchField({ value, onChangeText, onSubmit, onFocusChange, larg
         large && t.shadow1,
       ]}
     >
-      <Ionicons name="search" size={large ? 22 : 18} color={focused ? c.accent : c.textTertiary} />
+      <Ionicons name={icon} size={large ? 22 : 18} color={focused ? c.accent : c.textTertiary} />
       <TextInput
-        testID="search-input"
+        testID={testID}
         value={value}
         onChangeText={onChangeText}
         onSubmitEditing={() => onSubmit(value)}
@@ -53,24 +77,29 @@ export function SearchField({ value, onChangeText, onSubmit, onFocusChange, larg
         returnKeyType="search"
         enterKeyHint="search"
         inputMode="search"
-        accessibilityLabel="Search products"
+        accessibilityLabel={accessibilityLabel}
+        maxLength={maxLength}
         maxFontSizeMultiplier={1.4}
         style={[typeScale.body, large && styles.largeText, styles.input, { color: c.text }, webNoOutline]}
       />
-      {value.length > 0 ? (
-        <PressableScale
-          onPress={() => {
-            haptic.selection();
-            onChangeText('');
-          }}
-          accessibilityLabel="Clear search"
-          hitSlop={12}
-          scaleTo={0.85}
-          style={styles.clear}
-        >
-          <Ionicons name="close-circle" size={20} color={c.textTertiary} />
-        </PressableScale>
-      ) : null}
+      <View style={styles.actions}>
+        {value.length > 0 ? (
+          <IconButton
+            icon="close-circle"
+            label="Clear search"
+            size="sm"
+            variant="plain"
+            tint={c.textTertiary}
+            style={styles.tight}
+            onPress={() => {
+              haptic.selection();
+              onChangeText('');
+            }}
+          />
+        ) : null}
+        {onScan ? <IconButton testID="scan-button" icon="barcode-outline" label="Scan a barcode" size="sm" variant="plain" style={styles.tight} onPress={onScan} /> : null}
+        {onAsk ? <IconButton testID="ask-button" icon="sparkles" label="Ask in plain English" size="sm" variant="accent" style={styles.tight} onPress={() => onAsk(value)} /> : null}
+      </View>
     </View>
   );
 }
@@ -87,30 +116,32 @@ export function SuggestionList({ query, suggestions, onPick }: { query: string; 
         const at = s.toLowerCase().indexOf(q);
         const hit = q.length > 0 && at >= 0;
         return (
-          <PressableScale
+          <ListRow
             key={s}
             testID={`suggestion-${i}`}
-            onPress={() => onPick(s)}
-            scaleTo={0.99}
+            title={s}
             accessibilityLabel={`Search for ${s}`}
-            style={[styles.suggestion, { borderBottomColor: c.border }, i === suggestions.length - 1 && styles.last]}
-          >
-            <Ionicons name="search" size={17} color={c.textTertiary} />
-            <Text variant="body" numberOfLines={1} style={styles.suggestionText}>
-              {hit ? (
-                <>
-                  <Text variant="bodyStrong">{s.slice(0, at)}</Text>
-                  <Text variant="body" tone="textSecondary">
-                    {s.slice(at, at + q.length)}
-                  </Text>
-                  <Text variant="bodyStrong">{s.slice(at + q.length)}</Text>
-                </>
-              ) : (
-                s
-              )}
-            </Text>
-            <Ionicons name="arrow-up" size={16} color={c.textTertiary} style={styles.fill} />
-          </PressableScale>
+            onPress={() => onPick(s)}
+            divider={i > 0}
+            chevron={false}
+            leading={<Ionicons name="search" size={17} color={c.textTertiary} style={styles.rowIcon} />}
+            trailing={<Ionicons name="arrow-up" size={16} color={c.textTertiary} style={styles.fill} />}
+            titleNode={
+              <Text variant="body" numberOfLines={1}>
+                {hit ? (
+                  <>
+                    <Text variant="bodyStrong">{s.slice(0, at)}</Text>
+                    <Text variant="body" tone="textSecondary">
+                      {s.slice(at, at + q.length)}
+                    </Text>
+                    <Text variant="bodyStrong">{s.slice(at + q.length)}</Text>
+                  </>
+                ) : (
+                  s
+                )}
+              </Text>
+            }
+          />
         );
       })}
     </View>
@@ -119,13 +150,12 @@ export function SuggestionList({ query, suggestions, onPick }: { query: string; 
 
 const styles = StyleSheet.create({
   field: { flexDirection: 'row', alignItems: 'center', borderWidth: 1.5 },
-  regular: { minHeight: 46, borderRadius: radius.md, paddingHorizontal: space.md, gap: space.sm },
-  large: { minHeight: 60, borderRadius: radius.lg, paddingHorizontal: space.lg + 2, gap: space.md },
+  regular: { minHeight: 46, borderRadius: radius.md, paddingLeft: space.md, paddingRight: 2, gap: space.sm },
+  large: { minHeight: 60, borderRadius: radius.lg, paddingLeft: space.lg + 2, paddingRight: space.sm, gap: space.md },
   input: { flex: 1, minWidth: 0, paddingVertical: Platform.OS === 'web' ? 10 : 8, lineHeight: undefined },
   largeText: { fontSize: 18 },
-  clear: { marginLeft: 2 },
-  suggestion: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: space.md, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 4 },
-  last: { borderBottomWidth: 0 },
-  suggestionText: { flex: 1 },
-  fill: { transform: [{ rotate: '-45deg' }] },
+  actions: { flexDirection: 'row', alignItems: 'center' },
+  tight: { width: 40 },
+  rowIcon: { marginHorizontal: 4 },
+  fill: { transform: [{ rotate: '-45deg' }], marginRight: 4 },
 });

@@ -35,7 +35,7 @@ export const MiniProductCard = memo(function MiniProductCard({ product, width = 
       onPress={open}
       onPressIn={warm}
       onHoverIn={warm}
-      accessibilityLabel={`${product.title}. ${best ? `Best price ${money(best.totalPrice)} at ${getRetailer(best.retailerId).name}` : 'Out of stock'}`}
+      accessibilityLabel={`${product.title}. ${best ? `Best price ${money(best.landedPrice)} at ${getRetailer(best.retailerId).name}` : 'Out of stock'}`}
       style={[styles.card, continuous, { width, backgroundColor: t.c.surface, borderColor: t.c.border }, t.shadow1]}
     >
       <ProductTile imageUrl={product.imageUrl} category={product.category} title={product.title} style={styles.tile} glyphSize={40} corner={radius.md} />
@@ -45,7 +45,7 @@ export const MiniProductCard = memo(function MiniProductCard({ product, width = 
       <View style={styles.bottom}>
         {best ? (
           <>
-            <Text variant="priceLarge">{money(best.totalPrice)}</Text>
+            <Text variant="priceLarge">{money(best.landedPrice)}</Text>
             <View style={styles.at}>
               <RetailerMark id={best.retailerId} size={16} />
               <Text variant="caption" tone="textSecondary" numberOfLines={1} style={{ flex: 1 }}>

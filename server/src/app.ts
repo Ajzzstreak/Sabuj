@@ -1,34 +1,51 @@
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
+import { type AlertCheckResult, bestPriceFor, checkAlerts, toPriceAlert } from './alerts.js';
+import type { ClaudeAsk } from './ask/claude.js';
+import { AskService } from './ask/index.js';
 import { Catalog, UpstreamError } from './catalog.js';
 import type { Config } from './config.js';
 import {
   API_VERSION,
+  type AlertResponse,
+  type AlertsResponse,
   type ApiError,
+  type AskResponse,
   type DeleteProfileResponse,
   type EventsResponse,
   type HomeResponse,
   type ProductResponse,
   type ProfileResponse,
+  type RegisterDeviceResponse,
   type SearchResponse,
   type SuggestResponse,
 } from './contract.js';
 import type { Store } from './db.js';
+import { normalizeGtin } from './gtin.js';
 import { buildHomeSections } from './home.js';
+import { ClaudeBudget } from './profile/budget.js';
 import type { ClaudeProfiler } from './profile/claude.js';
 import { ProfileLearner } from './profile/learner.js';
+import { LIVE_PROVIDERS } from './providers/index.js';
 import { TRENDING_QUERIES } from './providers/mock/catalog.js';
 import type { PriceProvider } from './providers/types.js';
+import { ExpoPushSender, NoopPushSender, type PushSender } from './push.js';
 import { RateLimiter } from './rateLimit.js';
 import { NEUTRAL_RANKING_PROFILE, orderHits, personalizeProduct, personalizeProductDetail } from './ranking.js';
 import { RETAILERS } from './retailers.js';
+import { shopperContext } from './shopper.js';
 import {
+  AlertParamsSchema,
+  AskRequestSchema,
+  ContextQuerySchema,
+  CreateAlertRequestSchema,
   EventsRequestSchema,
   HttpError,
-  OptionalDeviceQuerySchema,
+  LookupQuerySchema,
   parse,
   ProductParamsSchema,
-  RequiredDeviceQuerySchema,
+  PushTokenRequestSchema,
   SearchQuerySchema,
   SuggestQuerySchema,
 } from './validation.js';
@@ -38,6 +55,10 @@ export interface AppDeps {
   store: Store;
   providers: PriceProvider[];
   claude?: ClaudeProfiler | null;
+  /** Claude interpreter for POST /v1/ask; null/undefined = rules parser only. */
+  claudeAsk?: ClaudeAsk | null;
+  /** Defaults to Expo (or a no-op when PUSH_PROVIDER=none). */
+  push?: PushSender;
   logger?: boolean | { level: string };
 }
 
@@ -45,6 +66,21 @@ export interface App {
   fastify: FastifyInstance;
   learner: ProfileLearner;
   catalog: Catalog;
+  /** Run the price-alert checker once, now. */
+  checkAlerts(): Promise<AlertCheckResult>;
+  /** Run the retention purge once, now. Returns the number of devices erased. */
+  purgeInactiveDevices(): number;
+}
+
+const DAY_MS = 86_400_000;
+/** last_seen_at is refreshed at most this often, to keep reads write-free. */
+const TOUCH_INTERVAL_MS = 3_600_000;
+const PURGE_INTERVAL_MS = 6 * 3_600_000;
+const BEARER = /^Bearer ([A-Za-z0-9_-]{20,200})$/;
+
+/** Only this hash is ever stored; the token itself is shown to the client once. */
+export function hashToken(token: string): string {
+  return createHash('sha256').update(token).digest('hex');
 }
 
 const SUGGEST_LIMIT = 8;
@@ -57,7 +93,8 @@ function apiError(code: string, message: string): ApiError {
 export async function buildApp(deps: AppDeps): Promise<App> {
   const { config, store } = deps;
   // Request logs must not carry user data: the query string holds the search
-  // text and the deviceId, so only the path is logged.
+  // text, ZIP and barcode, so only the path is logged (and never headers:
+  // the Authorization header carries the device token).
   const logger =
     typeof deps.logger === 'object'
       ? {
@@ -85,29 +122,97 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     cacheSwrMs: config.cacheSwrMs,
     onProviderError: (provider, op, err) =>
       log('price provider failed', { provider, op, error: err instanceof Error ? err.message : String(err) }),
+    categories: config.catalogCategories,
+    linkOnlyFallback: deps.providers.some((p) => LIVE_PROVIDERS.includes(p.name)),
   });
+  // One hourly Claude budget for everything that can spend: profiler + ask.
+  const claudeBudget = new ClaudeBudget(config.claudeMaxCallsPerHour);
   const learner = new ProfileLearner(store, catalog, deps.claude ?? null, {
     debounceMs: config.profileDebounceMs,
     claudeEveryNEvents: config.claudeEveryNEvents,
     claudeCooldownMs: config.claudeCooldownMs,
-    claudeMaxCallsPerHour: config.claudeMaxCallsPerHour,
+    claudeBudget,
     log,
   });
   const limiter = new RateLimiter(config.rateLimitWindowMs);
+  const dailyLimiter = new RateLimiter(DAY_MS);
+  const askService = new AskService({ catalog, claude: deps.claudeAsk ?? null, budget: claudeBudget, timeoutMs: config.askTimeoutMs });
+  const push: PushSender =
+    deps.push ??
+    (config.pushProvider === 'expo'
+      ? new ExpoPushSender({ timeoutMs: config.pushTimeoutMs, accessToken: config.expoAccessToken, log })
+      : new NoopPushSender());
 
   const corsOrigin = config.corsOrigin === '*' ? '*' : config.corsOrigin.split(',').map((s) => s.trim());
-  await fastify.register(cors, { origin: corsOrigin, methods: ['GET', 'POST', 'DELETE', 'OPTIONS'] });
+  await fastify.register(cors, { origin: corsOrigin, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'] });
 
-  const limit = (key: string, max: number) => {
-    const decision = limiter.hit(key, max);
+  // JSON bodies: like Fastify's default parser, but an empty body is allowed
+  // (POST /v1/devices has none) and parse errors use the ApiError shape.
+  fastify.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, raw, done) => {
+    const text = typeof raw === 'string' ? raw : raw.toString('utf8');
+    if (text.trim() === '') return done(null, undefined);
+    try {
+      done(null, JSON.parse(text));
+    } catch {
+      done(new HttpError(400, 'invalid_request', 'Request body is not valid JSON.'), undefined);
+    }
+  });
+
+  const limitWith = (rl: RateLimiter, key: string, max: number) => {
+    const decision = rl.hit(key, max);
     if (!decision.ok) {
       throw new HttpError(429, 'rate_limited', 'Too many requests, slow down.', {
         'retry-after': String(decision.retryAfterSec),
       });
     }
   };
+  const limit = (key: string, max: number) => limitWith(limiter, key, max);
   const limitDevice = (deviceId: string | undefined) => {
     if (deviceId) limit(`device:${deviceId}`, config.rateLimitMax);
+  };
+
+  const unauthorized = (message: string) => new HttpError(401, 'unauthorized', message, { 'www-authenticate': 'Bearer' });
+
+  /**
+   * Resolve the device from `Authorization: Bearer <token>`.
+   * No header: undefined (anonymous). A header that is malformed or carries an
+   * unknown/erased token is ALWAYS 401, on every route.
+   */
+  const deviceFrom = (req: FastifyRequest): string | undefined => {
+    const header = req.headers.authorization;
+    if (header === undefined) return undefined;
+    const token = BEARER.exec(header)?.[1];
+    const device = token ? store.deviceByTokenHash(hashToken(token)) : null;
+    if (!device) throw unauthorized('Invalid or expired device token.');
+    const now = Date.now();
+    if (now - device.lastSeenAt > TOUCH_INTERVAL_MS) store.touchDevice(device.deviceId, now);
+    limitDevice(device.deviceId);
+    return device.deviceId;
+  };
+  const requireDevice = (req: FastifyRequest): string => {
+    const deviceId = deviceFrom(req);
+    if (!deviceId) throw unauthorized('This endpoint needs a device token: send "Authorization: Bearer <token>" (see POST /v1/devices).');
+    return deviceId;
+  };
+
+  const purgeInactiveDevices = (): number => {
+    try {
+      const removed = store.purgeInactiveDevices(Date.now() - config.deviceRetentionDays * DAY_MS);
+      if (removed > 0) fastify.log.info({ removed }, 'purged inactive devices');
+      return removed;
+    } catch (err) {
+      log('device purge failed', { error: err instanceof Error ? err.message : String(err) });
+      return 0;
+    }
+  };
+
+  let alertCheckRunning: Promise<AlertCheckResult> | null = null;
+  const runAlertCheck = (): Promise<AlertCheckResult> => {
+    // Never overlap two runs: a slow upstream must not stack checks.
+    alertCheckRunning ??= checkAlerts({ store, catalog, push, log }).finally(() => {
+      alertCheckRunning = null;
+    });
+    return alertCheckRunning;
   };
 
   fastify.addHook('onRequest', async (req: FastifyRequest) => {
@@ -141,19 +246,44 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     return profile.source === 'none' ? null : profile;
   };
 
+  /** Trending queries, limited to ones that still find something under a category scope. */
+  const trendingQueries = async (): Promise<string[]> => {
+    if (config.catalogCategories.length === 0) return TRENDING_QUERIES;
+    const found = await Promise.all(TRENDING_QUERIES.map((q) => catalog.search(q).then((r) => r.value.length > 0, () => false)));
+    return TRENDING_QUERIES.filter((_, i) => found[i]);
+  };
+
   const prefix = `/${API_VERSION}`;
 
   fastify.get(`${prefix}/health`, async () => ({ ok: true }));
 
+  fastify.post(`${prefix}/devices`, async (req): Promise<RegisterDeviceResponse> => {
+    // Registration is the one unauthenticated write, so it is the abuse surface:
+    // a short-window rate limit, a daily cap per IP, and a global device ceiling.
+    limit(`register:${req.ip}`, config.deviceRegistrationRateMax);
+    limitWith(dailyLimiter, `register:${req.ip}`, config.deviceRegistrationsPerIpPerDay);
+    if (store.countDevices() >= config.maxDevices) {
+      purgeInactiveDevices();
+      if (store.countDevices() >= config.maxDevices) {
+        throw new HttpError(503, 'capacity_exceeded', 'Device registration is temporarily unavailable.', { 'retry-after': '3600' });
+      }
+    }
+    const deviceId = randomUUID();
+    const token = `dl_${randomBytes(32).toString('base64url')}`; // 256 bits of entropy
+    store.createDevice(deviceId, hashToken(token));
+    return { deviceId, token };
+  });
+
   fastify.get(`${prefix}/search`, async (req): Promise<SearchResponse> => {
     const started = performance.now();
-    const { q, deviceId, limit: max } = parse(SearchQuerySchema, req.query);
-    limitDevice(deviceId);
+    const deviceId = deviceFrom(req);
+    const { q, limit: max, zip, memberships } = parse(SearchQuerySchema, req.query);
+    const ctx = shopperContext(zip, memberships);
     const { value: hits, cached } = await catalog.search(q);
     const profile = learnedProfile(deviceId);
 
     const ordered = orderHits(hits, profile).slice(0, max);
-    const products = ordered.map((h) => personalizeProduct(h.product, profile ?? NEUTRAL_RANKING_PROFILE));
+    const products = ordered.map((h) => personalizeProduct(h.product, profile ?? NEUTRAL_RANKING_PROFILE, ctx));
 
     let personalized = false;
     if (profile) {
@@ -162,7 +292,7 @@ export async function buildApp(deps: AppDeps): Promise<App> {
       const baseline = hits.slice(0, max);
       personalized = ordered.some((h, i) => h.product.id !== baseline[i]?.product.id);
       for (let i = 0; !personalized && i < ordered.length; i++) {
-        const neutral = personalizeProduct(ordered[i]!.product);
+        const neutral = personalizeProduct(ordered[i]!.product, NEUTRAL_RANKING_PROFILE, ctx);
         personalized = neutral.offers.some((o, j) => o.id !== products[i]!.offers[j]?.id);
       }
     }
@@ -170,8 +300,8 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   });
 
   fastify.get(`${prefix}/suggest`, async (req): Promise<SuggestResponse> => {
-    const { q, deviceId } = parse(SuggestQuerySchema, req.query);
-    limitDevice(deviceId);
+    const deviceId = deviceFrom(req);
+    const { q } = parse(SuggestQuerySchema, req.query);
     const needle = q.toLowerCase().replace(/\s+/g, ' ').trimStart();
     const profile = learnedProfile(deviceId);
     // The shopper's own likely queries come first, then catalog completions.
@@ -182,52 +312,142 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   });
 
   fastify.get(`${prefix}/home`, async (req): Promise<HomeResponse> => {
-    const { deviceId } = parse(OptionalDeviceQuerySchema, req.query);
-    limitDevice(deviceId);
+    const deviceId = deviceFrom(req);
+    const { zip, memberships } = parse(ContextQuerySchema, req.query);
     const { value: products } = await catalog.browse(TRENDING_QUERIES);
     const profile = learnedProfile(deviceId);
     const recent = deviceId ? store.recentEvents(deviceId, 100) : [];
     return {
-      sections: buildHomeSections(products, profile, recent),
-      trendingQueries: TRENDING_QUERIES,
+      sections: buildHomeSections(products, profile, recent, shopperContext(zip, memberships)),
+      trendingQueries: await trendingQueries(),
       retailers: RETAILERS,
     };
   });
 
   fastify.get(`${prefix}/products/:id`, async (req): Promise<ProductResponse> => {
+    const deviceId = deviceFrom(req);
     const { id } = parse(ProductParamsSchema, req.params);
-    const { deviceId } = parse(OptionalDeviceQuerySchema, req.query);
-    limitDevice(deviceId);
+    const { zip, memberships } = parse(ContextQuerySchema, req.query);
     const { value: detail } = await catalog.product(id);
     if (!detail) throw new HttpError(404, 'product_not_found', `No product with id "${id}".`);
     const profile = learnedProfile(deviceId);
-    return { product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE), retailers: RETAILERS };
+    return {
+      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, shopperContext(zip, memberships)),
+      retailers: RETAILERS,
+    };
+  });
+
+  fastify.get(`${prefix}/lookup`, async (req): Promise<ProductResponse> => {
+    const deviceId = deviceFrom(req);
+    const { gtin: raw, zip, memberships } = parse(LookupQuerySchema, req.query);
+    const gtin = normalizeGtin(raw);
+    if (!gtin) throw new HttpError(400, 'invalid_request', 'gtin: must be a valid UPC-A / EAN-13 barcode (8-14 digits with a correct check digit).');
+    const { value: detail } = await catalog.lookup(gtin);
+    if (!detail) throw new HttpError(404, 'not_found', 'No product found for that barcode.');
+    const profile = learnedProfile(deviceId);
+    return {
+      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, shopperContext(zip, memberships)),
+      retailers: RETAILERS,
+    };
+  });
+
+  fastify.post(`${prefix}/ask`, async (req): Promise<AskResponse> => {
+    const started = performance.now();
+    const deviceId = requireDevice(req);
+    limit(`ask:${deviceId}`, config.askRateLimitMax);
+    const { text, zip, memberships } = parse(AskRequestSchema, req.body);
+    const result = await askService.ask(text, shopperContext(zip, memberships), learnedProfile(deviceId));
+    return { ...result, tookMs: round1(performance.now() - started) };
   });
 
   fastify.post(`${prefix}/events`, async (req): Promise<EventsResponse> => {
-    const { deviceId, events } = parse(EventsRequestSchema, req.body);
+    const deviceId = requireDevice(req);
     limit(`events:${deviceId}`, config.rateLimitEventsMax);
+    const { events } = parse(EventsRequestSchema, req.body);
     const accepted = store.insertEvents(deviceId, events);
     learner.notify(deviceId); // async + debounced; the response does not wait for it
     return { accepted };
   });
 
   fastify.get(`${prefix}/profile`, async (req): Promise<ProfileResponse> => {
-    const { deviceId } = parse(RequiredDeviceQuerySchema, req.query);
-    limitDevice(deviceId);
-    return { profile: learner.getProfile(deviceId) };
+    return { profile: learner.getProfile(requireDevice(req)) };
   });
 
+  // Erases events, profile, alerts, push token AND the device row: the token stops working.
   fastify.delete(`${prefix}/profile`, async (req): Promise<DeleteProfileResponse> => {
-    const { deviceId } = parse(RequiredDeviceQuerySchema, req.query);
-    limitDevice(deviceId);
-    learner.forget(deviceId);
+    learner.forget(requireDevice(req));
     return { deleted: true };
   });
 
+  fastify.post(`${prefix}/alerts`, async (req): Promise<AlertResponse> => {
+    const deviceId = requireDevice(req);
+    const body = parse(CreateAlertRequestSchema, req.body);
+    const existing = store.alertsForDevice(deviceId);
+    // One alert per product: a second one for the same product replaces the first.
+    if (existing.filter((a) => a.productId !== body.productId).length >= config.maxAlertsPerDevice) {
+      throw new HttpError(409, 'alert_limit_reached', `You can have at most ${config.maxAlertsPerDevice} price alerts. Delete one first.`);
+    }
+    const { value: product } = await catalog.product(body.productId);
+    if (!product) throw new HttpError(404, 'product_not_found', `No product with id "${body.productId}".`);
+    const context = { zip: body.zip ?? null, memberships: body.memberships ?? null };
+    const best = bestPriceFor(product, context);
+    if (!best) throw new HttpError(409, 'price_unavailable', 'No in-stock price is available for this product right now, so it cannot be watched.');
+    const row = {
+      id: randomUUID(),
+      deviceId,
+      productId: product.id,
+      productTitle: product.title,
+      targetPrice: Math.round(body.targetPrice * 100) / 100,
+      priceAtCreation: best.price,
+      ...context,
+      createdAt: Date.now(),
+    };
+    store.createAlert(row);
+    return { alert: toPriceAlert({ ...row, status: 'active', triggeredAt: null }, best) };
+  });
+
+  fastify.get(`${prefix}/alerts`, async (req): Promise<AlertsResponse> => {
+    const rows = store.alertsForDevice(requireDevice(req));
+    // Fresh prices from the (cached) catalog; an upstream failure leaves currentBestPrice null.
+    const alerts = await Promise.all(
+      rows.map(async (row) => {
+        const product = await catalog.product(row.productId).then((r) => r.value, () => null);
+        return toPriceAlert(row, product ? bestPriceFor(product, row) : null);
+      }),
+    );
+    return { alerts };
+  });
+
+  fastify.delete(`${prefix}/alerts/:id`, async (req): Promise<{ deleted: true }> => {
+    const deviceId = requireDevice(req);
+    const { id } = parse(AlertParamsSchema, req.params);
+    if (!store.deleteAlert(deviceId, id)) throw new HttpError(404, 'not_found', 'No such alert.');
+    return { deleted: true };
+  });
+
+  fastify.put(`${prefix}/push-token`, async (req): Promise<{ ok: true }> => {
+    const deviceId = requireDevice(req);
+    const { token } = parse(PushTokenRequestSchema, req.body);
+    // A push token belongs to one install: drop it from any other device first.
+    if (token) store.clearPushTokenValue(token);
+    store.setPushToken(deviceId, token);
+    return { ok: true };
+  });
+
+  // ---- background work (never on a request path) ---------------------------
+  const timers: NodeJS.Timeout[] = [];
+  purgeInactiveDevices();
+  timers.push(setInterval(purgeInactiveDevices, PURGE_INTERVAL_MS));
+  if (config.alertCheckIntervalMs > 0) {
+    timers.push(setInterval(() => void runAlertCheck(), config.alertCheckIntervalMs));
+  }
+  for (const t of timers) t.unref();
+
   fastify.addHook('onClose', async () => {
+    for (const t of timers) clearInterval(t);
+    await alertCheckRunning?.catch(() => undefined);
     await learner.flush();
   });
 
-  return { fastify, learner, catalog };
+  return { fastify, learner, catalog, checkAlerts: runAlertCheck, purgeInactiveDevices };
 }

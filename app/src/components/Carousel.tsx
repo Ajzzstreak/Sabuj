@@ -3,9 +3,10 @@ import { FlatList, StyleSheet, View, type ListRenderItem, type NativeScrollEvent
 import type { Product } from '@/api/contract';
 import { useLayout } from '@/hooks/useLayout';
 import { layout, space } from '@/theme';
-import { IconButton, SectionTitle } from './bits';
+import { SectionTitle } from './bits';
 import { MINI_CARD_WIDTH, MiniProductCard } from './MiniProductCard';
 import { MiniCardSkeleton } from './Skeleton';
+import { IconButton } from './ui';
 
 const GAP = space.md;
 const STEP = MINI_CARD_WIDTH + GAP;
@@ -78,7 +79,7 @@ export function CarouselSkeleton() {
 const styles = StyleSheet.create({
   section: { marginTop: space.xxl + 4 },
   head: {},
-  arrows: { flexDirection: 'row', gap: space.sm },
+  arrows: { flexDirection: 'row', gap: space.xs },
   list: { paddingBottom: space.xl, paddingTop: 2 },
   skeletonRow: { flexDirection: 'row', gap: GAP },
 });

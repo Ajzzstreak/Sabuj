@@ -8,6 +8,7 @@ import { prefetchProduct, seedProducts } from '@/api/queries';
 import { goToStore } from '@/lib/actions';
 import { moneyShort } from '@/lib/format';
 import { NO_FILTERS, viewOffers, type OfferFilters } from '@/lib/offers';
+import { showBreakdown } from '@/lib/overlays';
 import { continuous, radius, space, useTheme } from '@/theme';
 import { Rating } from './bits';
 import { OfferRow } from './OfferRow';
@@ -15,6 +16,7 @@ import { PressableScale } from './PressableScale';
 import { ProductTile } from './ProductTile';
 import { SaveButton } from './SaveButton';
 import { Text } from './Text';
+import { Button } from './ui';
 
 export interface ProductCardProps {
   product: Product;
@@ -40,6 +42,7 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
   }, [product, router]);
   const warm = useCallback(() => prefetchProduct(client, product.id), [client, product.id]);
   const onOffer = useCallback((offer: Offer) => goToStore(product, offer), [product]);
+  const onBreakdown = useCallback((offer: Offer) => showBreakdown(product, offer), [product]);
 
   return (
     <View style={[styles.card, continuous, { backgroundColor: c.surface, borderColor: c.border }, t.shadow1]}>
@@ -67,10 +70,11 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
         <SaveButton product={product} filled={false} />
       </View>
 
+      {/* The server's wording, shown as sent: never parsed or reworded. */}
       {view.reason ? (
         <View style={[styles.reason, continuous, { backgroundColor: c.accentSoft }]}>
           <Ionicons name="sparkles" size={13} color={c.accentText} />
-          <Text variant="footnote" tone="accentText" style={styles.reasonText}>
+          <Text variant="footnote" tone="accentText" style={styles.reasonText} testID="recommendation-reason">
             {view.reason}
           </Text>
         </View>
@@ -84,6 +88,7 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
             isCheapest={offer.id === view.cheapestId}
             isRecommended={offer.id === view.recommendedId}
             onPress={onOffer}
+            onBreakdown={onBreakdown}
           />
         ))}
       </View>
@@ -98,15 +103,10 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
           </View>
         ) : (
           <Text variant="footnote" tone="textTertiary">
-            {view.offers.length === 1 ? 'One store carries this' : 'Same price everywhere'}
+            {view.offers.length === 1 ? 'One store carries this' : view.bestPrice == null ? 'No comparable price' : 'Same price everywhere'}
           </Text>
         )}
-        <PressableScale onPress={open} onPressIn={warm} accessibilityLabel={`Details for ${product.title}`} hitSlop={10} style={styles.detailsLink}>
-          <Text variant="footnoteStrong" tone="accentText">
-            Details
-          </Text>
-          <Ionicons name="chevron-forward" size={13} color={c.accentText} />
-        </PressableScale>
+        <Button label="Details" variant="tertiary" size="sm" trailingIcon="chevron-forward" onPress={open} accessibilityLabel={`Details for ${product.title}`} style={styles.detailsLink} />
       </View>
       {footnote}
     </View>
@@ -124,5 +124,5 @@ const styles = StyleSheet.create({
   offers: { marginTop: space.sm, gap: 2 },
   footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: space.sm + 2, paddingHorizontal: space.sm, minHeight: 34 },
   savings: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  detailsLink: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  detailsLink: { marginRight: -space.sm, marginVertical: -4 },
 });
