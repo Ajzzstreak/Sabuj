@@ -7,6 +7,25 @@
 
 export const API_VERSION = 'v1';
 
+/**
+ * AUTH. The app calls POST /v1/devices once on first launch and stores the
+ * returned deviceId + token. Every other request that concerns a device sends
+ * `Authorization: Bearer <token>`; the server derives the device from the
+ * token. `deviceId` is no longer accepted as a query/body credential.
+ * Catalog endpoints (search, suggest, home, products, lookup) also work with
+ * no token (anonymous, unpersonalized). Profile, events, alerts and ask need
+ * a token and return 401 without one.
+ *
+ * SHOPPER CONTEXT. Catalog endpoints accept optional query params:
+ *   zip=12345                      -> fills Offer.estimatedTax
+ *   memberships=costco,samsclub    -> sets Offer.eligible ("" = holds none)
+ * Omit `memberships` entirely when the user has not answered.
+ */
+export interface RegisterDeviceResponse {
+  deviceId: string;
+  token: string;
+}
+
 export type RetailerId =
   | 'amazon'
   | 'walmart'
@@ -14,6 +33,14 @@ export type RetailerId =
   | 'target'
   | 'costco'
   | 'bestbuy';
+
+/**
+ * How an offer's price was obtained.
+ * 'live' = from a retailer API; 'demo' = synthetic mock data;
+ * 'link_only' = no price available, the offer is just a "check price" link
+ * (price fields are 0 and must not be shown or ranked as cheapest).
+ */
+export type PriceSource = 'live' | 'demo' | 'link_only';
 
 export interface Retailer {
   id: RetailerId;
@@ -34,8 +61,17 @@ export interface Offer {
   listPrice: number | null;
   /** Shipping cost in USD. 0 = free shipping. null = unknown. */
   shipping: number | null;
-  /** price + (shipping ?? 0). This is what "cheapest" is computed on. */
+  /** price + (shipping ?? 0). */
   totalPrice: number;
+  /** Estimated sales tax in USD for the request's zip, null when no zip given. */
+  estimatedTax: number | null;
+  /** totalPrice + (estimatedTax ?? 0). "Cheapest" is computed on this. */
+  landedPrice: number;
+  /**
+   * False when the offer needs a membership the user said they do not hold.
+   * Always true when the request did not state memberships (unknown).
+   */
+  eligible: boolean;
   inStock: boolean;
   membershipRequired: boolean;
   /** Retailer-specific rating 0-5 and review count, when available. */
@@ -47,6 +83,7 @@ export interface Offer {
   url: string;
   /** ISO timestamp of when this price was observed. */
   observedAt: string;
+  priceSource: PriceSource;
 }
 
 export interface Product {
@@ -64,13 +101,13 @@ export interface Product {
   reviewCount: number;
   /** Sorted for this user (personalized) — index 0 is the recommended offer. */
   offers: Offer[];
-  /** Offer with the lowest totalPrice among in-stock offers. */
+  /** Offer with the lowest landedPrice among in-stock, eligible offers. */
   cheapestOfferId: string | null;
   /** offers[0].id — may differ from cheapest when personalization applies. */
   recommendedOfferId: string | null;
   /** Human-readable reason when recommended != cheapest, else null. */
   recommendationReason: string | null;
-  /** Highest in-stock totalPrice minus lowest in-stock totalPrice. */
+  /** Highest minus lowest landedPrice among in-stock, eligible offers. */
   maxSavings: number;
 }
 
@@ -88,7 +125,7 @@ export interface ProductDetail extends Product {
   reviewSummary: { pros: string[]; cons: string[] } | null;
 }
 
-// ---- GET /v1/search?q=&deviceId=&limit= -------------------------------
+// ---- GET /v1/search?q=&limit=&zip=&memberships= -------------------------------
 export interface SearchResponse {
   query: string;
   products: Product[];
@@ -99,13 +136,13 @@ export interface SearchResponse {
   personalized: boolean;
 }
 
-// ---- GET /v1/suggest?q=&deviceId= -------------------------------------
+// ---- GET /v1/suggest?q= -------------------------------------
 export interface SuggestResponse {
   query: string;
   suggestions: string[];
 }
 
-// ---- GET /v1/home?deviceId= -------------------------------------------
+// ---- GET /v1/home?zip=&memberships= -------------------------------------------
 export interface HomeSection {
   id: string;
   title: string;
@@ -119,7 +156,7 @@ export interface HomeResponse {
   retailers: Retailer[];
 }
 
-// ---- GET /v1/products/:id?deviceId= -----------------------------------
+// ---- GET /v1/products/:id?zip=&memberships= -----------------------------------
 export interface ProductResponse {
   product: ProductDetail;
   retailers: Retailer[];
@@ -154,16 +191,15 @@ export interface ActivityEvent {
 }
 
 export interface EventsRequest {
-  deviceId: string;
   events: ActivityEvent[];
 }
 export interface EventsResponse {
   accepted: number;
 }
 
-// ---- GET /v1/profile?deviceId=  |  DELETE /v1/profile?deviceId= -------
+// ---- POST /v1/devices -> RegisterDeviceResponse
+// ---- GET /v1/profile  |  DELETE /v1/profile (erases data AND the device/token)
 export interface UserProfile {
-  deviceId: string;
   eventCount: number;
   /** -1..1 per retailer. Positive = user prefers it beyond price. */
   retailerAffinity: Partial<Record<RetailerId, number>>;
@@ -173,6 +209,12 @@ export interface UserProfile {
   speedPreference: number;
   /** 0..1 weight on ratings/review volume. */
   qualityPreference: number;
+  /**
+   * Largest premium over the cheapest offer this user has actually paid, as a
+   * fraction of the cheapest price (0.1 = 10%). Ranking must never recommend
+   * a pricier offer beyond this bound. 0 when no such choice was observed.
+   */
+  maxObservedPremiumPct: number;
   /** Retailers where the user appears to hold a membership. */
   memberships: RetailerId[];
   /** Top categories and brands by interest, 0..1. */
@@ -193,6 +235,73 @@ export interface ProfileResponse {
 }
 export interface DeleteProfileResponse {
   deleted: true;
+}
+
+// ---- GET /v1/lookup?gtin=  (barcode scan) -----------------------------
+// Returns ProductResponse, or 404 ApiError code 'not_found'.
+
+// ---- POST /v1/ask  (plain-English search) -----------------------------
+export interface AskRequest {
+  /** e.g. "quiet rice cooker under $60 for two people". Max 300 chars. */
+  text: string;
+  zip?: string;
+  memberships?: RetailerId[];
+}
+export interface AskInterpretation {
+  /** Keyword query actually run against the catalog. */
+  query: string;
+  maxPrice: number | null;
+  minRating: number | null;
+  retailers: RetailerId[] | null;
+  sort: 'best_match' | 'lowest_price' | 'top_rated';
+  /** Extra attribute words used to boost matches, e.g. ["quiet", "small"]. */
+  mustHave: string[];
+}
+export interface AskResponse {
+  interpretation: AskInterpretation;
+  products: Product[];
+  retailers: Retailer[];
+  /** One or two sentences on why the top result fits, or null. */
+  topPickReason: string | null;
+  /** 'claude' when the LLM parsed the request, 'rules' for the fallback. */
+  source: 'claude' | 'rules';
+  tookMs: number;
+}
+
+// ---- Price-drop alerts -------------------------------------------------
+// POST /v1/alerts (CreateAlertRequest) -> AlertResponse
+// GET /v1/alerts -> AlertsResponse
+// DELETE /v1/alerts/:id -> { deleted: true }
+// PUT /v1/push-token (PushTokenRequest) -> { ok: true }
+export interface PriceAlert {
+  id: string;
+  productId: string;
+  productTitle: string;
+  /** Alert fires when any in-stock eligible offer's landedPrice <= this. */
+  targetPrice: number;
+  /** Lowest landedPrice when the alert was created / last checked. */
+  priceAtCreation: number;
+  currentBestPrice: number | null;
+  currentBestRetailerId: RetailerId | null;
+  status: 'active' | 'triggered';
+  createdAt: string;
+  triggeredAt: string | null;
+}
+export interface CreateAlertRequest {
+  productId: string;
+  targetPrice: number;
+  zip?: string;
+  memberships?: RetailerId[];
+}
+export interface AlertResponse {
+  alert: PriceAlert;
+}
+export interface AlertsResponse {
+  alerts: PriceAlert[];
+}
+export interface PushTokenRequest {
+  /** Expo push token, or null to unregister. */
+  token: string | null;
 }
 
 // ---- Errors ------------------------------------------------------------
