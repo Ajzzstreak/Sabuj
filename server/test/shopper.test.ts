@@ -91,17 +91,14 @@ describe('applyContext', () => {
 
 describe('ranking with landed price, eligibility and link-only offers', () => {
   it('cheapest and order follow landedPrice, which tax can flip', () => {
-    // Amazon: cheaper item, pricey shipping. Walmart: pricier item, free shipping.
+    // Equal-ish totals, different taxable base (tax is on the item price, not shipping).
     const offers = [providerOffer('amazon', 100, { price: 90, shipping: 10 }), providerOffer('walmart', 100.5, { price: 100.5, shipping: 0 })];
-    const untaxed = personalizeProduct(base(offers));
-    expect(untaxed.cheapestOfferId).toBe('p1:amazon');
+    expect(personalizeProduct(base(offers)).cheapestOfferId).toBe('p1:amazon');
     // 8.85% of 90 = 7.97 vs 8.85% of 100.5 = 8.89: landed 107.97 vs 109.39.
     const taxed = personalizeProduct(base(offers), undefined, shopperContext('94105', null));
     expect(taxed.offers.map((o) => o.landedPrice)).toEqual([107.97, 109.39]);
     expect(taxed.maxSavings).toBe(1.42);
-    // A case where tax flips the winner: equal totals, different taxable base.
-    const flip = [providerOffer('amazon', 100, { price: 100, shipping: 0 }), providerOffer('walmart', 99.9, { price: 99.9, shipping: 0 })];
-    expect(personalizeProduct(base(flip)).cheapestOfferId).toBe('p1:walmart');
+    // Tax flips the winner: Walmart is $1 cheaper before tax, Amazon after.
     const shipHeavy = [providerOffer('amazon', 100, { price: 80, shipping: 20 }), providerOffer('walmart', 99, { price: 99, shipping: 0 })];
     expect(personalizeProduct(base(shipHeavy)).cheapestOfferId).toBe('p1:walmart');
     expect(personalizeProduct(base(shipHeavy), undefined, shopperContext('94105', null)).cheapestOfferId).toBe('p1:amazon');

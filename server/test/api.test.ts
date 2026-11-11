@@ -593,7 +593,7 @@ describe('learning loop', () => {
 
   it('paying a small premium never unlocks a large one (end to end)', async () => {
     const { token } = await register();
-    const { product, cheapest, alt } = await pickTarget();
+    const { product, alt } = await pickTarget();
     // 30 clicks at this store, each paying about $1 over a $100 cheapest price (1%).
     const events = clicks(30, product, alt, 1).map((e) => ({ ...e, price: 101 }));
     await postEvents({ events }, token);
@@ -604,16 +604,15 @@ describe('learning loop', () => {
 
     const home = (await get('/v1/home', token)).json() as HomeResponse;
     const search = (await get('/v1/search?q=tv&limit=50', token)).json() as SearchResponse;
-    let promoted = 0;
+    let checked = 0;
     for (const p of [...search.products, ...home.sections.flatMap((s) => s.products)]) {
       const low = p.offers.find((o) => o.id === p.cheapestOfferId);
       const top = p.offers.find((o) => o.id === p.recommendedOfferId);
       if (!low || !top) continue;
+      checked += 1;
       expect(top.landedPrice - low.landedPrice).toBeLessThanOrEqual(low.landedPrice * 0.01 + 0.011);
-      if (top.id !== low.id) promoted += 1;
     }
-    void cheapest;
-    expect(promoted).toBeGreaterThanOrEqual(0);
+    expect(checked).toBeGreaterThan(20);
   });
 
   it('explicitly stated memberships override the memberships inferred by the profile', async () => {

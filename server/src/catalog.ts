@@ -75,7 +75,11 @@ function mergeOffers(a: ProviderOffer[], b: ProviderOffer[]): ProviderOffer[] {
       (isLinkOnly(existing) && !isLinkOnly(o)) ||
       (isLinkOnly(existing) === isLinkOnly(o) &&
         ((o.inStock && !existing.inStock) || (o.inStock === existing.inStock && o.totalPrice < existing.totalPrice)));
-    if (better) byRetailer.set(o.retailerId, { ...o, productId: (existing ?? a[0] ?? o).productId });
+    if (!better) continue;
+    // Offers adopted from another provider's copy of the product are re-keyed
+    // to the surviving product, so offer ids stay unique and consistent.
+    const productId = (existing ?? a[0] ?? o).productId;
+    byRetailer.set(o.retailerId, productId === o.productId ? o : { ...o, productId, id: `${productId}:${o.retailerId}` });
   }
   return [...byRetailer.values()];
 }
