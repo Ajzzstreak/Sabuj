@@ -100,6 +100,10 @@ export function mapBestBuyProduct(raw: unknown, observedAt: string, categories: 
     url: url && /^https:\/\/([a-z0-9-]+\.)*bestbuy\.com\//i.test(url) ? url : `https://www.bestbuy.com/site/searchpage.jsp?st=${encodeURIComponent(title)}`,
     observedAt,
     priceSource: 'live',
+    matchType: 'exact',
+    offerTitle: null,
+    size: null,
+    storeId: null,
   };
   return {
     id,
@@ -108,6 +112,8 @@ export function mapBestBuyProduct(raw: unknown, observedAt: string, categories: 
     category: pickCategory(path, categories),
     imageUrl: asString(r.image),
     gtin,
+    size: null,
+    isStoreBrand: false,
     highlights: features.slice(0, 4),
     offers: [offer],
     description: plainText(r.longDescription) || plainText(r.shortDescription),

@@ -25,6 +25,12 @@ export function offer(retailerId: RetailerId, totalPrice: number, extra: Partial
     url: 'https://example.com',
     observedAt: '2026-01-01T00:00:00.000Z',
     priceSource: 'demo',
+    matchType: 'exact',
+    offerTitle: null,
+    size: null,
+    unitPrice: null,
+    unitLabel: null,
+    storeId: null,
     estimatedTax: null,
     landedPrice: totalPrice,
     eligible: true,
@@ -36,7 +42,7 @@ export function offer(retailerId: RetailerId, totalPrice: number, extra: Partial
 
 /** The same offer as a provider reports it (no per-shopper fields). */
 export function providerOffer(retailerId: RetailerId, totalPrice: number, extra: Partial<ProviderOffer> = {}): ProviderOffer {
-  const { estimatedTax: _t, landedPrice: _l, eligible: _e, ...rest } = offer(retailerId, totalPrice);
+  const { estimatedTax: _t, landedPrice: _l, eligible: _e, unitPrice: _u, unitLabel: _ul, ...rest } = offer(retailerId, totalPrice);
   return { ...rest, ...extra };
 }
 

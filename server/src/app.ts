@@ -2,6 +2,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { type AlertCheckResult, bestPriceFor, checkAlerts, toPriceAlert } from './alerts.js';
+import { computeBasket } from './basket.js';
 import type { ClaudeAsk } from './ask/claude.js';
 import { AskService } from './ask/index.js';
 import { Catalog, UpstreamError } from './catalog.js';
@@ -12,6 +13,8 @@ import {
   type AlertsResponse,
   type ApiError,
   type AskResponse,
+  type BasketResolvedItem,
+  type BasketResponse,
   type DeleteProfileResponse,
   type EventsResponse,
   type HomeResponse,
@@ -19,6 +22,7 @@ import {
   type ProfileResponse,
   type RegisterDeviceResponse,
   type SearchResponse,
+  type StoresResponse,
   type SuggestResponse,
 } from './contract.js';
 import type { Store } from './db.js';
@@ -28,16 +32,15 @@ import { ClaudeBudget } from './profile/budget.js';
 import type { ClaudeProfiler } from './profile/claude.js';
 import { ProfileLearner } from './profile/learner.js';
 import { LIVE_PROVIDERS } from './providers/index.js';
-import { TRENDING_QUERIES } from './providers/mock/catalog.js';
 import type { PriceProvider } from './providers/types.js';
 import { ExpoPushSender, NoopPushSender, type PushSender } from './push.js';
 import { RateLimiter } from './rateLimit.js';
 import { NEUTRAL_RANKING_PROFILE, orderHits, personalizeProduct, personalizeProductDetail } from './ranking.js';
 import { RETAILERS } from './retailers.js';
-import { shopperContext } from './shopper.js';
 import {
   AlertParamsSchema,
   AskRequestSchema,
+  basketRequestSchema,
   ContextQuerySchema,
   CreateAlertRequestSchema,
   EventsRequestSchema,
@@ -47,6 +50,7 @@ import {
   ProductParamsSchema,
   PushTokenRequestSchema,
   SearchQuerySchema,
+  StoresQuerySchema,
   SuggestQuerySchema,
 } from './validation.js';
 
@@ -246,12 +250,14 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     return profile.source === 'none' ? null : profile;
   };
 
-  /** Trending queries, limited to ones that still find something under a category scope. */
+  /** Trending queries of the active catalog, limited to ones that still find something under a category scope. */
   const trendingQueries = async (): Promise<string[]> => {
-    if (config.catalogCategories.length === 0) return TRENDING_QUERIES;
-    const found = await Promise.all(TRENDING_QUERIES.map((q) => catalog.search(q).then((r) => r.value.length > 0, () => false)));
-    return TRENDING_QUERIES.filter((_, i) => found[i]);
+    const trending = catalog.trending();
+    if (config.catalogCategories.length === 0) return trending;
+    const found = await Promise.all(trending.map((q) => catalog.search(q).then((r) => r.value.length > 0, () => false)));
+    return trending.filter((_, i) => found[i]);
   };
+  const BasketRequestSchema = basketRequestSchema(config.basketMaxItems);
 
   const prefix = `/${API_VERSION}`;
 
@@ -277,9 +283,9 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   fastify.get(`${prefix}/search`, async (req): Promise<SearchResponse> => {
     const started = performance.now();
     const deviceId = deviceFrom(req);
-    const { q, limit: max, zip, memberships } = parse(SearchQuerySchema, req.query);
-    const ctx = shopperContext(zip, memberships);
-    const { value: hits, cached } = await catalog.search(q);
+    const { q, limit: max, zip, memberships, storeIds } = parse(SearchQuerySchema, req.query);
+    const ctx = await catalog.contextFor(zip, memberships, storeIds);
+    const { value: hits, cached } = await catalog.search(q, ctx.stores);
     const profile = learnedProfile(deviceId);
 
     const ordered = orderHits(hits, profile).slice(0, max);
@@ -313,12 +319,13 @@ export async function buildApp(deps: AppDeps): Promise<App> {
 
   fastify.get(`${prefix}/home`, async (req): Promise<HomeResponse> => {
     const deviceId = deviceFrom(req);
-    const { zip, memberships } = parse(ContextQuerySchema, req.query);
-    const { value: products } = await catalog.browse(TRENDING_QUERIES);
+    const { zip, memberships, storeIds } = parse(ContextQuerySchema, req.query);
+    const ctx = await catalog.contextFor(zip, memberships, storeIds);
+    const { value: products } = await catalog.browse(catalog.trending());
     const profile = learnedProfile(deviceId);
     const recent = deviceId ? store.recentEvents(deviceId, 100) : [];
     return {
-      sections: buildHomeSections(products, profile, recent, shopperContext(zip, memberships)),
+      sections: buildHomeSections(products, profile, recent, ctx),
       trendingQueries: await trendingQueries(),
       retailers: RETAILERS,
     };
@@ -327,28 +334,63 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   fastify.get(`${prefix}/products/:id`, async (req): Promise<ProductResponse> => {
     const deviceId = deviceFrom(req);
     const { id } = parse(ProductParamsSchema, req.params);
-    const { zip, memberships } = parse(ContextQuerySchema, req.query);
-    const { value: detail } = await catalog.product(id);
+    const { zip, memberships, storeIds } = parse(ContextQuerySchema, req.query);
+    const ctx = await catalog.contextFor(zip, memberships, storeIds);
+    const { value: detail } = await catalog.product(id, ctx.stores);
     if (!detail) throw new HttpError(404, 'product_not_found', `No product with id "${id}".`);
     const profile = learnedProfile(deviceId);
     return {
-      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, shopperContext(zip, memberships)),
+      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, ctx),
       retailers: RETAILERS,
     };
   });
 
   fastify.get(`${prefix}/lookup`, async (req): Promise<ProductResponse> => {
     const deviceId = deviceFrom(req);
-    const { gtin: raw, zip, memberships } = parse(LookupQuerySchema, req.query);
+    const { gtin: raw, zip, memberships, storeIds } = parse(LookupQuerySchema, req.query);
     const gtin = normalizeGtin(raw);
     if (!gtin) throw new HttpError(400, 'invalid_request', 'gtin: must be a valid UPC-A / EAN-13 barcode (8-14 digits with a correct check digit).');
-    const { value: detail } = await catalog.lookup(gtin);
+    const ctx = await catalog.contextFor(zip, memberships, storeIds);
+    const { value: detail } = await catalog.lookup(gtin, ctx.stores);
     if (!detail) throw new HttpError(404, 'not_found', 'No product found for that barcode.');
     const profile = learnedProfile(deviceId);
     return {
-      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, shopperContext(zip, memberships)),
+      product: personalizeProductDetail(detail, profile ?? NEUTRAL_RANKING_PROFILE, ctx),
       retailers: RETAILERS,
     };
+  });
+
+  fastify.get(`${prefix}/stores`, async (req): Promise<StoresResponse> => {
+    deviceFrom(req);
+    const { zip } = parse(StoresQuerySchema, req.query);
+    return { zip, stores: await catalog.stores(zip) };
+  });
+
+  // Shopping-list totals. No LLM: every item resolves through the cached catalog path.
+  fastify.post(`${prefix}/basket`, async (req): Promise<BasketResponse> => {
+    const started = performance.now();
+    const deviceId = deviceFrom(req);
+    limit(`basket:${deviceId ?? `ip:${req.ip}`}`, config.basketRateLimitMax);
+    const body = parse(BasketRequestSchema, req.body);
+    const ctx = await catalog.contextFor(body.zip, body.memberships, body.storeIds);
+    const profile = learnedProfile(deviceId) ?? NEUTRAL_RANKING_PROFILE;
+    const items = await Promise.all(
+      body.items.map(async (item): Promise<BasketResolvedItem> => {
+        const unresolved = { id: item.id, quantity: item.quantity, product: null, resolvedFromQuery: false };
+        // An upstream failure on one item leaves that item unresolved instead of failing the whole list.
+        if (item.productId) {
+          const detail = await catalog.product(item.productId, ctx.stores).then((r) => r.value, () => null);
+          if (detail) return { ...unresolved, product: personalizeProduct(detail, profile, ctx) };
+        }
+        if (item.query) {
+          const hits = await catalog.search(item.query, ctx.stores).then((r) => r.value, () => []);
+          if (hits[0]) return { ...unresolved, product: personalizeProduct(hits[0].product, profile, ctx), resolvedFromQuery: true };
+        }
+        return unresolved;
+      }),
+    );
+    const totals = computeBasket(items, { minSplitSavings: config.basketSplitMinSavings });
+    return { items, ...totals, retailers: RETAILERS, tookMs: round1(performance.now() - started) };
   });
 
   fastify.post(`${prefix}/ask`, async (req): Promise<AskResponse> => {
@@ -356,7 +398,7 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     const deviceId = requireDevice(req);
     limit(`ask:${deviceId}`, config.askRateLimitMax);
     const { text, zip, memberships } = parse(AskRequestSchema, req.body);
-    const result = await askService.ask(text, shopperContext(zip, memberships), learnedProfile(deviceId));
+    const result = await askService.ask(text, await catalog.contextFor(zip, memberships), learnedProfile(deviceId));
     return { ...result, tookMs: round1(performance.now() - started) };
   });
 
@@ -387,10 +429,11 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     if (existing.filter((a) => a.productId !== body.productId).length >= config.maxAlertsPerDevice) {
       throw new HttpError(409, 'alert_limit_reached', `You can have at most ${config.maxAlertsPerDevice} price alerts. Delete one first.`);
     }
-    const { value: product } = await catalog.product(body.productId);
-    if (!product) throw new HttpError(404, 'product_not_found', `No product with id "${body.productId}".`);
     const context = { zip: body.zip ?? null, memberships: body.memberships ?? null };
-    const best = bestPriceFor(product, context);
+    const ctx = await catalog.contextFor(context.zip, context.memberships);
+    const { value: product } = await catalog.product(body.productId, ctx.stores);
+    if (!product) throw new HttpError(404, 'product_not_found', `No product with id "${body.productId}".`);
+    const best = bestPriceFor(product, ctx);
     if (!best) throw new HttpError(409, 'price_unavailable', 'No in-stock price is available for this product right now, so it cannot be watched.');
     const row = {
       id: randomUUID(),
@@ -411,8 +454,9 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     // Fresh prices from the (cached) catalog; an upstream failure leaves currentBestPrice null.
     const alerts = await Promise.all(
       rows.map(async (row) => {
-        const product = await catalog.product(row.productId).then((r) => r.value, () => null);
-        return toPriceAlert(row, product ? bestPriceFor(product, row) : null);
+        const ctx = await catalog.contextFor(row.zip, row.memberships);
+        const product = await catalog.product(row.productId, ctx.stores).then((r) => r.value, () => null);
+        return toPriceAlert(row, product ? bestPriceFor(product, ctx) : null);
       }),
     );
     return { alerts };

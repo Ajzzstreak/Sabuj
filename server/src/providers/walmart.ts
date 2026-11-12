@@ -31,7 +31,12 @@
  *                            threshold (assumed: free at $35+ when freeShippingOver35Dollars).
  *   9. Not-found behaviour:  HTTP 404 vs 400 vs empty list for unknown ids/UPCs (this adapter
  *                            treats 400 and 404 as "not found").
- *  10. Rate limits and terms: calls/second and/day, price caching limits, required
+ *  10. Grocery fields:        there is no reliable structured package size in this API as far
+ *                            as remembered. `size` is PARSED FROM THE TITLE (heuristic, see
+ *                            parseSize) and can be wrong or missing; unit prices inherit that.
+ *                            `isStoreBrand` comes from a guessed list of Walmart labels. Prices
+ *                            are walmart.com prices, NOT per-store shelf prices: storeId is null.
+ *  11. Rate limits and terms: calls/second and/day, price caching limits, required
  *                            attribution, and that productTrackingUrl is the link to use.
  *
  * The HTTP call (`request`) and the mapping (`mapWalmartItem`) are kept small
@@ -41,6 +46,7 @@
  */
 import { createSign } from 'node:crypto';
 import { normalizeGtin } from '../gtin.js';
+import { parseSize } from '../size.js';
 import { asNumber, asString, type FetchLike, getJson, pickCategory, plainText, positionalRelevance, ProviderHttpError, round2 } from './http.js';
 import type {
   PriceProvider,
@@ -54,6 +60,8 @@ import type {
 export const WALMART_BASE_URL = 'https://developer.api.walmart.com/api-proxy/service/affil/product/v2';
 export const WALMART_ID_PREFIX = 'wmt-';
 const FREE_SHIPPING_THRESHOLD = 35;
+/** Guess at Walmart's own labels (header item 10). */
+export const WALMART_STORE_BRANDS: ReadonlySet<string> = new Set(['great value', 'marketside', 'freshness guaranteed', "sam's choice", 'equate', "parent's choice", 'bettergoods']);
 
 export interface WalmartOptions {
   consumerId: string;
@@ -100,6 +108,9 @@ export function mapWalmartItem(raw: unknown, observedAt: string, categories: rea
   const link = asString(r.productTrackingUrl) ?? asString(r.productUrl);
   const path = (asString(r.categoryPath) ?? '').split('/').map((s) => s.trim()).filter(Boolean);
   const reviews = asNumber(r.numReviews);
+  const brand = asString(r.brandName) ?? 'Unknown';
+  // HEURISTIC: package size read out of the title, e.g. "Great Value Whole Milk, 1 gal".
+  const size = parseSize(asString(r.size)) ?? parseSize(title);
 
   const offer: ProviderOffer = {
     id: `${id}:walmart`,
@@ -117,14 +128,20 @@ export function mapWalmartItem(raw: unknown, observedAt: string, categories: rea
     url: link && /^https:\/\/([a-z0-9-]+\.)*walmart\.com\//i.test(link) ? link : `https://www.walmart.com/search?q=${encodeURIComponent(title)}`,
     observedAt,
     priceSource: 'live',
+    matchType: 'exact',
+    offerTitle: null,
+    size,
+    storeId: null,
   };
   return {
     id,
     title,
-    brand: asString(r.brandName) ?? 'Unknown',
+    brand,
     category: pickCategory(path, categories),
     imageUrl: asString(r.largeImage) ?? asString(r.mediumImage) ?? asString(r.thumbnailImage),
     gtin: normalizeGtin(asString(r.upc)),
+    size,
+    isStoreBrand: WALMART_STORE_BRANDS.has(brand.toLowerCase()),
     highlights: [],
     offers: [offer],
     description: plainText(r.shortDescription) || plainText(r.longDescription),

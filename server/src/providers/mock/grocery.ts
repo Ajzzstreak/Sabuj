@@ -151,13 +151,10 @@ function fakeUpc(id: string): string {
 function storeBrandListings(category: string, kind: GroceryKind): Listing[] {
   const group = `${category}/${kind.name}`;
   const out: Listing[] = [];
-  // Walmart and Kroger carry nearly everything (never both missing).
-  const skipWalmart = chance(`skip:walmart:${group}`) < 0.04;
-  const skipKroger = !skipWalmart && chance(`skip:kroger:${group}`) < 0.04;
+  // Walmart and Kroger have a store-brand version of every kind (their gaps
+  // are in national brands, see below); Target and the clubs carry subsets.
   for (const retailer of STORE_BRAND_RETAILERS) {
     const club = retailer === 'costco' || retailer === 'samsclub';
-    if (retailer === 'walmart' && skipWalmart) continue;
-    if (retailer === 'kroger' && skipKroger) continue;
     if (retailer === 'target' && (kind.target === false || chance(`carry:target:${group}`) > 0.75)) continue;
     // Clubs only sell the bulk package, and not every club stocks every kind.
     if (club && (!kind.club || chance(`carry:${retailer}:${group}`) > 0.85)) continue;

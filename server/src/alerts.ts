@@ -10,7 +10,7 @@ import type { AlertRow, Store } from './db.js';
 import type { ProviderProduct } from './providers/types.js';
 import type { PushMessage, PushSender } from './push.js';
 import { retailerName } from './retailers.js';
-import { applyContext, cheapestRankable, shopperContext } from './shopper.js';
+import { applyContext, cheapestRankable, type ShopperContext } from './shopper.js';
 import { sameSize } from './size.js';
 
 export interface BestPrice {
@@ -20,12 +20,12 @@ export interface BestPrice {
 
 /**
  * Lowest landedPrice among in-stock, eligible, priced offers under the alert's
- * own zip/memberships. An alert watches a SHELF price, so when the product's
+ * own context (its zip -> tax and nearest stores, its memberships). An alert watches a SHELF price, so when the product's
  * offers are only comparable per unit (other stores' equivalents, other sizes)
  * only offers for the exact item in the product's own size count.
  */
-export function bestPriceFor(product: ProviderProduct, alert: Pick<AlertRow, 'zip' | 'memberships'>): BestPrice | null {
-  const offers = applyContext(product.offers, shopperContext(alert.zip, alert.memberships));
+export function bestPriceFor(product: ProviderProduct, ctx: ShopperContext): BestPrice | null {
+  const offers = applyContext(product.offers, ctx);
   const pool = buildComparison(offers, product.size).unitMode
     ? offers.filter((o) => o.matchType === 'exact' && sameSize(o.size, product.size))
     : offers;
@@ -83,21 +83,23 @@ export async function checkAlerts(deps: AlertCheckDeps): Promise<AlertCheckResul
       const page = deps.store.activeAlerts(after, pageSize);
       if (page.length === 0) break;
       after = page[page.length - 1]!.id;
-      // One catalog read per distinct product, however many alerts watch it.
-      const products = new Map<string, ProviderProduct | null>();
-      await Promise.all(
-        [...new Set(page.map((a) => a.productId))].map(async (id) => {
+      // Each alert is priced under its own context. Catalog reads are cached and
+      // concurrent loads of the same product are shared, so this stays one
+      // upstream call per distinct product (and store, for store-scoped providers).
+      const bests = await Promise.all(
+        page.map(async (alert): Promise<BestPrice | null> => {
           try {
-            products.set(id, (await deps.catalog.product(id)).value);
+            const ctx = await deps.catalog.contextFor(alert.zip, alert.memberships);
+            const product = (await deps.catalog.product(alert.productId, ctx.stores)).value;
+            return product ? bestPriceFor(product, ctx) : null;
           } catch {
-            products.set(id, null); // upstream down: leave these alerts for the next run
+            return null; // upstream down: leave this alert for the next run
           }
         }),
       );
-      for (const alert of page) {
+      for (const [i, alert] of page.entries()) {
         result.checked += 1;
-        const product = products.get(alert.productId);
-        const best = product ? bestPriceFor(product, alert) : null;
+        const best = bests[i] ?? null;
         if (!best || best.price > alert.targetPrice) continue;
         if (!deps.store.markAlertTriggered(alert.id, now())) continue;
         result.triggered += 1;

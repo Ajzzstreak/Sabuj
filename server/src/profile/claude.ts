@@ -38,7 +38,7 @@ const MAX_STR = 80;
 // Stable across requests, so it is the cached prefix (tools render before
 // system; the breakpoint on the system block covers both). Keep it free of
 // anything per-user or time-dependent.
-const SYSTEM_PROMPT = `You refine shopper profiles for DealLens, a price-comparison app that shows the same product at Amazon, Walmart, Sam's Club, Target, Costco and Best Buy.
+const SYSTEM_PROMPT = `You refine shopper profiles for DealLens, a price-comparison app that shows the same product (mostly groceries) at Walmart, Kroger, Target, Costco, Sam's Club, Amazon and Best Buy.
 
 Each request gives you one anonymous shopper: aggregate statistics of their in-app activity, a small sample of their most recent events, and a baseline profile produced by simple counting heuristics. The profile is used by a deterministic ranking function that decides which retailer's offer to show first, so the numbers matter more than the prose. Your job is to correct the baseline where the evidence supports it and write a short, friendly description of the shopper.
 

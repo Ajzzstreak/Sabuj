@@ -13,7 +13,7 @@ import type {
 import { CATEGORY_NOUN, SEEDS, TRENDING_QUERIES, type CatalogSeed } from './catalog.js';
 import { buildDetail, buildProduct, generatePriceHistory, slugify } from './generate.js';
 import { buildGroceryCatalog, type GroceryMeta } from './grocery.js';
-import { GROCERY_CATEGORY_NOUN, GROCERY_TRENDING } from './groceryData.js';
+import { FRESH, GROCERY_CATEGORY_NOUN, GROCERY_TRENDING } from './groceryData.js';
 import { queryTokens, SearchIndex, tokenize } from './search.js';
 import { mockStoreRetailer, mockStores, storePriceFactor } from './stores.js';
 
@@ -130,10 +130,13 @@ export class MockProvider implements PriceProvider {
       const i = key.lastIndexOf(':');
       this.setPriceOverride(key.slice(0, i), key.slice(i + 1) as RetailerId, price);
     }
-    this.index = new SearchIndex([...this.products.values()], (p) => ({
-      keywords: this.seeds.get(p.id)?.keywords ?? this.grocery.get(p.id)?.keywords,
-      categoryNoun: NOUNS[p.category],
-    }));
+    this.index = new SearchIndex([...this.products.values()], (p) => {
+      const g = this.grocery.get(p.id);
+      if (!g) return { keywords: this.seeds.get(p.id)?.keywords, categoryNoun: NOUNS[p.category] };
+      // Plain staples (store brands, loose produce) lead a generic query such as
+      // "milk" ahead of speciality national brands.
+      return { keywords: g.keywords, categoryNoun: NOUNS[p.category], nounOnly: true, boost: p.isStoreBrand || p.brand === FRESH ? 0.03 : 0 };
+    });
     // Only trending queries that find something in what was actually loaded.
     const candidates = kind === 'grocery' ? GROCERY_TRENDING : kind === 'general' ? TRENDING_QUERIES : [...GROCERY_TRENDING, ...TRENDING_QUERIES];
     this.trendingQueries = kind === 'general' && categories.length === 0 ? candidates : candidates.filter((q) => this.index.search(q, 1).length > 0);

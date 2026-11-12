@@ -7,6 +7,7 @@ import { SwrCache } from './cache.js';
 import type { RetailerId, Store } from './contract.js';
 import { normalizeGtin } from './gtin.js';
 import { buildOutboundUrl, isMembershipRetailer, RETAILER_IDS } from './retailers.js';
+import { type ShopperContext, shopperContext } from './shopper.js';
 import type {
   PriceProvider,
   ProviderCallOptions,
@@ -237,6 +238,20 @@ export class Catalog {
     }
     return offer;
   };
+
+  /**
+   * The shopper context for a request: tax from the ZIP, stated memberships,
+   * and the store to price at per retailer (explicit ids, else nearest by ZIP).
+   * Without a ZIP or store ids no store lookup happens at all.
+   */
+  async contextFor(
+    zip: string | null | undefined,
+    memberships: readonly RetailerId[] | null | undefined,
+    storeIds?: readonly string[] | null,
+  ): Promise<ShopperContext> {
+    const stores = zip || storeIds?.length ? await this.resolveStores(zip, storeIds) : undefined;
+    return shopperContext(zip, memberships, stores, this.localizeOffer);
+  }
 
   /** Trending queries of the first provider that has an opinion. */
   trending(): string[] {

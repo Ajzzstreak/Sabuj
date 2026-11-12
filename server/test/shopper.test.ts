@@ -9,7 +9,7 @@ import { estimatedTaxRateForZip, STATE_TAX_RATE_PCT, stateForZip } from '../src/
 import { offer, profile, providerOffer } from './helpers.js';
 
 const base = (offers: ProviderProduct['offers'], extra: Partial<ProviderProduct> = {}): ProviderProduct => ({
-  id: 'p1', title: 'Thing', brand: 'Acme', category: 'Rice Cookers', imageUrl: null, gtin: null, highlights: [], offers, ...extra,
+  id: 'p1', title: 'Thing', brand: 'Acme', category: 'Rice Cookers', imageUrl: null, gtin: null, size: null, isStoreBrand: false, highlights: [], offers, ...extra,
 });
 const catalogOpts = { providerTimeoutMs: 200, cacheMaxEntries: 100, cacheTtlMs: 60_000, cacheSwrMs: 60_000 };
 
@@ -118,7 +118,7 @@ describe('ranking with landed price, eligibility and link-only offers', () => {
     expect(p.recommendedOfferId).toBe('p1:amazon');
     expect(p.maxSavings).toBe(20); // 120 - 100: the ineligible $80 and the link-only $0 are excluded
     const link = p.offers.at(-1)!;
-    expect(link).toMatchObject({ priceSource: 'link_only', price: 0, totalPrice: 0, landedPrice: 0, listPrice: null, estimatedTax: null });
+    expect(link).toMatchObject({ priceSource: 'link_only', price: 0, totalPrice: 0, landedPrice: 0, listPrice: null, estimatedTax: null, unitPrice: null, storeId: null });
   });
 
   it('an ineligible or link-only offer is never recommended, even when nothing else exists', () => {
@@ -191,7 +191,7 @@ describe('premium bound', () => {
 
   it('holds for every mock product under an extreme profile', async () => {
     const p = profile({ priceSensitivity: 0, retailerAffinity: { bestbuy: 1, target: 1, costco: 1 }, speedPreference: 1, qualityPreference: 1, maxObservedPremiumPct: 0.02 });
-    for (const product of await new MockProvider().browse()) {
+    for (const product of await new MockProvider({ catalog: 'general' }).browse()) {
       for (const ctx of [NO_CONTEXT, shopperContext('60601', []), shopperContext('10001', ['costco'])]) {
         const r = personalizeProduct(product, p, ctx);
         const low = r.offers.find((o) => o.id === r.cheapestOfferId);
@@ -208,7 +208,7 @@ describe('premium bound', () => {
 
 describe('catalog: GTIN merge, link-only fallback, category scope, lookup', () => {
   const detail = (id: string, gtin: string | null, offers: ProviderProduct['offers'], title = 'Sony WH-1000XM5 Headphones'): ProviderProductDetail => ({
-    id, title, brand: 'Sony', category: 'Headphones', imageUrl: null, gtin, highlights: [], offers: offers.map((o) => ({ ...o, productId: id, id: `${id}:${o.retailerId}` })),
+    id, title, brand: 'Sony', category: 'Headphones', imageUrl: null, gtin, size: null, isStoreBrand: false, highlights: [], offers: offers.map((o) => ({ ...o, productId: id, id: `${id}:${o.retailerId}` })),
     description: '', priceHistory: [], reviewSummary: null,
   });
   const fake = (name: string, products: ProviderProductDetail[]): PriceProvider => ({
@@ -238,7 +238,7 @@ describe('catalog: GTIN merge, link-only fallback, category scope, lookup', () =
     expect(hits).toHaveLength(1);
     const p = personalizeProduct(hits[0]!.product);
     expect(p.offers.map((o) => [o.retailerId, o.priceSource])).toEqual([
-      ['walmart', 'live'], ['bestbuy', 'live'], ['amazon', 'link_only'], ['costco', 'link_only'], ['samsclub', 'link_only'], ['target', 'link_only'],
+      ['walmart', 'live'], ['bestbuy', 'live'], ['amazon', 'link_only'], ['costco', 'link_only'], ['kroger', 'link_only'], ['samsclub', 'link_only'], ['target', 'link_only'],
     ]);
     expect(p.cheapestOfferId).toBe('bby-1:walmart');
     expect(p.maxSavings).toBe(10);
@@ -249,14 +249,14 @@ describe('catalog: GTIN merge, link-only fallback, category scope, lookup', () =
     // Detail by one provider's id pulls the other provider's offer in via GTIN lookup.
     const { value: d } = await catalog.product('bby-1');
     expect(d!.offers.filter((o) => o.priceSource === 'live').map((o) => o.retailerId).sort()).toEqual(['bestbuy', 'walmart']);
-    expect(d!.offers).toHaveLength(6);
+    expect(d!.offers).toHaveLength(7);
     // Barcode lookup merges the same way.
     const { value: l } = await catalog.lookup(normalizeGtin('036000291452')!);
     expect(l!.offers.filter((o) => o.priceSource === 'live')).toHaveLength(2);
   });
 
   it('demo (mock) products never get link-only offers, and live+link merge prefers the real price', async () => {
-    const catalog = new Catalog([new MockProvider()], { ...catalogOpts, linkOnlyFallback: true });
+    const catalog = new Catalog([new MockProvider({ catalog: 'general' })], { ...catalogOpts, linkOnlyFallback: true });
     for (const p of (await catalog.browse([])).value) expect(p.offers.every((o) => o.priceSource === 'demo')).toBe(true);
     const stub = linkOnlyOffer({ id: 'bby-1', title: 'X' }, 'walmart', '2026-01-01T00:00:00.000Z');
     const merged = mergeHits([
@@ -267,7 +267,7 @@ describe('catalog: GTIN merge, link-only fallback, category scope, lookup', () =
   });
 
   it('CATALOG_CATEGORIES limits search, browse, detail, lookup and suggestions', async () => {
-    const scoped = new MockProvider({ categories: ['rice cookers'] });
+    const scoped = new MockProvider({ catalog: 'general', categories: ['rice cookers'] });
     const all = await scoped.browse();
     expect(all.length).toBeGreaterThanOrEqual(5);
     expect(new Set(all.map((p) => p.category))).toEqual(new Set(['Rice Cookers']));
@@ -275,18 +275,18 @@ describe('catalog: GTIN merge, link-only fallback, category scope, lookup', () =
     expect((await scoped.suggest('', 20)).every((q) => /rice|cooker|zojirushi/.test(q))).toBe(true);
 
     // The catalog enforces the scope for providers that do not (here: an unscoped mock).
-    const catalog = new Catalog([new MockProvider()], { ...catalogOpts, categories: ['rice cookers'] });
+    const catalog = new Catalog([new MockProvider({ catalog: 'general' })], { ...catalogOpts, categories: ['rice cookers'] });
     expect((await catalog.search('tv')).value).toEqual([]);
     expect((await catalog.search('rice cooker')).value.length).toBeGreaterThan(0);
     expect(new Set((await catalog.browse([])).value.map((p) => p.category))).toEqual(new Set(['Rice Cookers']));
-    const tv = (await new MockProvider().search('tv', { limit: 1 }))[0]!.product;
+    const tv = (await new MockProvider({ catalog: 'general' }).search('tv', { limit: 1 }))[0]!.product;
     expect((await catalog.product(tv.id)).value).toBeNull();
     expect((await catalog.lookup(normalizeGtin(tv.gtin)!)).value).toBeNull();
     expect((await catalog.product('dash-mini-2-cup-rice-cooker')).value).not.toBeNull();
   });
 
   it('mock lookupGtin and price overrides', async () => {
-    const mock = new MockProvider({ priceOverrides: parsePriceOverrides('dash-mini-2-cup-rice-cooker:amazon=9.50') });
+    const mock = new MockProvider({ catalog: 'general', priceOverrides: parsePriceOverrides('dash-mini-2-cup-rice-cooker:amazon=9.50') });
     const product = (await mock.getProduct('dash-mini-2-cup-rice-cooker'))!;
     const amazon = product.offers.find((o) => o.retailerId === 'amazon');
     if (amazon) {

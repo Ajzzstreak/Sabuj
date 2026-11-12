@@ -1,0 +1,61 @@
+{
+  "_note": "HAND-WRITTEN from memory of the Kroger Products API documentation. NOT a captured live response. Replace with a real capture before trusting the adapter.",
+  "data": [
+    {
+      "productId": "0001111041700",
+      "upc": "0001111041700",
+      "brand": "Kroger",
+      "description": "Kroger Vitamin D Whole Milk",
+      "categories": ["Dairy"],
+      "items": [
+        {
+          "itemId": "0001111041700",
+          "size": "1 gal",
+          "soldBy": "UNIT",
+          "price": { "regular": 3.59, "promo": 2.99 },
+          "fulfillment": { "curbside": true, "delivery": true, "inStore": true, "shipToHome": false },
+          "inventory": { "stockLevel": "HIGH" }
+        }
+      ],
+      "images": [
+        { "perspective": "back", "sizes": [{ "size": "medium", "url": "https://www.kroger.com/product/images/medium/back/0001111041700" }] },
+        {
+          "perspective": "front",
+          "featured": true,
+          "sizes": [
+            { "size": "large", "url": "https://www.kroger.com/product/images/large/front/0001111041700" },
+            { "size": "medium", "url": "https://www.kroger.com/product/images/medium/front/0001111041700" }
+          ]
+        }
+      ]
+    },
+    {
+      "productId": "0007680800011",
+      "upc": "0007680800011",
+      "brand": "Barilla",
+      "description": "Barilla Spaghetti Pasta",
+      "categories": ["Pantry", "Pasta, Sauces, Grain"],
+      "items": [
+        {
+          "itemId": "0007680800011",
+          "size": "16 oz",
+          "soldBy": "UNIT",
+          "price": { "regular": 1.99, "promo": 0 },
+          "fulfillment": { "curbside": false, "delivery": false, "inStore": true, "shipToHome": false },
+          "inventory": { "stockLevel": "TEMPORARILY_OUT_OF_STOCK" }
+        }
+      ],
+      "images": []
+    },
+    {
+      "productId": "0003400029005",
+      "upc": "0003400029005",
+      "brand": "Hershey's",
+      "description": "Hershey's Milk Chocolate Bars 6 ct, 1.55 oz each",
+      "categories": ["Candy"],
+      "items": [{ "itemId": "0003400029005", "soldBy": "UNIT" }]
+    },
+    { "upc": "123", "description": "No product id" }
+  ],
+  "meta": { "pagination": { "start": 0, "limit": 50, "total": 4 } }
+}

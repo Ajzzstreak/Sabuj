@@ -1,0 +1,21 @@
+{
+  "_note": "HAND-WRITTEN from memory of the Kroger Locations API documentation. NOT a captured live response. Replace with a real capture before trusting the adapter.",
+  "data": [
+    {
+      "locationId": "01400943",
+      "chain": "KROGER",
+      "name": "Kroger - Downtown",
+      "address": { "addressLine1": "100 E Court St", "city": "Cincinnati", "state": "OH", "zipCode": "45202", "county": "HAMILTON" },
+      "geolocation": { "latitude": 39.106, "longitude": -84.511, "latLng": "39.106,-84.511" },
+      "phone": "5135550100"
+    },
+    {
+      "locationId": "01400376",
+      "chain": "KROGER",
+      "name": "Kroger - Newport",
+      "address": { "addressLine1": "130 Pavilion Pkwy", "city": "Newport", "state": "KY", "zipCode": "41071" },
+      "geolocation": { "latitude": 39.086, "longitude": -84.479 }
+    },
+    { "chain": "KROGER", "name": "No id" }
+  ]
+}

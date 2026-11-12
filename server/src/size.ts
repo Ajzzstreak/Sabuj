@@ -132,7 +132,8 @@ export function parseSize(text: string | null | undefined): PackageSize | null {
     }
     const first = readQuantity(s.slice(i));
     if (first && first.spec.unit !== 'ct') {
-      const count = /^\s*(?:x\s*)?(\d+)\s*-?\s*(?:ct|count|pack|pk|cans?|bottles?)\b/.exec(first.rest);
+      // "12 fl oz, 12 count" / "12 fl oz cans 12 pack": a container word may sit in between.
+      const count = /^\s*(?:cans?|bottles?|each|ea)?\s*(?:x\s*)?(\d+)\s*-?\s*(?:ct|count|pack|pk|cans?|bottles?)\b/.exec(first.rest);
       if (count) return toSize(first.amount * Number(count[1]), first.spec);
     }
   }

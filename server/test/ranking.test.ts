@@ -4,7 +4,7 @@ import type { ProviderProduct } from '../src/providers/types.js';
 import { offer, profile } from './helpers.js';
 
 const base = (offers: ReturnType<typeof offer>[]): ProviderProduct => ({
-  id: 'p1', title: 'Thing', brand: 'Acme', category: 'Rice Cookers', imageUrl: null, gtin: null, highlights: [], offers,
+  id: 'p1', title: 'Thing', brand: 'Acme', category: 'Rice Cookers', imageUrl: null, gtin: null, size: null, isStoreBrand: false, highlights: [], offers,
 });
 
 describe('rankOffers', () => {
@@ -107,7 +107,7 @@ describe('personalizeProduct', () => {
   it('cheapestOfferId is the lowest in-stock total for every mock product under any profile', async () => {
     const { MockProvider } = await import('../src/providers/mock/index.js');
     const p = profile({ priceSensitivity: 0, retailerAffinity: { bestbuy: 1, costco: 1 }, speedPreference: 1, qualityPreference: 1 });
-    for (const product of await new MockProvider().browse()) {
+    for (const product of await new MockProvider({ catalog: 'general' }).browse()) {
       const r = personalizeProduct(product, p);
       const inStock = r.offers.filter((o) => o.inStock);
       const min = Math.min(...inStock.map((o) => o.totalPrice));

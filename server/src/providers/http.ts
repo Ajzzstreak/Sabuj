@@ -1,5 +1,8 @@
-/** Minimal JSON GET used by the real provider adapters. Injectable for tests. */
-export type FetchLike = (url: string, init: { headers: Record<string, string>; signal?: AbortSignal }) => Promise<{
+/** Minimal JSON request used by the real provider adapters. Injectable for tests. */
+export type FetchLike = (
+  url: string,
+  init: { headers: Record<string, string>; signal?: AbortSignal; method?: string; body?: string },
+) => Promise<{
   ok: boolean;
   status: number;
   json(): Promise<unknown>;
@@ -21,10 +24,12 @@ export async function getJson(
   url: string,
   headers: Record<string, string>,
   signal?: AbortSignal,
+  /** Defaults to GET with no body. */
+  extra: { method?: string; body?: string } = {},
 ): Promise<unknown> {
   let res: Awaited<ReturnType<FetchLike>>;
   try {
-    res = await fetchImpl(url, { headers: { accept: 'application/json', ...headers }, signal });
+    res = await fetchImpl(url, { headers: { accept: 'application/json', ...headers }, signal, ...extra });
   } catch (err) {
     // fetch errors can embed the request URL; rethrow without it.
     throw new Error(`${provider} API request failed (${err instanceof Error ? err.name : 'error'})`);

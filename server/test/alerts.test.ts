@@ -25,7 +25,7 @@ const push: PushSender = {
 
 async function start(overrides: Partial<Config> = {}) {
   store = new Store(':memory:');
-  mock = new MockProvider();
+  mock = new MockProvider({ catalog: 'general' });
   sent = [];
   invalid = [];
   app = await buildApp({ config: testConfig(overrides), store, providers: [mock], push });

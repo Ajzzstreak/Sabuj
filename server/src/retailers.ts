@@ -14,6 +14,12 @@ export const RETAILERS: Retailer[] = [
 
 const BY_ID = new Map(RETAILERS.map((r) => [r.id, r]));
 
+/** Well-known retailer-owned labels, lower-cased. Used to tell store brands from national brands in events. */
+export const STORE_BRAND_LABELS: ReadonlySet<string> = new Set([
+  'great value', "parent's choice", 'marketside', 'equate', 'kroger', 'simple truth', 'private selection', 'comforts',
+  'good & gather', 'up & up', 'market pantry', 'kirkland signature', "member's mark", 'amazon basics', 'happy belly',
+]);
+
 export function retailerName(id: RetailerId): string {
   return BY_ID.get(id)?.name ?? id;
 }

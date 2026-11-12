@@ -55,6 +55,10 @@ describe('Best Buy mapping (fixture)', () => {
         url: 'https://api.bestbuy.com/click/-/6505727/pdp',
         observedAt: AT,
         priceSource: 'live',
+        matchType: 'exact',
+        offerTitle: null,
+        size: null,
+        storeId: null,
       },
     ]);
   });
@@ -145,6 +149,10 @@ describe('Walmart mapping (fixture)', () => {
         url: 'https://goto.walmart.com/c/123/456/9383?veh=aff&sourceid=imp_000011112222333344&u=https%3A%2F%2Fwww.walmart.com%2Fip%2F782016027',
         observedAt: AT,
         priceSource: 'live',
+        matchType: 'exact',
+        offerTitle: null,
+        size: null,
+        storeId: null,
       },
     ]);
   });
@@ -202,7 +210,7 @@ describe('provider registry', () => {
     const both = createProviders(loadConfig({ PRICE_PROVIDERS: 'bestbuy,walmart', BESTBUY_API_KEY: 'k', WALMART_CONSUMER_ID: 'c', WALMART_PRIVATE_KEY: privateKey }));
     expect(both.map((p) => p.name)).toEqual(['bestbuy', 'walmart']);
     expect(loadConfig({ CATALOG_CATEGORIES: ' Rice Cookers, TVs ' }).catalogCategories).toEqual(['rice cookers', 'tvs']);
-    expect(createProviders(loadConfig({ CATALOG_CATEGORIES: 'Rice Cookers', MOCK_PRICE_OVERRIDES: 'dash-mini-2-cup-rice-cooker:amazon=5' }))).toHaveLength(1);
+    expect(createProviders(loadConfig({ MOCK_CATALOG: 'general', CATALOG_CATEGORIES: 'Rice Cookers', MOCK_PRICE_OVERRIDES: 'dash-mini-2-cup-rice-cooker:amazon=5' }))).toHaveLength(1);
     expect(() => createProviders(loadConfig({ MOCK_PRICE_OVERRIDES: 'bad' }))).toThrow(/MOCK_PRICE_OVERRIDES/);
   });
 
@@ -216,7 +224,7 @@ describe('provider registry', () => {
     expect(hits.map((h) => h.product.id)).toEqual(['bby-6505727', 'bby-6418599', 'wmt-55501234']);
     const sony = personalizeProduct(hits[0]!.product);
     expect(sony.offers.map((o) => `${o.retailerId}:${o.priceSource}`)).toEqual([
-      'walmart:live', 'bestbuy:live', 'amazon:link_only', 'costco:link_only', 'samsclub:link_only', 'target:link_only',
+      'walmart:live', 'bestbuy:live', 'amazon:link_only', 'costco:link_only', 'kroger:link_only', 'samsclub:link_only', 'target:link_only',
     ]);
     expect(sony.cheapestOfferId).toBe('bby-6505727:walmart');
     expect(sony.recommendedOfferId).toBe('bby-6505727:walmart');

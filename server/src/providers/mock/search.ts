@@ -90,11 +90,19 @@ interface IndexedProduct {
   fields: IndexedField[];
   phrase: string;
   popularity: number;
+  boost: number;
 }
 
 export interface SearchExtras {
   keywords?: string[];
   categoryNoun?: string;
+  /**
+   * Index only the noun, not the category name. Grocery aisles are compound
+   * names ("Dairy & Eggs"): indexing them would make every yogurt match "eggs".
+   */
+  nounOnly?: boolean;
+  /** Small additive relevance bonus (0..0.05) for staple items, applied to matches only. */
+  boost?: number;
 }
 
 export class SearchIndex {
@@ -106,7 +114,7 @@ export class SearchIndex {
       const x = extras(product);
       const reviews = product.offers.reduce((n, o) => n + (o.reviewCount ?? 0), 0);
       const title = tokenize(product.title);
-      const category = tokenize(`${product.category} ${x.categoryNoun ?? ''}`);
+      const category = tokenize(x.nounOnly ? (x.categoryNoun ?? '') : `${product.category} ${x.categoryNoun ?? ''}`);
       return {
         product,
         fields: [
@@ -118,6 +126,7 @@ export class SearchIndex {
         ],
         phrase: ` ${[...title, ...category].join(' ')} `,
         popularity: Math.log10(reviews + 1) / Math.log10(maxReviews + 1),
+        boost: x.boost ?? 0,
       };
     });
   }
@@ -147,7 +156,7 @@ export class SearchIndex {
       if (matched === 0 || coverage < 0.5) continue;
       let score = (sum / tokens.length) * coverage * coverage;
       if (tokens.length > 1 && doc.phrase.includes(phrase)) score += 0.15;
-      score = score * 0.9 + doc.popularity * 0.05;
+      score = score * 0.9 + doc.popularity * 0.05 + doc.boost;
       results.push({ product: doc.product, relevance: Math.min(1, Math.round(score * 10000) / 10000) });
     }
     results.sort((a, b) => b.relevance - a.relevance || (a.product.id < b.product.id ? -1 : 1));

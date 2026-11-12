@@ -16,7 +16,7 @@ export function recentProductIds(events: readonly ActivityEvent[], limit: number
   for (let i = events.length - 1; i >= 0 && ids.length < limit; i--) {
     const e = events[i]!;
     if (!e.productId) continue;
-    if (e.type !== 'product_view' && e.type !== 'offer_click' && e.type !== 'save') continue;
+    if (e.type !== 'product_view' && e.type !== 'offer_click' && e.type !== 'save' && e.type !== 'list_add') continue;
     if (!ids.includes(e.productId)) ids.push(e.productId);
   }
   return ids;

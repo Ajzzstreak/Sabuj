@@ -62,7 +62,7 @@ describe('parseAskRules', () => {
     expect(parseAskRules('laptop at Best Buy or Walmart').retailers).toEqual(['walmart', 'bestbuy']);
     expect(parseAskRules('paper towels from sams club').retailers).toEqual(['samsclub']);
     expect(parseAskRules("paper towels at sam's club or costco")).toMatchObject({ retailers: ['samsclub', 'costco'], query: 'paper towels' });
-    expect(parseAskRules('tv not at walmart').retailers).toEqual(['amazon', 'samsclub', 'target', 'costco', 'bestbuy']);
+    expect(parseAskRules('tv not at walmart').retailers).toEqual(['amazon', 'kroger', 'samsclub', 'target', 'costco', 'bestbuy']);
     expect(parseAskRules('tv on amazon')).toMatchObject({ retailers: ['amazon'], query: 'tv' });
     expect(parseAskRules('tv').retailers).toBeNull();
   });
@@ -93,7 +93,7 @@ describe('parseAskRules', () => {
 });
 
 describe('topPickReason guards', () => {
-  const product = async (): Promise<Product> => personalizeProduct((await new MockProvider().getProduct('dash-mini-2-cup-rice-cooker'))!);
+  const product = async (): Promise<Product> => personalizeProduct((await new MockProvider({ catalog: 'general' }).getProduct('dash-mini-2-cup-rice-cooker'))!);
 
   it('accepts only dollar figures that match a real offer', async () => {
     const p = await product();
@@ -154,7 +154,7 @@ describe('AskService', () => {
   const service = (create: Create | null, opts: { timeoutMs?: number; budget?: ClaudeBudget } = {}) => {
     const fake = create ? fakeClient(create) : null;
     const svc = new AskService({
-      catalog: new Catalog([new MockProvider()], catalogOpts),
+      catalog: new Catalog([new MockProvider({ catalog: 'general' })], catalogOpts),
       claude: fake ? new ClaudeAsk({ client: fake.client, model: 'claude-haiku-5-5' }) : null,
       budget: opts.budget ?? new ClaudeBudget(undefined),
       timeoutMs: opts.timeoutMs ?? 1000,
@@ -179,7 +179,7 @@ describe('AskService', () => {
     expect(r.topPickReason).toContain(r.products[0]!.title);
     expect(r.topPickReason).toContain('within your $60 limit');
     expect(reasonPricesValid(r.topPickReason!.replace('$60 limit', 'limit'), r.products[0]!)).toBe(true);
-    expect(r.retailers).toHaveLength(6);
+    expect(r.retailers).toHaveLength(7);
   });
 
   it('maxPrice is applied to the LANDED price of the cheapest ELIGIBLE offer', async () => {
@@ -258,7 +258,7 @@ describe('AskService', () => {
   });
 
   it('uses the model reason for the top product only when its prices are real; otherwise the template', async () => {
-    const mock = new MockProvider();
+    const mock = new MockProvider({ catalog: 'general' });
     const dash = personalizeProduct((await mock.getProduct('dash-mini-2-cup-rice-cooker'))!);
     const price = dash.offers.find((o) => o.id === dash.cheapestOfferId)!.totalPrice.toFixed(2);
     const input = (reason: string) => modelInput({ maxPrice: null, mustHave: ['compact'], reasons: [{ candidateId: dash.id, reason }] });
@@ -347,7 +347,7 @@ describe('POST /v1/ask', () => {
     app = await buildApp({
       config: testConfig(overrides),
       store,
-      providers: [new MockProvider()],
+      providers: [new MockProvider({ catalog: 'general' })],
       claudeAsk: create ? new ClaudeAsk({ client: fakeClient(create).client, model: 'claude-haiku-5-5' }) : null,
     });
     return ((await app.fastify.inject({ method: 'POST', url: '/v1/devices' })).json() as RegisterDeviceResponse).token;
@@ -374,7 +374,7 @@ describe('POST /v1/ask', () => {
     expect(body.source).toBe('rules');
     expect(body.interpretation).toEqual({ query: 'rice cooker', maxPrice: 60, minRating: null, retailers: null, sort: 'best_match', mustHave: ['quiet'] });
     expect(typeof body.tookMs).toBe('number');
-    expect(body.retailers).toHaveLength(6);
+    expect(body.retailers).toHaveLength(7);
     expect(body.products.length).toBeGreaterThan(0);
     for (const p of body.products) {
       const cheapest = p.offers.find((o) => o.id === p.cheapestOfferId)!;

@@ -5,7 +5,7 @@ import { SEEDS } from '../src/providers/mock/catalog.js';
 import type { PriceProvider } from '../src/providers/types.js';
 import { buildOutboundUrl, RETAILER_IDS } from '../src/retailers.js';
 
-const mock = new MockProvider();
+const mock = new MockProvider({ catalog: 'general' });
 const titles = async (q: string, limit = 10) => (await mock.search(q, { limit })).map((h) => h.product.title);
 const catalogOpts = { providerTimeoutMs: 50, cacheMaxEntries: 100, cacheTtlMs: 60_000, cacheSwrMs: 60_000 };
 
@@ -43,8 +43,8 @@ describe('mock catalog', () => {
   });
 
   it('is deterministic across instances', async () => {
-    const a = await new MockProvider().browse();
-    const b = await new MockProvider().browse();
+    const a = await new MockProvider({ catalog: 'general' }).browse();
+    const b = await new MockProvider({ catalog: 'general' }).browse();
     expect(a.map((p) => p.offers.map((o) => [o.id, o.price, o.inStock]))).toEqual(
       b.map((p) => p.offers.map((o) => [o.id, o.price, o.inStock])),
     );

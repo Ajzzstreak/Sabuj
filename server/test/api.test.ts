@@ -19,7 +19,7 @@ import { testConfig } from './helpers.js';
 let app: App;
 let store: Store;
 
-async function start(overrides: Partial<Config> = {}, providers: PriceProvider[] = [new MockProvider()]) {
+async function start(overrides: Partial<Config> = {}, providers: PriceProvider[] = [new MockProvider({ catalog: 'general' })]) {
   store = new Store(':memory:');
   app = await buildApp({ config: testConfig(overrides), store, providers });
 }
@@ -63,7 +63,7 @@ describe('basic endpoints (anonymous)', () => {
     expect(first.query).toBe('rice cooker');
     expect(first.cached).toBe(false);
     expect(first.personalized).toBe(false);
-    expect(first.retailers).toHaveLength(6);
+    expect(first.retailers).toHaveLength(7);
     expect(typeof first.tookMs).toBe('number');
     expect(first.products[0]!.category).toBe('Rice Cookers');
     for (const p of first.products) {
@@ -100,7 +100,7 @@ describe('basic endpoints (anonymous)', () => {
   it('GET /v1/home without a profile', async () => {
     const res = (await get('/v1/home')).json() as HomeResponse;
     expect(res.trendingQueries.length).toBeGreaterThan(0);
-    expect(res.retailers).toHaveLength(6);
+    expect(res.retailers).toHaveLength(7);
     const kinds = res.sections.map((s) => s.kind);
     expect(kinds).toContain('top_deals');
     expect(kinds).toContain('category');
@@ -119,7 +119,7 @@ describe('basic endpoints (anonymous)', () => {
     expect(product.id).toBe(id);
     expect(product.priceHistory.length).toBe(product.offers.length * 90);
     expect(product.description).toBeTruthy();
-    expect(retailers).toHaveLength(6);
+    expect(retailers).toHaveLength(7);
   });
 
   it('sets CORS headers and allows PUT + Authorization in preflight', async () => {
@@ -355,7 +355,7 @@ describe('abuse and privacy hardening', () => {
     app = await buildApp({
       config: testConfig(),
       store,
-      providers: [new MockProvider()],
+      providers: [new MockProvider({ catalog: 'general' })],
       logger: { level: 'info', stream: { write: (l: string) => void lines.push(l) } } as { level: string },
     });
     const { deviceId, token } = await register();
@@ -469,7 +469,7 @@ describe('GET /v1/lookup (barcode)', () => {
       expect(body.product.id).toBe(product.id);
       expect(body.product.priceHistory.length).toBeGreaterThan(0);
       expect(body.product.offers[0]!.estimatedTax).not.toBeNull();
-      expect(body.retailers).toHaveLength(6);
+      expect(body.retailers).toHaveLength(7);
     }
   });
 

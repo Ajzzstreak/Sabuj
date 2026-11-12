@@ -10,6 +10,7 @@ import { RETAILER_IDS } from '../retailers.js';
 const RETAILER_ALIASES: Array<[RegExp, RetailerId]> = [
   [/\bamazon(?:\.com)?\b/g, 'amazon'],
   [/\bwal-?\s?mart\b/g, 'walmart'],
+  [/\bkroger'?s?\b/g, 'kroger'],
   [/\bsam'?s(?:\s+club)?\b/g, 'samsclub'],
   [/\btarget\b/g, 'target'],
   [/\bcostco\b/g, 'costco'],
@@ -27,7 +28,10 @@ const RATING = /(?:\b(?:at least|min(?:imum)?(?: of)?|over|above|more than)\s+)?
 const RATED = /\brated\s+(?:at least\s+|above\s+|over\s+)?(\d(?:\.\d)?)\b(?:\s*(?:\+|or (?:more|higher|above|better)|and (?:up|above)))?/g;
 
 const SORT_TOP_RATED = /\b(?:top|best|highest|highly|well)[\s-]+(?:rated|reviewed)\b|\bbest reviews\b/g;
-const SORT_LOWEST = /\b(?:cheapest|lowest[\s-]+priced?|least expensive|lowest cost|most affordable)\b/g;
+const SORT_LOWEST = /\b(?:cheapest|cheap|inexpensive|lowest[\s-]+priced?|low[\s-]+priced?|least expensive|lowest cost|most affordable)\b/g;
+
+/** Multi-word attributes, matched before the text is split into words. */
+const ATTRIBUTE_PHRASES = /\b(gluten|sugar|lactose|dairy|fat|nut|fragrance|caffeine)[\s-]+free\b|\b(low)[\s-]+(sodium|fat|sugar|carb)\b|\b(whole)[\s-]+(grain)\b|\b(no)[\s-]+(sugar|salt)[\s-]+added\b/g;
 
 const NEGATION = /\b(?:not|except|excluding|other than|anywhere but|no)\s+(?:at\s+|from\s+|on\s+)?$/;
 
@@ -36,7 +40,8 @@ const ATTRIBUTES = new Set([
   'quiet', 'silent', 'small', 'compact', 'mini', 'large', 'big', 'portable', 'lightweight', 'wireless', 'cordless', 'waterproof',
   'durable', 'fast', 'quick', 'digital', 'smart', 'stainless', 'nonstick', 'rechargeable', 'foldable', 'slim', 'programmable',
   'automatic', 'adjustable', 'ergonomic', 'powerful', 'quiet-running', 'energy-efficient', 'dishwasher-safe', 'heavy-duty', 'budget',
-  'simple', 'easy', 'sturdy', 'travel', 'kids', 'professional',
+  'simple', 'easy', 'sturdy', 'travel', 'kids', 'professional', 'organic', 'unsweetened', 'unsalted', 'decaf', 'boneless', 'skinless',
+  'nonfat', 'lean', 'vegan', 'keto', 'kosher', 'unscented', 'hypoallergenic', 'thick', 'creamy', 'crunchy',
 ]);
 
 const FILLER = new Set([
@@ -119,6 +124,13 @@ export function parseAskRules(text: string): AskInterpretation {
   else if (unwanted.size > 0) retailers = RETAILER_IDS.filter((r) => !unwanted.has(r));
   if (retailers && retailers.length === 0) retailers = null;
 
+  // --- multi-word attributes ("gluten free", "low sodium") ---
+  const phrases: string[] = [];
+  cut(ATTRIBUTE_PHRASES, (m) => {
+    const phrase = m[0].replace(/[\s-]+/g, ' ');
+    if (!phrases.includes(phrase) && phrases.length < 6) phrases.push(phrase);
+  });
+
   // --- what is left: "for two people" style qualifiers, filler, attributes, keywords ---
   t = t.replace(/\bfor\s+(?:\w+\s+)?(?:people|persons?|adults|kids|children|guests)\b/g, ' ');
   const words = t
@@ -126,7 +138,7 @@ export function parseAskRules(text: string): AskInterpretation {
     .split(' ')
     .map((w) => w.replace(/^[.'"+-]+|[.'"+]+$/g, ''))
     .filter((w) => w.length > 0);
-  const mustHave: string[] = [];
+  const mustHave: string[] = [...phrases];
   const keywords: string[] = [];
   for (const w of words) {
     if (FILLER.has(w)) continue;

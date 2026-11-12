@@ -55,6 +55,20 @@ const EnvSchema = z.object({
   CLAUDE_TIMEOUT_MS: int(30000, 1000),
   CLAUDE_MAX_CALLS_PER_HOUR: int(200, 0),
   MOCK_PRICE_OVERRIDES: str(''),
+  MOCK_CATALOG: z
+    .string()
+    .optional()
+    .transform((v) => (v ?? '').trim().toLowerCase() || 'grocery')
+    .pipe(z.enum(['grocery', 'general', 'all'])),
+  KROGER_CLIENT_ID: z.string().optional(),
+  KROGER_CLIENT_SECRET: z.string().optional(),
+  BASKET_MAX_ITEMS: int(60, 1, 200),
+  BASKET_RATE_LIMIT_MAX: int(30, 1),
+  BASKET_SPLIT_MIN_SAVINGS: z
+    .string()
+    .optional()
+    .transform((v) => (v === undefined || v.trim() === '' ? 1 : Number(v)))
+    .pipe(z.number().min(0).max(1000)),
   CATALOG_CATEGORIES: str(''),
   BESTBUY_API_KEY: z.string().optional(),
   WALMART_CONSUMER_ID: z.string().optional(),
@@ -107,6 +121,15 @@ export interface Config {
   claudeMaxCallsPerHour: number;
   /** Raw MOCK_PRICE_OVERRIDES: "productId:retailerId=price,...". Dev/test hook. */
   mockPriceOverrides: string;
+  /** Which demo data the mock provider serves. */
+  mockCatalog: 'grocery' | 'general' | 'all';
+  krogerClientId: string | null;
+  krogerClientSecret: string | null;
+  basketMaxItems: number;
+  /** POST /v1/basket per device (or per IP when anonymous) per rate-limit window. */
+  basketRateLimitMax: number;
+  /** A two-store split is only suggested when it saves at least this many dollars. */
+  basketSplitMinSavings: number;
   /** Lower-cased category names the catalog is limited to; empty = everything. */
   catalogCategories: string[];
   bestbuyApiKey: string | null;
@@ -164,6 +187,12 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     claudeTimeoutMs: e.CLAUDE_TIMEOUT_MS,
     claudeMaxCallsPerHour: e.CLAUDE_MAX_CALLS_PER_HOUR,
     mockPriceOverrides: e.MOCK_PRICE_OVERRIDES,
+    mockCatalog: e.MOCK_CATALOG,
+    krogerClientId: opt(e.KROGER_CLIENT_ID),
+    krogerClientSecret: opt(e.KROGER_CLIENT_SECRET),
+    basketMaxItems: e.BASKET_MAX_ITEMS,
+    basketRateLimitMax: e.BASKET_RATE_LIMIT_MAX,
+    basketSplitMinSavings: e.BASKET_SPLIT_MIN_SAVINGS,
     catalogCategories: e.CATALOG_CATEGORIES.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
     bestbuyApiKey: opt(e.BESTBUY_API_KEY),
     walmartConsumerId: opt(e.WALMART_CONSUMER_ID),

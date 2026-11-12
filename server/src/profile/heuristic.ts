@@ -3,7 +3,7 @@
  * Pure function — no I/O, no clock access (pass `now`), deterministic.
  */
 import type { ActivityEvent, EventType, RetailerId, UserProfile } from '../contract.js';
-import { isMembershipRetailer, isRetailerId, retailerName, RETAILER_IDS } from '../retailers.js';
+import { isMembershipRetailer, isRetailerId, retailerName, RETAILER_IDS, STORE_BRAND_LABELS } from '../retailers.js';
 
 /** Facts about a clicked offer that the event itself does not carry. */
 export interface OfferFacts {
@@ -26,11 +26,14 @@ export interface HeuristicContext {
 /** Interest weight per event type. offer_click is the strongest signal. */
 export const EVENT_WEIGHT: Record<EventType, number> = {
   offer_click: 5,
+  // Putting something on the shopping list is nearly as strong as clicking through.
+  list_add: 4,
   save: 3,
   product_view: 1.5,
   search: 1,
   offer_impression: 0.1,
   unsave: -2,
+  list_remove: -2,
 };
 
 const HALF_LIFE_MS = 14 * 86_400_000;
@@ -103,6 +106,9 @@ export function buildHeuristicProfile(events: readonly ActivityEvent[], ctx: Heu
   let qualityHits = 0;
   let factsN = 0;
   let maxPremiumPct = 0;
+  // Store-brand vs national-brand choices, from what the shopper lists or clicks.
+  let storeBrandPicks = 0;
+  let nationalBrandPicks = 0;
 
   for (const e of events) {
     const age = Math.max(0, ctx.now - e.ts);
@@ -111,6 +117,10 @@ export function buildHeuristicProfile(events: readonly ActivityEvent[], ctx: Heu
 
     if (e.category) categories.set(e.category, (categories.get(e.category) ?? 0) + w);
     if (e.brand) brands.set(e.brand, (brands.get(e.brand) ?? 0) + w);
+    if (e.brand && (e.type === 'list_add' || e.type === 'offer_click')) {
+      if (STORE_BRAND_LABELS.has(e.brand.toLowerCase())) storeBrandPicks += 1;
+      else nationalBrandPicks += 1;
+    }
 
     if (e.type === 'search' && e.query) {
       const q = e.query.toLowerCase().replace(/\s+/g, ' ').trim();
@@ -235,6 +245,11 @@ export function buildHeuristicProfile(events: readonly ActivityEvent[], ctx: Heu
   for (const m of memberships) insights.push(`Looks like you shop with a ${retailerName(m)} membership`);
   if (factsN >= 3 && speedHits / factsN >= 0.4) insights.push('You often pay a little more for faster delivery');
   if (factsN >= 3 && qualityHits / factsN >= 0.4) insights.push('You lean toward better-reviewed listings');
+  // There is no profile field for this preference, so it is surfaced as an
+  // insight (and through brandAffinity, which already ranks the labels).
+  const brandPicks = storeBrandPicks + nationalBrandPicks;
+  if (brandPicks >= 4 && storeBrandPicks / brandPicks >= 0.6) insights.push('You mostly choose store brands over name brands');
+  else if (brandPicks >= 4 && storeBrandPicks / brandPicks <= 0.2) insights.push('You mostly choose name brands over store brands');
   if (topCats.length) insights.push(`You look at ${joinNames(topCats.map((c) => c.toLowerCase()))} the most`);
 
   const shopperKind =
