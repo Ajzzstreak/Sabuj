@@ -4,7 +4,8 @@
  * so cached provider results stay identical for every user.
  */
 import type { Offer, RetailerId } from './contract.js';
-import type { ProviderOffer } from './providers/types.js';
+import type { ProviderOffer, StoreSelection } from './providers/types.js';
+import { unitPriceOf } from './size.js';
 import { estimatedTaxRateForZip } from './tax.js';
 
 export interface ShopperContext {
@@ -12,14 +13,26 @@ export interface ShopperContext {
   taxRate: number | null;
   /** Memberships the shopper STATED they hold; null = not answered. */
   memberships: readonly RetailerId[] | null;
+  /** Store the shopper buys from at each retailer; absent retailers get the national price. */
+  stores?: StoreSelection;
+  /**
+   * Re-prices an offer for a store (Catalog.localizeOffer). Applied here, after
+   * the shared cache, so one cache entry serves every store selection.
+   */
+  localize?: (offer: ProviderOffer, storeId: string) => ProviderOffer;
 }
 
 export const NO_CONTEXT: ShopperContext = { taxRate: null, memberships: null };
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-export function shopperContext(zip: string | null | undefined, memberships: readonly RetailerId[] | null | undefined): ShopperContext {
-  return { taxRate: zip ? estimatedTaxRateForZip(zip) : null, memberships: memberships ?? null };
+export function shopperContext(
+  zip: string | null | undefined,
+  memberships: readonly RetailerId[] | null | undefined,
+  stores?: StoreSelection,
+  localize?: ShopperContext['localize'],
+): ShopperContext {
+  return { taxRate: zip ? estimatedTaxRateForZip(zip) : null, memberships: memberships ?? null, stores, localize };
 }
 
 export function isLinkOnly(o: { priceSource: Offer['priceSource'] }): boolean {
@@ -32,17 +45,33 @@ export function isRankable(o: Offer): boolean {
 }
 
 /**
- * Fill estimatedTax, landedPrice and eligible.
+ * Turn provider offers into API offers for one shopper:
+ *   1. price each offer at the shopper's store for that retailer (when selected),
+ *   2. fill estimatedTax, landedPrice and eligible,
+ *   3. derive unitPrice / unitLabel from the item price and size.
  * Tax is estimated on the item price only (shipping taxability varies by state).
  */
 export function applyContext(offers: readonly ProviderOffer[], ctx: ShopperContext = NO_CONTEXT): Offer[] {
-  return offers.map((o) => {
+  return offers.map((raw) => {
+    const storeId = raw.storeId === null ? ctx.stores?.[raw.retailerId] : undefined;
+    const o = storeId && ctx.localize ? ctx.localize(raw, storeId) : raw;
     if (isLinkOnly(o)) {
       // No price is known: nothing to tax, nothing to compare.
-      return { ...o, price: 0, listPrice: null, shipping: null, totalPrice: 0, estimatedTax: null, landedPrice: 0, eligible: eligibleFor(o, ctx) };
+      return {
+        ...o, price: 0, listPrice: null, shipping: null, totalPrice: 0, estimatedTax: null, landedPrice: 0,
+        eligible: eligibleFor(o, ctx), unitPrice: null, unitLabel: null,
+      };
     }
     const estimatedTax = ctx.taxRate === null ? null : round2(o.price * ctx.taxRate);
-    return { ...o, estimatedTax, landedPrice: round2(o.totalPrice + (estimatedTax ?? 0)), eligible: eligibleFor(o, ctx) };
+    const unit = unitPriceOf(o.price, o.size);
+    return {
+      ...o,
+      estimatedTax,
+      landedPrice: round2(o.totalPrice + (estimatedTax ?? 0)),
+      eligible: eligibleFor(o, ctx),
+      unitPrice: unit?.unitPrice ?? null,
+      unitLabel: unit?.unitLabel ?? null,
+    };
   });
 }
 

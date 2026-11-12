@@ -67,10 +67,10 @@ export function ListRow({ title, titleNode, subtitle, value, icon, leading, trai
       {onPress && chevron ? <Ionicons name="chevron-forward" size={16} color={c.textTertiary} /> : null}
     </>
   );
-  const frame = [styles.row, divider && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }, disabled && styles.disabled];
+  const line = divider && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border };
   if (!onPress) {
     return (
-      <View testID={testID} style={frame}>
+      <View testID={testID} style={[styles.row, line]}>
         {content}
       </View>
     );
@@ -86,9 +86,10 @@ export function ListRow({ title, titleNode, subtitle, value, icon, leading, trai
       accessibilityLabel={accessibilityLabel ?? [title, value, subtitle].filter(Boolean).join(', ')}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled }}
-      style={frame}
+      style={[styles.pressable, line]}
     >
-      {content}
+      {/* Dimmed on an inner view: the touchable animates its own opacity. */}
+      <View style={[styles.row, disabled && styles.disabled]}>{content}</View>
     </PressableScale>
   );
 }
@@ -142,6 +143,7 @@ export function ToggleRow({ label, detail, value, onValueChange, icon, leading, 
 
 const styles = StyleSheet.create({
   row: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: space.md, paddingVertical: space.sm },
+  pressable: { borderRadius: 10 },
   disabled: { opacity: 0.45 },
   icon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   text: { flex: 1, minWidth: 0 },

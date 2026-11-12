@@ -3,10 +3,11 @@
  * Pure, synchronous, allocation-light. No I/O and no LLM calls happen here:
  * the learned profile is just a handful of numeric weights.
  */
-import type { Offer, Product, ProductDetail, RetailerId, UserProfile } from './contract.js';
+import { buildComparison, cheapestContender, type Comparison, isContender } from './compare.js';
+import type { Offer, PackageSize, Product, ProductDetail, RetailerId, UserProfile } from './contract.js';
 import type { ProviderProduct, ProviderProductDetail } from './providers/types.js';
 import { retailerName } from './retailers.js';
-import { applyContext, cheapestRankable, isLinkOnly, isRankable, NO_CONTEXT, type ShopperContext } from './shopper.js';
+import { applyContext, isLinkOnly, NO_CONTEXT, type ShopperContext } from './shopper.js';
 
 /** The subset of a profile that ranking reads. */
 export type RankingProfile = Pick<
@@ -102,44 +103,70 @@ const sumParts = (p: UtilityParts) => p.affinity + p.speed + p.quality + p.membe
  *
  *   effectiveCost = landedPrice - budget(profile, cheapest) * utility(offer, profile)
  *
+ * Prices are compared through `buildComparison` (src/compare.ts): landedPrice
+ * for same-item/same-size products, landed price per unit as soon as any offer
+ * is an 'equivalent' or a different package size.
+ *
  * Tiers, in order (an offer never outranks one in an earlier tier):
- *   0. in stock, eligible, priced, and within the shopper's premium bound
- *   1. in stock, eligible, priced, but pricier than the bound (never recommended)
+ *   0. in stock, eligible, priced, comparable, and within the shopper's premium bound
+ *   1. in stock, eligible, priced, but pricier than the bound or not comparable
+ *      (unknown size / other dimension) — never recommended
  *   2. in stock but ineligible (needs a membership the shopper said they lack)
  *   3. out of stock
  *   4. link-only ("check price") offers, which have no price to rank
  * With an empty/neutral profile the budget is 0 and the bound is the cheapest
- * price itself, so the order is strictly cheapest landed price first.
+ * price itself, so the order is strictly cheapest first.
  */
-export function rankOffers(offers: readonly Offer[], profile: RankingProfile = NEUTRAL_RANKING_PROFILE): Offer[] {
-  const cheapest = cheapestRankable(offers);
-  const budget = cheapest ? preferenceBudget(cheapest.landedPrice, profile) : 0;
-  const bound = cheapest ? premiumBound(cheapest.landedPrice, profile) : 0;
-  const tierOf = (o: Offer): number => {
-    if (isLinkOnly(o)) return 4;
-    if (!o.inStock) return 3;
-    if (!o.eligible) return 2;
-    return o.landedPrice <= bound ? 0 : 1;
-  };
+export function rankOffers(
+  offers: readonly Offer[],
+  profile: RankingProfile = NEUTRAL_RANKING_PROFILE,
+  productSize: PackageSize | null = null,
+): Offer[] {
+  const cmp = buildComparison(offers, productSize);
+  const cheapest = cheapestContender(offers, cmp);
+  const cheapestValue = cheapest ? cmp.value(cheapest)! : 0;
+  const budget = cheapest ? preferenceBudget(cheapestValue, profile) : 0;
+  const bound = cheapest ? premiumBound(cheapestValue, profile) : 0;
   const scored = offers.map((offer) => {
-    const tier = tierOf(offer);
-    return {
-      offer,
-      tier,
-      cost: budget === 0 || tier !== 0 ? offer.landedPrice : offer.landedPrice - budget * sumParts(utilityParts(offer, profile)),
-    };
+    const value = cmp.value(offer);
+    let tier: number;
+    if (isLinkOnly(offer)) tier = 4;
+    else if (!offer.inStock) tier = 3;
+    else if (!offer.eligible) tier = 2;
+    else tier = value !== null && value <= bound ? 0 : 1;
+    // Offers without a comparison value sort after comparable ones in their tier.
+    const price = value ?? Number.MAX_VALUE;
+    return { offer, tier, price, cost: budget === 0 || tier !== 0 ? price : price - budget * sumParts(utilityParts(offer, profile)) };
   });
   scored.sort((a, b) => {
     if (a.tier !== b.tier) return a.tier - b.tier;
     if (a.cost !== b.cost) return a.cost - b.cost;
+    if (a.price !== b.price) return a.price - b.price;
     if (a.offer.landedPrice !== b.offer.landedPrice) return a.offer.landedPrice - b.offer.landedPrice;
     return a.offer.retailerId < b.offer.retailerId ? -1 : a.offer.retailerId > b.offer.retailerId ? 1 : 0;
   });
   return scored.map((s) => s.offer);
 }
 
+/** "$3 more" for same-size items; "1.2¢ per oz more" when sizes or items differ. */
+function gapText(recommended: Offer, cheapest: Offer, cmp: Comparison): string {
+  if (cmp.unitMode) {
+    const gap = (cmp.perUnit(recommended) ?? 0) - (cmp.perUnit(cheapest) ?? 0);
+    const per = cmp.unitLabel ?? 'per unit';
+    if (gap < 0.00005) return `the same price ${per}`;
+    return gap < 1 ? `${(gap * 100).toFixed(1)}¢ ${per} more` : `$${gap.toFixed(2)} ${per} more`;
+  }
+  const gap = round2(recommended.landedPrice - cheapest.landedPrice);
+  return gap > 0 ? `$${Number.isInteger(gap) ? gap : gap.toFixed(2)} more` : 'the same price';
+}
+
 /** Why `recommended` beat `cheapest` for this profile. */
-export function recommendationReason(recommended: Offer, cheapest: Offer, profile: RankingProfile): string {
+export function recommendationReason(
+  recommended: Offer,
+  cheapest: Offer,
+  profile: RankingProfile,
+  cmp: Comparison = buildComparison([recommended, cheapest], null),
+): string {
   const a = utilityParts(recommended, profile);
   const b = utilityParts(cheapest, profile);
   const deltas: Array<[keyof UtilityParts, number]> = [
@@ -151,10 +178,10 @@ export function recommendationReason(recommended: Offer, cheapest: Offer, profil
   deltas.sort((x, y) => y[1] - x[1]);
   const [driver] = deltas[0]!;
   const name = retailerName(recommended.retailerId);
-  // The only dollar figure stated is the real gap between these two offers —
-  // never a threshold derived from profile weights.
-  const gap = round2(recommended.landedPrice - cheapest.landedPrice);
-  const more = gap > 0 ? `$${Number.isInteger(gap) ? gap : gap.toFixed(2)} more` : 'the same price';
+  // The only figure stated is the real gap between these two offers (per
+  // unit when they are different sizes/items) — never a threshold derived from
+  // profile weights.
+  const more = gapText(recommended, cheapest, cmp);
   let reason: string;
   switch (driver) {
     case 'affinity':
@@ -223,20 +250,23 @@ export function personalizeProduct(
   ctx: ShopperContext = NO_CONTEXT,
 ): Product {
   const effective: RankingProfile = ctx.memberships ? { ...profile, memberships: [...ctx.memberships] } : profile;
-  const offers = rankOffers(applyContext(base.offers, ctx), effective);
-  const cheapest = cheapestRankable(offers);
-  // Only a rankable offer is ever "recommended": not an ineligible, out-of-stock
-  // or link-only one, even when nothing better exists.
-  const top = offers[0] && isRankable(offers[0]) ? offers[0] : null;
-  let maxLanded = 0;
-  for (const o of offers) if (isRankable(o) && o.landedPrice > maxLanded) maxLanded = o.landedPrice;
+  const offers = rankOffers(applyContext(base.offers, ctx), effective, base.size);
+  const cmp = buildComparison(offers, base.size);
+  const cheapest = cheapestContender(offers, cmp);
+  // Only a contender is ever "recommended": not an ineligible, out-of-stock,
+  // link-only or non-comparable offer, even when nothing better exists.
+  const top = offers[0] && isContender(offers[0], cmp) ? offers[0] : null;
+  let maxValue = 0;
+  for (const o of offers) if (isContender(o, cmp)) maxValue = Math.max(maxValue, cmp.value(o)!);
   const { rating, reviewCount } = aggregateRating(offers);
-  const reason = top && cheapest && top.id !== cheapest.id ? recommendationReason(top, cheapest, effective) : null;
+  const reason = top && cheapest && top.id !== cheapest.id ? recommendationReason(top, cheapest, effective, cmp) : null;
   return {
     id: base.id,
     title: base.title,
     brand: base.brand,
     category: base.category,
+    size: base.size,
+    isStoreBrand: base.isStoreBrand,
     imageUrl: base.imageUrl,
     gtin: base.gtin,
     highlights: base.highlights,
@@ -246,7 +276,8 @@ export function personalizeProduct(
     cheapestOfferId: cheapest?.id ?? null,
     recommendedOfferId: top?.id ?? null,
     recommendationReason: reason,
-    maxSavings: cheapest ? round2(maxLanded - cheapest.landedPrice) : 0,
+    // In unit mode this is the saving on the reference package (see src/compare.ts).
+    maxSavings: cheapest ? round2(maxValue - cmp.value(cheapest)!) : 0,
   };
 }
 
@@ -259,10 +290,11 @@ export function personalizeProductDetail(base: ProviderProductDetail, profile?: 
   };
 }
 
-/** maxSavings as a fraction of the most expensive rankable landed price (0..1). */
+/** maxSavings as a fraction of the most expensive contender (0..1). */
 export function savingsFraction(p: Product): number {
+  const cmp = buildComparison(p.offers, p.size);
   let max = 0;
-  for (const o of p.offers) if (isRankable(o) && o.landedPrice > max) max = o.landedPrice;
+  for (const o of p.offers) if (isContender(o, cmp)) max = Math.max(max, cmp.value(o)!);
   return max > 0 ? p.maxSavings / max : 0;
 }
 

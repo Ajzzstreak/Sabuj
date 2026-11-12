@@ -79,13 +79,16 @@ export default function ProfileScreen() {
     try {
       // Server first: if it cannot be reached, nothing local is touched and the request can be retried.
       await deleteProfile();
-      // The server has erased the data and revoked the token. Now everything on this device...
+      // The server has erased the data and revoked the token. Drop the token first, so that
+      // nothing below (cleared queries refetching, for one) can send it again...
+      const fresh = replaceSession();
+      // ...then everything personal on this device...
       clearQueue();
       clearLocalState();
       clearSeeds();
       await wipeQueryCache();
-      // ...and a fresh anonymous device. The old token is never sent again.
-      await replaceSession();
+      // ...and wait for the fresh anonymous device.
+      await fresh;
       haptic.success();
       setConfirming(false);
       setDeleted(true);

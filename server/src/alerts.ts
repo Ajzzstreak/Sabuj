@@ -4,21 +4,32 @@
  * No LLM is involved anywhere here.
  */
 import type { Catalog } from './catalog.js';
+import { buildComparison } from './compare.js';
 import type { PriceAlert, RetailerId } from './contract.js';
 import type { AlertRow, Store } from './db.js';
 import type { ProviderProduct } from './providers/types.js';
 import type { PushMessage, PushSender } from './push.js';
 import { retailerName } from './retailers.js';
 import { applyContext, cheapestRankable, shopperContext } from './shopper.js';
+import { sameSize } from './size.js';
 
 export interface BestPrice {
   price: number;
   retailerId: RetailerId;
 }
 
-/** Lowest landedPrice among in-stock, eligible, priced offers under the alert's own zip/memberships. */
+/**
+ * Lowest landedPrice among in-stock, eligible, priced offers under the alert's
+ * own zip/memberships. An alert watches a SHELF price, so when the product's
+ * offers are only comparable per unit (other stores' equivalents, other sizes)
+ * only offers for the exact item in the product's own size count.
+ */
 export function bestPriceFor(product: ProviderProduct, alert: Pick<AlertRow, 'zip' | 'memberships'>): BestPrice | null {
-  const best = cheapestRankable(applyContext(product.offers, shopperContext(alert.zip, alert.memberships)));
+  const offers = applyContext(product.offers, shopperContext(alert.zip, alert.memberships));
+  const pool = buildComparison(offers, product.size).unitMode
+    ? offers.filter((o) => o.matchType === 'exact' && sameSize(o.size, product.size))
+    : offers;
+  const best = cheapestRankable(pool);
   return best ? { price: best.landedPrice, retailerId: best.retailerId } : null;
 }
 

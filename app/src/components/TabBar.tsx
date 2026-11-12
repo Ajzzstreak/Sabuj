@@ -99,7 +99,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
 
 const styles = StyleSheet.create({
   bar: { flexDirection: 'row', borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 6 },
-  item: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  item: { flex: 1, minHeight: 50, alignItems: 'center', justifyContent: 'center', gap: 3, borderRadius: radius.md },
   dot: { position: 'absolute', top: -6, right: -14 },
   wideBar: { borderBottomWidth: StyleSheet.hairlineWidth },
   wideInner: { width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center', height: 64, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

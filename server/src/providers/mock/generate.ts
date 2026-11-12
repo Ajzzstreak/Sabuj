@@ -4,7 +4,7 @@
  * dates of the price history (and observedAt) move with the clock.
  */
 import type { PricePoint, RetailerId } from '../../contract.js';
-import { buildOutboundUrl, isMembershipRetailer, RETAILER_IDS } from '../../retailers.js';
+import { buildOutboundUrl, isMembershipRetailer } from '../../retailers.js';
 import type { ProviderOffer, ProviderProduct, ProviderProductDetail } from '../types.js';
 import { CATEGORY_NOUN, type CatalogSeed } from './catalog.js';
 
@@ -54,6 +54,7 @@ const DELIVERY: Record<RetailerId, string[]> = {
   bestbuy: ['Pickup today', 'Tomorrow', '2-day'],
   costco: ['3-5 days', '2-day', '5-7 days'],
   samsclub: ['Pickup today', '3-5 days', '2-day'],
+  kroger: ['Pickup today', 'Tomorrow'],
 };
 
 /** How many reviews a retailer typically accumulates, relative to Amazon. */
@@ -64,6 +65,7 @@ const REVIEW_SCALE: Record<RetailerId, number> = {
   bestbuy: 0.12,
   costco: 0.04,
   samsclub: 0.03,
+  kroger: 0.1,
 };
 
 /** Per-retailer price bias: warehouse clubs run cheaper, others near street price. */
@@ -74,10 +76,18 @@ const PRICE_BIAS: Record<RetailerId, number> = {
   bestbuy: 0.012,
   costco: -0.05,
   samsclub: -0.055,
+  kroger: 0.005,
 };
 
+/**
+ * Retailers of the general (non-grocery) demo catalog. Deliberately a fixed
+ * list rather than RETAILER_IDS: adding a retailer to the app must not reshuffle
+ * this catalog's deterministic offers.
+ */
+export const GENERAL_RETAILERS: readonly RetailerId[] = ['amazon', 'walmart', 'samsclub', 'target', 'costco', 'bestbuy'];
+
 function pickRetailers(seed: CatalogSeed, rand: () => number): RetailerId[] {
-  const pool: RetailerId[] = [...(seed.only ?? RETAILER_IDS)];
+  const pool: RetailerId[] = [...(seed.only ?? GENERAL_RETAILERS)];
   // Fisher-Yates with the seeded generator.
   for (let i = pool.length - 1; i > 0; i--) {
     const j = Math.floor(rand() * (i + 1));
@@ -85,7 +95,7 @@ function pickRetailers(seed: CatalogSeed, rand: () => number): RetailerId[] {
   }
   const want = 3 + Math.floor(rand() * 4); // 3..6
   const chosen = pool.slice(0, Math.min(pool.length, Math.max(3, want)));
-  return RETAILER_IDS.filter((r) => chosen.includes(r));
+  return GENERAL_RETAILERS.filter((r) => chosen.includes(r));
 }
 
 export function generateOffers(productId: string, seed: CatalogSeed, observedAt: string): ProviderOffer[] {
@@ -138,6 +148,10 @@ export function generateOffers(productId: string, seed: CatalogSeed, observedAt:
       url: buildOutboundUrl(retailerId, seed.title),
       observedAt,
       priceSource: 'demo',
+      matchType: 'exact',
+      offerTitle: null,
+      size: null,
+      storeId: null,
     };
   });
 }
@@ -162,6 +176,8 @@ export function buildProduct(seed: CatalogSeed, observedAt: string): ProviderPro
     category: seed.category,
     imageUrl: null,
     gtin: fakeGtin(id),
+    size: null,
+    isStoreBrand: false,
     highlights: seed.highlights,
     offers: generateOffers(id, seed, observedAt),
   };
@@ -173,13 +189,19 @@ const HISTORY_DAYS = 90;
  * 90 daily points per retailer: a mean-reverting walk around the street price
  * with a couple of sale windows, pinned so the last point is today's price.
  */
-export function generatePriceHistory(product: ProviderProduct, basePrice: number, today: Date): PricePoint[] {
+export function generatePriceHistory(
+  product: ProviderProduct,
+  basePrice: number,
+  today: Date,
+  /** Price the walk hovers around; defaults to the street price with the retailer's usual bias. */
+  anchorOf: (offer: ProviderOffer) => number = (offer) => basePrice * (1 + PRICE_BIAS[offer.retailerId]),
+): PricePoint[] {
   const points: PricePoint[] = [];
   const dayMs = 86_400_000;
   const end = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
   for (const offer of product.offers) {
     const rand = rng(hash32(`history:${offer.id}`));
-    const anchor = basePrice * (1 + PRICE_BIAS[offer.retailerId]);
+    const anchor = anchorOf(offer);
     const sales = [0, 1].map(() => ({
       start: Math.floor(rand() * (HISTORY_DAYS - 12)),
       len: 3 + Math.floor(rand() * 7),

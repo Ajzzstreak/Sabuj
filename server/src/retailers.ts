@@ -1,10 +1,11 @@
 import type { Retailer, RetailerId } from './contract.js';
 
-export const RETAILER_IDS = ['amazon', 'walmart', 'samsclub', 'target', 'costco', 'bestbuy'] as const satisfies readonly RetailerId[];
+export const RETAILER_IDS = ['amazon', 'walmart', 'kroger', 'samsclub', 'target', 'costco', 'bestbuy'] as const satisfies readonly RetailerId[];
 
 export const RETAILERS: Retailer[] = [
   { id: 'amazon', name: 'Amazon', color: '#FF9900', membershipRequired: false },
   { id: 'walmart', name: 'Walmart', color: '#0071CE', membershipRequired: false },
+  { id: 'kroger', name: 'Kroger', color: '#084999', membershipRequired: false },
   { id: 'samsclub', name: "Sam's Club", color: '#0067A0', membershipRequired: true },
   { id: 'target', name: 'Target', color: '#CC0000', membershipRequired: false },
   { id: 'costco', name: 'Costco', color: '#E31837', membershipRequired: true },
@@ -41,6 +42,8 @@ export function buildOutboundUrl(retailerId: RetailerId, productTitle: string): 
       return `https://www.amazon.com/s?k=${q}`;
     case 'walmart':
       return `https://www.walmart.com/search?q=${q}`;
+    case 'kroger':
+      return `https://www.kroger.com/search?query=${q}`;
     case 'samsclub':
       return `https://www.samsclub.com/s/${q}`;
     case 'target':

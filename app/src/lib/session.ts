@@ -36,9 +36,10 @@ function parse(raw: string | null): Session | null {
 }
 
 /** POST /v1/devices. Concurrent callers share one request. Null when the server cannot be reached. */
-function register(): Promise<Session | null> {
+function register(before?: () => Promise<void>): Promise<Session | null> {
   inflight ??= (async () => {
     try {
+      await before?.();
       const res = await request<RegisterDeviceResponse>('/devices', { method: 'POST', auth: false, timeoutMs: 8000 });
       session = { deviceId: res.deviceId, token: res.token };
       await secure.set(KEY, JSON.stringify(session));
@@ -78,12 +79,12 @@ export async function loadSession(): Promise<void> {
 }
 
 /** Forget this device and register a new one. Used after "Delete my data". */
-export async function replaceSession(): Promise<Session | null> {
+export function replaceSession(): Promise<Session | null> {
+  // Synchronous on purpose: from this line on, nothing can send the old token.
   session = null;
   lastFailure = 0;
-  await secure.remove(KEY);
   notify();
-  return register();
+  return register(() => secure.remove(KEY));
 }
 
 /** '' until the device has been registered (offline first launch). */

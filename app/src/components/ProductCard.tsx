@@ -116,7 +116,7 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
 const styles = StyleSheet.create({
   card: { flex: 1, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, padding: space.md, paddingBottom: space.md },
   header: { flexDirection: 'row', alignItems: 'flex-start' },
-  headerPress: { flex: 1, flexDirection: 'row', gap: space.md, padding: 4 },
+  headerPress: { flex: 1, flexDirection: 'row', gap: space.md, padding: 4, borderRadius: radius.md },
   headerText: { flex: 1, minWidth: 0, paddingTop: 2 },
   title: { marginTop: 2, marginBottom: 5 },
   reason: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: space.sm, marginHorizontal: 4, paddingHorizontal: space.sm + 2, paddingVertical: 7, borderRadius: radius.sm },
