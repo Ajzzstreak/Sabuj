@@ -1,6 +1,6 @@
 import { buildApp } from './app.js';
 import { createClaudeAsk } from './ask/claude.js';
-import { loadConfig } from './config.js';
+import { ConfigError, loadConfig } from './config.js';
 import { Store } from './db.js';
 import { createClaudeProfiler } from './profile/claude.js';
 import { createProviders } from './providers/index.js';
@@ -23,17 +23,37 @@ async function main(): Promise<void> {
   const { fastify } = await buildApp({ config, store, providers, claude, claudeAsk, logger: { level: config.logLevel } });
   warn = (msg, detail) => fastify.log.warn(detail ?? {}, msg);
 
+  for (const w of config.warnings) fastify.log.warn(w);
+
+  // Graceful shutdown (SIGTERM from `docker stop` / the host, SIGINT from a terminal):
+  // stop accepting connections and finish in-flight requests (fastify.close; new
+  // requests get 503 meanwhile), clear the background timers and flush pending
+  // profile work (the app's onClose hook), then close SQLite. A second signal or
+  // SHUTDOWN_TIMEOUT_MS without finishing exits at once.
   let closing = false;
   const shutdown = async (signal: string) => {
-    if (closing) return;
+    if (closing) {
+      fastify.log.warn({ signal }, 'second signal: exiting now');
+      process.exit(1);
+    }
     closing = true;
     fastify.log.info({ signal }, 'shutting down');
+    const force = setTimeout(() => {
+      fastify.log.error({ timeoutMs: config.shutdownTimeoutMs }, 'shutdown timed out: exiting');
+      process.exit(1);
+    }, config.shutdownTimeoutMs);
+    force.unref();
+    let code = 0;
     try {
-      await fastify.close(); // flushes pending profile work
+      await fastify.close();
+    } catch (err) {
+      code = 1;
+      fastify.log.error({ err }, 'error while closing');
     } finally {
       store.close();
     }
-    process.exit(0);
+    fastify.log.info('closed');
+    process.exit(code);
   };
   process.on('SIGINT', () => void shutdown('SIGINT'));
   process.on('SIGTERM', () => void shutdown('SIGTERM'));
@@ -52,6 +72,7 @@ async function main(): Promise<void> {
 }
 
 main().catch((err) => {
-  console.error(err);
+  // A configuration problem is the operator's to fix: print the message, not a stack.
+  console.error(err instanceof ConfigError ? err.message : err);
   process.exit(1);
 });

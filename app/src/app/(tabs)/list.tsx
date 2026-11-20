@@ -14,7 +14,7 @@ import { Text } from '@/components/Text';
 import { Badge, Banner, Button, CheckRow, Chip, EmptyState, ListRow, QuantityStepper, SegmentedControl, Sheet, TextField, toast } from '@/components/ui';
 import { useLayout } from '@/hooks/useLayout';
 import { useDebounced, useTypeahead } from '@/hooks/useTypeahead';
-import { money, sizeRatio, sizeText, unitPriceText } from '@/lib/format';
+import { money, overbuys, overbuyText, packsText, sizeText, unitPriceText } from '@/lib/format';
 import { addQueryToList, clearChecked, setListItemProduct, setListQuantity, toggleListChecked } from '@/lib/list';
 import { viewOffers } from '@/lib/offers';
 import { getRetailer } from '@/lib/retailers';
@@ -24,13 +24,16 @@ import { radius, space, useTheme } from '@/theme';
 const STARTERS = ['milk', 'eggs', 'bread', 'bananas', 'chicken breast', 'rice'];
 type Panel = 'items' | 'totals';
 
-/** How one basket line relates to what was listed: its offer, and whether it is a bigger (club) pack. */
-function lineFacts(line: BasketLine, resolved: BasketResolvedItem | undefined): { offer: Offer | null; bulk: number | null } {
-  const product = resolved?.product ?? null;
-  const offer = product?.offers.find((o) => o.id === line.offerId) ?? null;
-  const ratio = offer && product ? sizeRatio(offer.size, product.size) : null;
-  // A basket line is ONE package of whatever that store sells. At a club that is a bulk pack.
-  return { offer, bulk: ratio != null && ratio >= 1.5 ? ratio : null };
+/** The offer a basket line buys. Pack counts and overbuy come from the server line itself. */
+function offerOf(line: BasketLine, resolved: BasketResolvedItem | undefined): Offer | null {
+  return resolved?.product?.offers.find((o) => o.id === line.offerId) ?? null;
+}
+
+/** "Rice: buys 25 lb for your 5 lb" for the line that overbuys the most. */
+function biggestOverbuy(lines: BasketLine[], title: (id: string) => string): string | null {
+  const worst = lines.filter(overbuys).sort((a, b) => (b.overbuyRatio ?? 0) - (a.overbuyRatio ?? 0))[0];
+  const text = worst ? overbuyText(worst) : null;
+  return worst && text ? `${title(worst.itemId)}: ${text}` : null;
 }
 
 /**
@@ -311,7 +314,7 @@ function TotalsPanel({ items, basket, resolved, pending, updating, error, onRetr
       <DemoNotice products={products} />
       {zip ? (
         <Text variant="footnote" tone="textSecondary" testID="totals-context">
-          In-store prices near {zip}, with estimated sales tax. Stores are ranked by how much of your list they have, then by total, so a store missing items can show a lower total.{updating ? ' Updating…' : ''}
+          In-store prices near {zip}, with estimated sales tax. Stores are ranked by how much of your list they have, then by what you pay at the till, so a store missing items can show a lower total. Packs are bought whole: where a store only sells a bigger pack, “like for like” shows your listed amounts at its unit prices.{updating ? ' Updating…' : ''}
         </Text>
       ) : (
         <Banner tone="info" compact text="National estimates without tax. Add your ZIP code to price this list at your own stores." action={{ label: 'Shopping settings', onPress: () => router.navigate('/profile') }} testID="totals-no-zip" />
@@ -384,7 +387,7 @@ function TotalsPanel({ items, basket, resolved, pending, updating, error, onRetr
       ))}
 
       {open ? (
-        <LinesSheet title={getRetailer(open.retailerId).name} total={open.total} onClose={() => setOpenStore(null)} lines={open.lines} missing={open.missingItemIds} resolved={resolved} listedTitle={listedTitle} />
+        <LinesSheet title={getRetailer(open.retailerId).name} total={open.total} valueTotal={open.valueTotal} onClose={() => setOpenStore(null)} lines={open.lines} missing={open.missingItemIds} resolved={resolved} listedTitle={listedTitle} />
       ) : null}
       {openSplit && split ? (
         <LinesSheet
@@ -407,8 +410,11 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
   const stores = useStoreLookup();
   const retailer = getRetailer(store.retailerId);
   const location = store.storeId ? stores.get(store.storeId) : null;
-  const facts = store.lines.map((l) => lineFacts(l, resolved.get(l.itemId)));
-  const bulk = facts.filter((f) => f.bulk != null).length;
+  const over = store.lines.filter(overbuys).length;
+  const example = biggestOverbuy(store.lines, listedTitle);
+  // Like for like: the same amounts at this store's unit prices. Shown when it differs from the till.
+  const value = store.valueTotal;
+  const showValue = value != null && Math.abs(value - store.total) >= 0.01;
   const similar = store.lines.filter((l) => l.matchType === 'equivalent').length;
   // Missing ids include items nothing matched at all; those are reported once, above.
   const missing = store.missingItemIds.filter((id) => resolved.get(id)?.product != null);
@@ -430,14 +436,25 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
           </Text>
         </View>
         <View style={styles.right}>
-          <Text variant="priceLarge" tone={best ? 'best' : 'text'} testID={`store-total-amount-${store.retailerId}`}>
+          <Text variant="priceLarge" tone={best ? 'best' : 'text'} testID={`store-total-amount-${store.retailerId}`} accessibilityLabel={`${money(store.total)} at the till`}>
             {money(store.total)}
           </Text>
           <Text variant="caption" tone={short ? 'danger' : 'textSecondary'}>
+            {showValue ? 'at the till · ' : ''}
             {store.lines.length} of {priced} items
           </Text>
         </View>
       </View>
+      {showValue ? (
+        <View style={[styles.valueRow, { backgroundColor: c.fill }]} testID={`store-value-${store.retailerId}`}>
+          <Text variant="footnote" tone="textSecondary" style={styles.grow}>
+            Like for like: your listed amounts at {retailer.name}’s unit prices
+          </Text>
+          <Text variant="priceSmall" testID={`store-value-amount-${store.retailerId}`}>
+            {money(value)}
+          </Text>
+        </View>
+      ) : null}
       {missing.length > 0 ? (
         <Text variant="footnote" tone="textSecondary" style={styles.note} testID={`store-missing-${store.retailerId}`}>
           <Text variant="footnoteStrong" tone="danger">
@@ -446,9 +463,14 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
           {missing.map(listedTitle).join(', ')}
         </Text>
       ) : null}
-      {bulk > 0 ? (
+      {over > 0 ? (
         <View style={styles.note} testID={`store-bulk-${store.retailerId}`}>
-          <Banner tone="notice" compact icon="cube-outline" text={`${bulk} bulk ${bulk === 1 ? 'pack' : 'packs'}: this total buys more product than you listed.`} />
+          <Banner
+            tone="notice"
+            compact
+            icon="cube-outline"
+            text={`${over} ${over === 1 ? 'item comes' : 'items come'} only in a bigger pack here, so the till total buys more than you listed.${example ? ` ${example}.` : ''}`}
+          />
         </View>
       ) : null}
       <View style={styles.cardFoot}>
@@ -464,6 +486,8 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
 interface LinesSheetProps {
   title: string;
   total: number;
+  /** Like-for-like total (store sheets only), null when unknown. */
+  valueTotal?: number | null;
   lines: BasketLine[];
   /** For a split: which items go to which store. */
   groups?: { retailerId: RetailerId; itemIds: string[] }[];
@@ -474,13 +498,14 @@ interface LinesSheetProps {
 }
 
 /** One store's list, or a split's, line by line. */
-function LinesSheet({ title, total, lines, groups, missing, resolved, listedTitle, onClose }: LinesSheetProps) {
+function LinesSheet({ title, total, valueTotal, lines, groups, missing, resolved, listedTitle, onClose }: LinesSheetProps) {
   const { c } = useTheme();
   const row = (line: BasketLine): ReactNode => {
     const r = resolved.get(line.itemId);
-    const { offer, bulk } = lineFacts(line, r);
+    const offer = offerOf(line, r);
     const similar = line.matchType === 'equivalent';
     const unit = offer ? unitPriceText(offer) : null;
+    const over = overbuyText(line);
     return (
       <View key={line.itemId} style={[styles.line, { borderTopColor: c.border }]} testID="basket-line">
         <View style={styles.grow}>
@@ -489,7 +514,7 @@ function LinesSheet({ title, total, lines, groups, missing, resolved, listedTitl
           </Text>
           <View style={styles.lineBadges}>
             <Badge kind={similar ? 'neutral' : 'accent'} label={similar ? 'Similar item' : 'Exact item'} icon={similar ? 'swap-horizontal' : 'checkmark'} />
-            {bulk != null ? <Badge kind="notice" label={`Bulk pack · ${sizeText(offer?.size) ?? ''} (${bulk >= 10 ? Math.round(bulk) : Math.round(bulk * 10) / 10}× listed size)`} icon="cube-outline" /> : null}
+            {over ? <Badge kind="notice" label={over.charAt(0).toUpperCase() + over.slice(1)} icon="cube-outline" /> : null}
           </View>
           <Text variant="caption" tone="textSecondary">
             {[listedTitle(line.itemId) !== (r?.product?.title ?? '') || similar ? `For “${listedTitle(line.itemId)}”` : null, unit].filter(Boolean).join(' · ')}
@@ -497,9 +522,17 @@ function LinesSheet({ title, total, lines, groups, missing, resolved, listedTitl
         </View>
         <View style={styles.right}>
           <Text variant="price">{money(line.lineTotal)}</Text>
-          <Text variant="caption" tone="textSecondary">
-            {money(line.unitCost)} × {line.quantity}
+          <Text variant="caption" tone="textSecondary" testID="basket-line-packs">
+            {packsText(line)}
           </Text>
+          <Text variant="caption" tone="textSecondary">
+            {money(line.unitCost)} each
+          </Text>
+          {over && line.valueCost != null ? (
+            <Text variant="caption" tone="textSecondary">
+              {money(line.valueCost)} for {sizeText(line.requestedAmount)}
+            </Text>
+          ) : null}
         </View>
       </View>
     );
@@ -526,10 +559,18 @@ function LinesSheet({ title, total, lines, groups, missing, resolved, listedTitl
       ) : null}
       <View style={[styles.sheetTotal, { borderTopColor: c.borderStrong }]}>
         <Text variant="bodyStrong" style={styles.grow}>
-          Total
+          At the till
         </Text>
         <Text variant="priceLarge">{money(total)}</Text>
       </View>
+      {valueTotal != null && Math.abs(valueTotal - total) >= 0.01 ? (
+        <View style={styles.sheetValue}>
+          <Text variant="footnote" tone="textSecondary" style={styles.grow}>
+            Like for like (exactly the amounts you listed)
+          </Text>
+          <Text variant="priceSmall">{money(valueTotal)}</Text>
+        </View>
+      ) : null}
     </Sheet>
   );
 }
@@ -619,5 +660,7 @@ const styles = StyleSheet.create({
   lineBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginVertical: 4 },
   group: { marginBottom: space.lg },
   groupHead: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingBottom: space.sm },
+  valueRow: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm, paddingHorizontal: space.md, paddingVertical: space.sm, borderRadius: radius.md },
+  sheetValue: { flexDirection: 'row', alignItems: 'center', paddingTop: space.xs },
   sheetTotal: { flexDirection: 'row', alignItems: 'center', paddingTop: space.md, marginTop: space.sm, borderTopWidth: StyleSheet.hairlineWidth },
 });

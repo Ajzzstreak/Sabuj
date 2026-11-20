@@ -1,4 +1,4 @@
-import type { Offer, PackageSize } from '@/api/contract';
+import type { BasketLine, Offer, PackageSize } from '@/api/contract';
 
 export function money(value: number): string {
   const fixed = Math.abs(value).toFixed(2);
@@ -76,12 +76,19 @@ export function unitPriceText(offer: Pick<Offer, 'unitPrice' | 'unitLabel'>): st
   return word === 'each' ? `${amount} each` : `${amount}/${word}`;
 }
 
-/** Amount of product in a base unit, to compare pack sizes. null when sizes are not comparable. */
-export function sizeRatio(a: PackageSize | null | undefined, b: PackageSize | null | undefined): number | null {
-  const base = (s: PackageSize) =>
-    s.unit === 'lb' ? { d: 'w', n: s.amount * 16 } : s.unit === 'oz' ? { d: 'w', n: s.amount } : s.unit === 'gal' ? { d: 'v', n: s.amount * 128 } : s.unit === 'fl_oz' ? { d: 'v', n: s.amount } : { d: 'c', n: s.amount };
-  if (!a || !b) return null;
-  const x = base(a);
-  const y = base(b);
-  return x.d === y.d && y.n > 0 ? x.n / y.n : null;
+/** Packs a basket line buys: "2 × 12 oz", or "2 packs" when the pack size is unknown. */
+export function packsText(line: Pick<BasketLine, 'packages' | 'packSize'>): string {
+  const size = sizeText(line.packSize);
+  return size ? `${line.packages} × ${size}` : `${line.packages} ${line.packages === 1 ? 'pack' : 'packs'}`;
+}
+
+/** True when the line buys noticeably more than was listed (a bigger pack, or a pack that does not divide evenly). */
+export const overbuys = (line: Pick<BasketLine, 'overbuyRatio'>) => line.overbuyRatio != null && line.overbuyRatio > 1;
+
+/** "buys 25 lb for your 5 lb", or null when the line buys what was listed (or sizes are unknown). */
+export function overbuyText(line: Pick<BasketLine, 'overbuyRatio' | 'coveredAmount' | 'requestedAmount'>): string | null {
+  if (!overbuys(line)) return null;
+  const covered = sizeText(line.coveredAmount);
+  const requested = sizeText(line.requestedAmount);
+  return covered && requested ? `buys ${covered} for your ${requested}` : null;
 }

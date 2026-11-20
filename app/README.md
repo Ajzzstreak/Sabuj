@@ -170,9 +170,11 @@ src/
 - **Shopping list.** The List tab holds a local list (quick-add text, "Add to list" on any product,
   quantities, check-off, remove with undo). Store totals come from `POST /v1/basket`, debounced
   450 ms and cancellable, with the previous totals kept on screen while new ones load: a card per
-  store (total, items covered, missing items, bulk-pack note), the best single store highlighted, a
+  store (till total, items covered, missing items, the like-for-like `valueTotal` when it differs,
+  and a note when a store only sells a bigger pack: "Rice: buys 25 lb for your 5 lb"), the best single store highlighted, a
   "Split across two stores" card when the server returns `bestSplit`, and a line-by-line sheet per
-  store. Free-text items show what they were priced as, with "Change" to pin a specific product.
+  store showing packs bought ("2 × 12 oz"), the pack price and any overbuy. Ranking follows the
+  server: what you pay at the till, not the like-for-like value. Free-text items show what they were priced as, with "Change" to pin a specific product.
   Adds and removes emit `list_add` / `list_remove`.
 - **Ask.** The sparkle button, the "Ask" row under the search field and the example prompts go to
   `POST /v1/ask` (30 s timeout, skeleton while waiting). Enter in the search field always uses

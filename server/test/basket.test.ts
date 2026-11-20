@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildApp, type App } from '../src/app.js';
-import { type BasketEntry, computeBasket, lineFor } from '../src/basket.js';
+import { type BasketEntry, computeBasket, lineFor, packsFor } from '../src/basket.js';
 import type { Config } from '../src/config.js';
-import type { BasketResponse, Offer, Product, RegisterDeviceResponse, RetailerId, SearchResponse } from '../src/contract.js';
+import type { BasketResponse, Offer, PackageSize, Product, RegisterDeviceResponse, RetailerId, SearchResponse } from '../src/contract.js';
 import { Store } from '../src/db.js';
 import { MockProvider } from '../src/providers/mock/index.js';
 import { offer, testConfig } from './helpers.js';
@@ -28,7 +28,12 @@ describe('computeBasket (pure)', () => {
     expect(r.perStore.map((s) => s.retailerId)).toEqual(['walmart', 'kroger']);
     expect(r.perStore.every((s) => s.complete && s.missingItemIds.length === 0 && s.lines.length === 3)).toBe(true);
     expect(r.bestSingleStore).toBe('walmart');
-    expect(r.perStore[0]!.lines[0]).toEqual({ itemId: 'milk', offerId: 'milk:walmart', matchType: 'exact', offerTitle: null, unitCost: 3, quantity: 1, lineTotal: 3 });
+    expect(r.perStore[0]!.lines[0]).toEqual({
+      itemId: 'milk', offerId: 'milk:walmart', matchType: 'exact', offerTitle: null, unitCost: 3, quantity: 1, lineTotal: 3,
+      // No sizes in these fixtures: one store pack per listed unit, no like-for-like value.
+      packages: 1, packSize: null, sizeBasis: 'package', requestedAmount: null, coveredAmount: null, overbuyRatio: null, valueCost: null,
+    });
+    expect(r.perStore[0]!.valueTotal).toBeNull();
   });
 
   it('multiplies by quantity and sums in cents', () => {
@@ -184,6 +189,97 @@ describe('computeBasket (pure)', () => {
   });
 });
 
+describe('pack sizing (bulk packs, multi-packs)', () => {
+  const oz = (amount: number): PackageSize => ({ amount, unit: 'oz' });
+  const lb = (amount: number): PackageSize => ({ amount, unit: 'lb' });
+  /** A product of `size` with per-retailer [landedPrice, pack size]. */
+  const sized = (id: string, size: PackageSize | null, offers: Partial<Record<RetailerId, [number, PackageSize | null]>>, quantity = 1): BasketEntry => {
+    const prices = Object.fromEntries(Object.entries(offers).map(([r, [p]]) => [r, p])) as Partial<Record<RetailerId, number>>;
+    const extra = Object.fromEntries(Object.entries(offers).map(([r, [, s]]) => [r, { size: s }])) as Partial<Record<RetailerId, Partial<Offer>>>;
+    const e = entry(id, prices, quantity, extra);
+    e.product!.size = size;
+    return e;
+  };
+  const line = (r: ReturnType<typeof computeBasket>, retailer: RetailerId, itemId: string) => r.perStore.find((s) => s.retailerId === retailer)!.lines.find((l) => l.itemId === itemId)!;
+
+  it('exact size: one pack per listed unit, value equals the till price', () => {
+    const r = computeBasket([sized('rice', lb(5), { walmart: [4, lb(5)] })], opts);
+    expect(line(r, 'walmart', 'rice')).toMatchObject({
+      packages: 1, packSize: lb(5), sizeBasis: 'amount', requestedAmount: lb(5), coveredAmount: lb(5), overbuyRatio: 1, lineTotal: 4, valueCost: 4,
+    });
+    expect(r.perStore[0]).toMatchObject({ total: 4, valueTotal: 4 });
+    // Same amount in another unit of the same dimension (80 oz = 5 lb) is still exactly one pack.
+    expect(packsFor(1, lb(5), oz(80))).toMatchObject({ packages: 1, overbuyRatio: 1 });
+  });
+
+  it('smaller pack: as many packs as it takes, never short', () => {
+    const r = computeBasket([sized('pb', oz(24), { kroger: [3, oz(12)] }), sized('beans', oz(20), { kroger: [1, oz(12)] })], opts);
+    expect(line(r, 'kroger', 'pb')).toMatchObject({ packages: 2, coveredAmount: oz(24), requestedAmount: oz(24), overbuyRatio: 1, lineTotal: 6, valueCost: 6 });
+    // 20 oz needs two 12 oz cans: 24 oz bought, $2 at the till, $1.67 worth of what was asked.
+    expect(line(r, 'kroger', 'beans')).toMatchObject({ packages: 2, coveredAmount: oz(24), overbuyRatio: 1.2, lineTotal: 2, valueCost: 1.67 });
+    expect(r.perStore[0]).toMatchObject({ total: 8, valueTotal: 7.67 });
+  });
+
+  it('larger pack (club bulk): still one pack, flagged as overbuy, valued like for like', () => {
+    const r = computeBasket([sized('rice', lb(5), { walmart: [4, lb(5)], costco: [15, lb(25)] })], opts);
+    const club = line(r, 'costco', 'rice');
+    expect(club).toMatchObject({ packages: 1, requestedAmount: lb(5), coveredAmount: lb(25), overbuyRatio: 5, lineTotal: 15, valueCost: 3 });
+    const by = Object.fromEntries(r.perStore.map((s) => [s.retailerId, s]));
+    expect(by.costco).toMatchObject({ total: 15, valueTotal: 3 });
+    expect(by.walmart).toMatchObject({ total: 4, valueTotal: 4 });
+    // Ranking stays on what is paid at the till: Walmart, although Costco is better value per lb.
+    expect(r.bestSingleStore).toBe('walmart');
+  });
+
+  it('unknown size on either side: one pack per listed unit, no value', () => {
+    const noOfferSize = computeBasket([sized('x', oz(16), { walmart: [2, null] }, 3)], opts);
+    expect(line(noOfferSize, 'walmart', 'x')).toMatchObject({ packages: 3, sizeBasis: 'package', requestedAmount: oz(48), coveredAmount: null, overbuyRatio: null, lineTotal: 6, valueCost: null });
+    expect(noOfferSize.perStore[0]!.valueTotal).toBeNull();
+    const noProductSize = computeBasket([sized('x', null, { walmart: [2, oz(16)] }, 2)], opts);
+    expect(line(noProductSize, 'walmart', 'x')).toMatchObject({ packages: 2, sizeBasis: 'package', requestedAmount: null, coveredAmount: oz(32), valueCost: null });
+    // One unsized line makes the store's like-for-like total unknown, not partial.
+    const mixed = computeBasket([sized('a', lb(5), { walmart: [4, lb(5)] }), sized('b', null, { walmart: [2, null] })], opts);
+    expect(mixed.perStore[0]).toMatchObject({ total: 6, valueTotal: null });
+  });
+
+  it('cross-dimension sizes are never converted (oz vs ct)', () => {
+    const r = computeBasket([sized('eggs', { amount: 12, unit: 'ct' }, { kroger: [3, oz(24)] }, 2)], opts);
+    expect(line(r, 'kroger', 'eggs')).toMatchObject({ packages: 2, sizeBasis: 'package', overbuyRatio: null, valueCost: null, lineTotal: 6 });
+    expect(packsFor(1, { amount: 1, unit: 'gal' }, oz(128)).sizeBasis).toBe('package');
+  });
+
+  it('quantities scale the requested amount before packing', () => {
+    // 3 x 5 lb = 15 lb: one 25 lb club bag; 4 x 5 lb = 20 lb still one; 6 x 5 lb = 30 lb needs two.
+    expect(packsFor(3, lb(5), lb(25))).toMatchObject({ packages: 1, requestedAmount: lb(15), coveredAmount: lb(25), overbuyRatio: 1.67 });
+    expect(packsFor(6, lb(5), lb(25))).toMatchObject({ packages: 2, requestedAmount: lb(30), coveredAmount: lb(50), overbuyRatio: 1.67 });
+    // Floating-point amounts do not tip into an extra pack: 3 x half gallon = 1.5 gal = 3 x 64 fl oz.
+    expect(packsFor(3, { amount: 0.5, unit: 'gal' }, { amount: 64, unit: 'fl_oz' })).toMatchObject({ packages: 3, overbuyRatio: 1 });
+    const r = computeBasket([sized('pb', oz(24), { kroger: [3, oz(12)], walmart: [5.5, oz(24)] }, 3)], opts);
+    expect(line(r, 'kroger', 'pb')).toMatchObject({ quantity: 3, packages: 6, lineTotal: 18, valueCost: 18 });
+    expect(line(r, 'walmart', 'pb')).toMatchObject({ quantity: 3, packages: 3, lineTotal: 16.5, valueCost: 16.5 });
+    expect(r.bestSingleStore).toBe('walmart');
+  });
+
+  it('picks the offer at a store that is cheapest for the listed amount, not per pack', () => {
+    const e = sized('pb', oz(24), { kroger: [3, oz(12)] });
+    // A second Kroger offer: a 24 oz jar at $5 beats two 12 oz jars at $3 each.
+    e.product!.offers.push(offer('kroger', 5, { id: 'pb:kroger-24', productId: 'pb', size: oz(24) }));
+    const found = lineFor(e, 'kroger')!;
+    expect(found.line).toMatchObject({ offerId: 'pb:kroger-24', packages: 1, lineTotal: 5 });
+  });
+
+  it('the split assigns and saves on till prices, bulk packs included', () => {
+    const r = computeBasket(
+      [sized('rice', lb(5), { walmart: [4, lb(5)], costco: [15, lb(25)] }), sized('tp', { amount: 12, unit: 'ct' }, { walmart: [12, { amount: 12, unit: 'ct' }], costco: [8, { amount: 30, unit: 'ct' }] })],
+      opts,
+    );
+    // Walmart 16, Costco 23 -> Walmart best; split: rice at Walmart ($4) + tp at Costco ($8) = $12.
+    expect(r.bestSingleStore).toBe('walmart');
+    expect(r.bestSplit).toMatchObject({ total: 12, savingsVsBestSingle: 4 });
+    expect(r.bestSplit!.assignments.map((a) => [a.itemId, a.retailerId])).toEqual([['rice', 'walmart'], ['tp', 'costco']]);
+  });
+});
+
 describe('POST /v1/basket', () => {
   let app: App;
   let store: Store;
@@ -242,7 +338,10 @@ describe('POST /v1/basket', () => {
         expect(o.inStock && o.eligible && o.priceSource !== 'link_only').toBe(true);
         expect(l.unitCost).toBe(o.landedPrice);
         expect(l.quantity).toBe(item.quantity);
-        expect(l.lineTotal).toBeCloseTo(o.landedPrice * item.quantity, 2);
+        expect(l.packSize).toEqual(o.size);
+        expect(l.packages).toBeGreaterThanOrEqual(1);
+        expect(l.lineTotal).toBeCloseTo(o.landedPrice * l.packages, 2);
+        if (l.sizeBasis === 'package') expect(l.packages).toBe(item.quantity);
         expect(l.matchType).toBe(o.matchType);
         expect(l.offerTitle).toBe(o.offerTitle);
       }
@@ -314,6 +413,22 @@ describe('POST /v1/basket', () => {
     expect(((await basket({ items, zip: '45202', memberships: [] })).json() as BasketResponse).bestSplit).toBeNull();
     // A one-item list can never be split.
     expect(((await basket({ items: [items[0]], zip: '45202' })).json() as BasketResponse).bestSplit).toBeNull();
+  });
+
+  it('sizes packs against the listed amount: club bulk overbuy and multi-pack lines, till total vs like-for-like value', async () => {
+    const body = (await basket({ zip: '45202', items: [{ id: 'rice', query: 'long grain white rice', quantity: 1 }, { id: 'pb', query: 'creamy peanut butter', quantity: 4 }] })).json() as BasketResponse;
+    expect(body.items.map((i) => i.product?.size)).toEqual([{ amount: 5, unit: 'lb' }, { amount: 16, unit: 'oz' }]);
+    const costco = body.perStore.find((s) => s.retailerId === 'costco')!;
+    const rice = costco.lines.find((l) => l.itemId === 'rice')!;
+    // A 25 lb club bag for a listed 5 lb: one pack, five times the amount.
+    expect(rice).toMatchObject({ packages: 1, sizeBasis: 'amount', packSize: { amount: 25, unit: 'lb' }, requestedAmount: { amount: 5, unit: 'lb' }, coveredAmount: { amount: 25, unit: 'lb' }, overbuyRatio: 5 });
+    expect(rice.valueCost!).toBeCloseTo(rice.lineTotal / 5, 2);
+    // 4 x 16 oz = 64 oz of peanut butter needs two 48 oz club jars.
+    expect(costco.lines.find((l) => l.itemId === 'pb')).toMatchObject({ packages: 2, coveredAmount: { amount: 96, unit: 'oz' }, requestedAmount: { amount: 64, unit: 'oz' }, overbuyRatio: 1.5 });
+    expect(costco.valueTotal!).toBeLessThan(costco.total);
+    const walmart = body.perStore.find((s) => s.retailerId === 'walmart')!;
+    expect(walmart.lines.find((l) => l.itemId === 'pb')).toMatchObject({ packages: 4, overbuyRatio: 1 });
+    expect(walmart.valueTotal).toBeCloseTo(walmart.total, 2);
   });
 
   it('validates the request', async () => {

@@ -379,15 +379,58 @@ export interface BasketResolvedItem {
   /** True when resolved from free text, so the UI can offer "change item". */
   resolvedFromQuery: boolean;
 }
+/**
+ * One item bought at one store.
+ *
+ * Pack sizing: the listed item is `quantity` x the resolved product's own
+ * size (`requestedAmount`). When that size and the offer's pack size are both
+ * known and in the same dimension (weight / volume / count), the store sells
+ * `packages = ceil(requestedAmount / packSize)` packs — enough to cover what
+ * was asked, never a fraction of a pack. A store whose pack is smaller needs
+ * several (2 x 12 oz for a listed 24 oz); one whose pack is bigger (a club's
+ * 25 lb bag for a listed 5 lb) is still 1 pack and buys MORE than asked:
+ * see `coveredAmount` and `overbuyRatio`. Otherwise (`sizeBasis: 'package'`)
+ * the line buys `quantity` packs of whatever the store sells, as before.
+ */
 export interface BasketLine {
   itemId: string;
   offerId: string;
   matchType: 'exact' | 'equivalent';
   offerTitle: string | null;
-  /** Offer landedPrice (tax estimate included when zip given). */
+  /** Price of ONE pack as this store sells it: the offer's landedPrice (tax estimate included when zip given). */
   unitCost: number;
+  /** How many of the listed item the shopper asked for (echoes the request; not the packs bought). */
   quantity: number;
+  /** Packs bought at this store (>= 1). Equals `quantity` when sizeBasis is 'package'. */
+  packages: number;
+  /** Size of one pack at this store (the offer's size), null when unknown. */
+  packSize: PackageSize | null;
+  /**
+   * 'amount': packages were computed to cover requestedAmount (both sizes known, same dimension).
+   * 'package': sizes unknown or not comparable (oz vs ct) — one store pack per listed unit.
+   */
+  sizeBasis: 'amount' | 'package';
+  /** quantity x the listed product's size, in that product's unit. null when the product has no size. */
+  requestedAmount: PackageSize | null;
+  /** packages x packSize, in the pack's unit. null when the pack size is unknown. */
+  coveredAmount: PackageSize | null;
+  /**
+   * coveredAmount / requestedAmount (2 decimals), >= 1 when sizeBasis is 'amount':
+   * 1 = exactly what was asked, 5 = a 25 lb bag for a listed 5 lb. null when sizeBasis is 'package'.
+   */
+  overbuyRatio: number | null;
+  /**
+   * What lineTotal pays at the till: unitCost x packages (rounded to cents).
+   * NOTE: before pack sizing this was always unitCost x quantity; it still is when sizeBasis is 'package'.
+   */
   lineTotal: number;
+  /**
+   * Like-for-like cost: exactly requestedAmount at this pack's landed unit
+   * price (unitCost / packSize x requestedAmount). Not a price anyone can pay
+   * (you cannot buy a fraction of a pack); it says what the store's prices
+   * are worth for the amount asked. null when sizeBasis is 'package'.
+   */
+  valueCost: number | null;
 }
 export interface BasketStoreTotal {
   retailerId: RetailerId;
@@ -395,8 +438,16 @@ export interface BasketStoreTotal {
   lines: BasketLine[];
   /** Item ids this store cannot supply (no in-stock eligible priced offer). */
   missingItemIds: string[];
-  /** Sum of lineTotal over the items this store has. */
+  /** What you pay at the till: sum of lineTotal over the items this store has. Ranking uses this. */
   total: number;
+  /**
+   * Like-for-like value: sum of valueCost over the same lines — the cost of
+   * exactly the listed amounts at this store's unit prices. A store whose
+   * total is high only because it sells bulk packs has a low valueTotal.
+   * null when any line has sizeBasis 'package' (no comparable size).
+   * Informational only: it never changes ranking.
+   */
+  valueTotal: number | null;
   /** True when missingItemIds is empty. */
   complete: boolean;
 }
@@ -412,15 +463,19 @@ export interface BasketSplit {
 }
 export interface BasketResponse {
   items: BasketResolvedItem[];
-  /** One entry per retailer with at least one priced item, cheapest first. */
+  /** One entry per retailer with at least one priced item: most items covered first, then lowest `total`. */
   perStore: BasketStoreTotal[];
   /**
-   * Cheapest COMPLETE store. When no store has every item, the store covering
-   * the most items (ties broken by total). null when nothing is priced.
+   * Cheapest COMPLETE store by `total` — what the shopper actually pays at the
+   * till, bulk packs included — never by `valueTotal`. When no store has every
+   * item, the store covering the most items (ties broken by total). null when
+   * nothing is priced.
    */
   bestSingleStore: RetailerId | null;
   /** Best two-store split, null when it does not beat the best single store
-   *  or fewer than two stores have prices. Compared only on equal coverage. */
+   *  or fewer than two stores have prices. Compared only on equal coverage.
+   *  Like bestSingleStore, items are assigned and savings computed on till
+   *  prices (lineTotal / total), not on valueCost. */
   bestSplit: BasketSplit | null;
   retailers: Retailer[];
   tookMs: number;

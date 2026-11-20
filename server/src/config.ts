@@ -5,12 +5,21 @@ import { z } from 'zod';
  * one hop. It is deliberately never Fastify's `trustProxy: true`, which takes
  * the LEFTMOST X-Forwarded-For entry — a value the client controls, so anyone
  * could dodge the per-IP rate limit by sending a fake header.
+ *
+ * Deployments: behind exactly one proxy / load balancer (most PaaS hosts, a
+ * single nginx or Caddy) set TRUST_PROXY=1; the client IP is then the entry
+ * that proxy appended. Behind a CDN AND a load balancer, set the number of
+ * hops (2). Clients connecting directly: leave it unset/false. With it unset
+ * behind a proxy, every client shares the proxy's IP and the per-IP limits
+ * (device registration, anonymous rate limits) hit everyone at once.
+ * Accepted: empty, "false", "0", "true", or a whole number 1-99.
  */
 const proxyHops = z
   .string()
   .optional()
-  .transform((v) => {
-    const t = (v ?? '').trim().toLowerCase();
+  .transform((v) => (v ?? '').trim().toLowerCase())
+  .refine((t) => t === '' || t === 'true' || t === 'false' || /^\d{1,2}$/.test(t), { message: 'expected "false", "true" or a number of proxy hops (0-99)' })
+  .transform((t) => {
     if (t === 'true') return 1;
     const n = /^\d{1,2}$/.test(t) ? Number(t) : 0;
     return n > 0 ? n : false;
@@ -35,7 +44,12 @@ const EnvSchema = z.object({
   CORS_ORIGIN: str('*'),
   TRUST_PROXY: proxyHops,
   BODY_LIMIT_BYTES: int(65536, 1024),
-  LOG_LEVEL: str('info'),
+  LOG_LEVEL: z
+    .string()
+    .optional()
+    .transform((v) => (v ?? '').trim().toLowerCase() || 'info')
+    .pipe(z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent'])),
+  SHUTDOWN_TIMEOUT_MS: int(10000, 100, 120000),
   DB_PATH: str('./data/deallens.db'),
   MAX_EVENTS_PER_DEVICE: int(5000, 100),
   PRICE_PROVIDERS: str('mock'),
@@ -94,6 +108,10 @@ const EnvSchema = z.object({
 });
 
 export interface Config {
+  /** NODE_ENV === 'production'. */
+  production: boolean;
+  /** Non-fatal production advice, logged once at startup. */
+  warnings: string[];
   port: number;
   host: string;
   corsOrigin: string;
@@ -101,6 +119,8 @@ export interface Config {
   trustProxy: false | number;
   bodyLimitBytes: number;
   logLevel: string;
+  /** Graceful shutdown deadline before a forced exit. */
+  shutdownTimeoutMs: number;
   dbPath: string;
   maxEventsPerDevice: number;
   providers: string[];
@@ -166,15 +186,65 @@ export interface Config {
 
 const opt = (v: string | undefined): string | null => (v?.trim() ? v.trim() : null);
 
+/** Invalid configuration. The message lists every problem, one per line, for a startup log. */
+export class ConfigError extends Error {
+  constructor(readonly problems: string[]) {
+    super(`Invalid configuration:\n${problems.map((p) => `  - ${p}`).join('\n')}\nSee server/.env.example and DEPLOY.md.`);
+    this.name = 'ConfigError';
+  }
+}
+
+/** "https://app.example.com" or "http://localhost:8081": scheme + host (+ port), no path. */
+const ORIGIN = /^https?:\/\/[a-z0-9.-]+(?::\d{1,5})?$/i;
+
+/**
+ * Production-only rules (NODE_ENV=production): problems refuse to start,
+ * warnings are logged. Everything else has a safe default in every environment.
+ */
+function productionChecks(env: NodeJS.ProcessEnv, e: z.infer<typeof EnvSchema>): { problems: string[]; warnings: string[] } {
+  const problems: string[] = [];
+  const warnings: string[] = [];
+  const cors = env.CORS_ORIGIN?.trim() ?? '';
+  if (!cors) {
+    problems.push('CORS_ORIGIN must be set explicitly in production: the web app origin(s), comma-separated (e.g. https://app.example.com), or "*" to allow any origin (bearer tokens, no cookies).');
+  } else if (cors !== '*') {
+    const bad = cors.split(',').map((s) => s.trim()).filter((o) => !ORIGIN.test(o));
+    if (bad.length) problems.push(`CORS_ORIGIN: not an origin (scheme://host[:port], no path or trailing slash): ${bad.join(', ')}`);
+  }
+  if (e.DB_PATH === ':memory:') problems.push('DB_PATH=:memory: loses every device, alert and profile on restart; point it at a file on a persistent volume (e.g. /data/deallens.db).');
+  if (e.TRUST_PROXY === false) warnings.push('TRUST_PROXY is not set. Behind a proxy or load balancer set TRUST_PROXY=1 (hops), or every client shares the proxy IP for per-IP limits.');
+  if (cors === '*') warnings.push('CORS_ORIGIN="*": any web origin may call this API. Fine for a bearer-token API; list the web app origin to narrow it.');
+  const providers = e.PRICE_PROVIDERS.split(',').map((s) => s.trim());
+  if (providers.includes('mock')) warnings.push('PRICE_PROVIDERS includes "mock": synthetic demo prices are served (marked priceSource "demo").');
+  if (e.MOCK_PRICE_OVERRIDES) warnings.push('MOCK_PRICE_OVERRIDES is set: a dev/test hook that pins demo prices.');
+  return { problems, warnings };
+}
+
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
-  const e = EnvSchema.parse(env);
+  const parsed = EnvSchema.safeParse(env);
+  if (!parsed.success) {
+    const secret = /KEY|SECRET|TOKEN|PASSWORD/i;
+    throw new ConfigError(
+      parsed.error.issues.map((i) => {
+        const name = String(i.path[0] ?? 'env');
+        return `${name}: ${i.message}${secret.test(name) ? '' : ` (got ${JSON.stringify(env[name] ?? null)})`}`;
+      }),
+    );
+  }
+  const e = parsed.data;
+  const production = env.NODE_ENV?.trim() === 'production';
+  const { problems, warnings } = production ? productionChecks(env, e) : { problems: [], warnings: [] };
+  if (problems.length) throw new ConfigError(problems);
   return {
+    production,
+    warnings,
     port: e.PORT,
     host: e.HOST,
     corsOrigin: e.CORS_ORIGIN,
     trustProxy: e.TRUST_PROXY,
     bodyLimitBytes: e.BODY_LIMIT_BYTES,
     logLevel: e.LOG_LEVEL,
+    shutdownTimeoutMs: e.SHUTDOWN_TIMEOUT_MS,
     dbPath: e.DB_PATH,
     maxEventsPerDevice: e.MAX_EVENTS_PER_DEVICE,
     providers: e.PRICE_PROVIDERS.split(',').map((s) => s.trim()).filter(Boolean),

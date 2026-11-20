@@ -4,10 +4,20 @@
  *
  * A store can supply an item when the item's product has an in-stock,
  * eligible, priced (not link-only) offer at that retailer — the exact item or
- * that store's equivalent. The line costs the offer's landedPrice x quantity.
+ * that store's equivalent.
+ *
+ * Pack sizing (see `packsFor`): the listed amount is quantity x the product's
+ * size. When the offer's pack size is known and in the same dimension, the line
+ * buys ceil(listed amount / pack size) packs; otherwise `quantity` packs. The
+ * line costs landedPrice x packs — what is paid at the till — and
+ * `valueCost` is the like-for-like cost of exactly the listed amount.
+ *
+ * Ranking (best single store, split assignment and savings) is on till totals,
+ * never on valueCost: that is what the shopper spends today.
  */
-import type { BasketLine, BasketSplit, BasketStoreTotal, Offer, Product, RetailerId } from './contract.js';
+import type { BasketLine, BasketSplit, BasketStoreTotal, Offer, PackageSize, Product, RetailerId } from './contract.js';
 import { isRankable } from './shopper.js';
+import { baseAmount, comparableSizes } from './size.js';
 
 export interface BasketEntry {
   id: string;
@@ -40,26 +50,88 @@ const round2 = (n: number) => Math.round(n * 100) / 100;
 /** Sum in integer cents so totals never carry floating-point dust. */
 const sum = (lines: readonly BasketLine[]) => lines.reduce((cents, l) => cents + Math.round(l.lineTotal * 100), 0) / 100;
 
-/** The line for one item at one retailer, or null when that store cannot supply it. */
+const round3 = (n: number) => Math.round(n * 1000) / 1000;
+const scale = (size: PackageSize | null, by: number): PackageSize | null => (size ? { amount: round3(size.amount * by), unit: size.unit } : null);
+
+export interface Packs {
+  packages: number;
+  sizeBasis: BasketLine['sizeBasis'];
+  requestedAmount: PackageSize | null;
+  coveredAmount: PackageSize | null;
+  overbuyRatio: number | null;
+  /** Fraction of one pack's price the listed amount is worth; null with sizeBasis 'package'. */
+  valueFactor: number | null;
+}
+
+/**
+ * How many packs of `packSize` cover `quantity` x `productSize`. Pure.
+ * Both sizes known, positive and in the same dimension -> packs to cover the
+ * listed amount (at least 1; a tiny tolerance keeps 3 x 0.5 gal = 1.5 gal from
+ * rounding up to an extra pack). Otherwise one pack per listed unit.
+ */
+export function packsFor(quantity: number, productSize: PackageSize | null, packSize: PackageSize | null): Packs {
+  const requestedAmount = scale(productSize, quantity);
+  if (!comparableSizes(productSize, packSize)) {
+    return { packages: quantity, sizeBasis: 'package', requestedAmount, coveredAmount: scale(packSize, quantity), overbuyRatio: null, valueFactor: null };
+  }
+  const requested = baseAmount(productSize!) * quantity;
+  const pack = baseAmount(packSize!);
+  const packages = Math.max(1, Math.ceil(requested / pack - 1e-6));
+  return {
+    packages,
+    sizeBasis: 'amount',
+    requestedAmount,
+    coveredAmount: scale(packSize, packages),
+    overbuyRatio: Math.round(((packages * pack) / requested) * 100) / 100,
+    valueFactor: requested / pack,
+  };
+}
+
+/**
+ * The line for one item at one retailer, or null when that store cannot supply it.
+ * With several usable offers at the store, the one with the lowest till cost
+ * for the listed amount (packs x landedPrice) wins; ties: lower pack price.
+ */
 export function lineFor(entry: BasketEntry, retailerId: RetailerId): { line: BasketLine; offer: Offer } | null {
-  let best: Offer | null = null;
-  for (const o of entry.product?.offers ?? []) {
+  const product = entry.product;
+  let best: { offer: Offer; packs: Packs; lineTotal: number } | null = null;
+  for (const o of product?.offers ?? []) {
     if (o.retailerId !== retailerId || !isRankable(o)) continue;
-    if (!best || o.landedPrice < best.landedPrice) best = o;
+    const packs = packsFor(entry.quantity, product!.size, o.size);
+    const lineTotal = round2(o.landedPrice * packs.packages);
+    if (!best || lineTotal < best.lineTotal || (lineTotal === best.lineTotal && o.landedPrice < best.offer.landedPrice)) best = { offer: o, packs, lineTotal };
   }
   if (!best) return null;
+  const { offer, packs, lineTotal } = best;
   return {
-    offer: best,
+    offer,
     line: {
       itemId: entry.id,
-      offerId: best.id,
-      matchType: best.matchType,
-      offerTitle: best.offerTitle,
-      unitCost: best.landedPrice,
+      offerId: offer.id,
+      matchType: offer.matchType,
+      offerTitle: offer.offerTitle,
+      unitCost: offer.landedPrice,
       quantity: entry.quantity,
-      lineTotal: round2(best.landedPrice * entry.quantity),
+      packages: packs.packages,
+      packSize: offer.size,
+      sizeBasis: packs.sizeBasis,
+      requestedAmount: packs.requestedAmount,
+      coveredAmount: packs.coveredAmount,
+      overbuyRatio: packs.overbuyRatio,
+      lineTotal,
+      valueCost: packs.valueFactor === null ? null : round2(offer.landedPrice * packs.valueFactor),
     },
   };
+}
+
+/** Sum of valueCost in cents; null as soon as one line has none. */
+function valueSum(lines: readonly BasketLine[]): number | null {
+  let cents = 0;
+  for (const l of lines) {
+    if (l.valueCost === null) return null;
+    cents += Math.round(l.valueCost * 100);
+  }
+  return cents / 100;
 }
 
 interface StoreWork {
@@ -87,7 +159,7 @@ function priceStores(entries: readonly BasketEntry[]): StoreWork[] {
       byItem.set(e.id, found.line);
       storeId ??= found.offer.storeId;
     }
-    stores.push({ byItem, total: { retailerId, storeId, lines, missingItemIds, total: sum(lines), complete: missingItemIds.length === 0 } });
+    stores.push({ byItem, total: { retailerId, storeId, lines, missingItemIds, total: sum(lines), valueTotal: valueSum(lines), complete: missingItemIds.length === 0 } });
   }
   // Most items covered first, then cheapest: so the list reads "best option
   // first" even when no store has everything, and [0] is the best single store.
@@ -160,8 +232,9 @@ export function computeBasket(entries: readonly BasketEntry[], opts: BasketOptio
   const stores = priceStores(entries);
   return {
     perStore: stores.map((s) => s.total),
-    // Cheapest complete store; with none complete, the one covering the most
-    // items (ties: lower total) — which is exactly the sort order above.
+    // Cheapest complete store by TILL total (bulk packs at full price, never
+    // valueTotal); with none complete, the one covering the most items (ties:
+    // lower total) — which is exactly the sort order above.
     bestSingleStore: stores[0]?.total.retailerId ?? null,
     bestSplit: bestSplitOf(entries, stores, opts),
   };

@@ -16,6 +16,8 @@ npm run build && npm start
 
 Node 22+. Port from `PORT` (default 8787). The SQLite file is created at `DB_PATH` (default `./data/deallens.db`, gitignored).
 
+`NODE_ENV=production` (set by the Docker image) makes the server refuse to start without an explicit, well-formed `CORS_ORIGIN` or with `DB_PATH=:memory:`, and log warnings (unset `TRUST_PROXY`, mock prices). Any invalid variable stops startup with a message naming it. `SIGTERM`/`SIGINT` close Fastify (in-flight requests finish), stop the timers, flush profile work and close SQLite; forced exit after `SHUTDOWN_TIMEOUT_MS`. Container, compose, CI and the go-live checklist: [`../DEPLOY.md`](../DEPLOY.md).
+
 ## Auth: device tokens
 
 `POST /v1/devices` returns `{ deviceId, token }`. The token is 256 random bits (`dl_` + base64url); the server stores only its SHA-256 hash, so it is shown exactly once.
@@ -93,11 +95,13 @@ Cache correctness: the shared cache holds national, unpersonalized provider resu
 
 - An item resolves to its `productId`; otherwise (or if that id is unknown) to the top search match of `query` with `resolvedFromQuery: true`, but only when that match's relevance is at least `BASKET_MIN_RELEVANCE` (0.6, `src/basket.ts`); otherwise `product: null` — no match is better than totalling something the shopper did not list. Mock search ranks a **head-noun** match first: "butter" is what Salted Butter Sticks are, but only a flavour of Butter Microwave Popcorn, and "Creamy Peanut Butter" is peanut butter (kinds can name what they are via `heads` in `groceryData.ts`; default is the last word of the product name). A word matched only in a modifier position is penalized; prefix/typo matches ("eggs" → Eggo) rank below exact head matches.
 - Cost bounds: besides `BASKET_RATE_LIMIT_MAX`, item lookups that MISS the catalog cache count against `BASKET_UNCACHED_LOOKUPS_MAX` (300) per device / IP per window; once spent, the basket is `429`. Re-totalling an unchanged list is all cache hits and costs nothing. A store id of a store-scoped retailer (Kroger) is honoured only when a store lookup returned it, so made-up ids cannot mint uncached upstream calls.
-- A store can supply an item when the product has an in-stock, eligible, priced (not `link_only`) offer there — the exact item or that store's equivalent. The line is `unitCost` (= the offer's `landedPrice`) × `quantity`.
+- A store can supply an item when the product has an in-stock, eligible, priced (not `link_only`) offer there — the exact item or that store's equivalent.
+- **Pack sizing.** The listed amount is `quantity` × the resolved product's size (`requestedAmount`). When the store's pack size (`packSize`, the offer's size) is known and in the same dimension, the line buys `packages = ceil(requestedAmount / packSize)` packs (`sizeBasis: 'amount'`): 2 × 12 oz for a listed 24 oz, and still 1 × 25 lb for a listed 5 lb — a pack is never split, so `coveredAmount` (packages × packSize) can exceed what was asked and `overbuyRatio` (covered / requested, 1 = exact) says by how much. Unknown or cross-dimension sizes fall back to one pack per listed unit (`sizeBasis: 'package'`, `packages = quantity`, `overbuyRatio`/`valueCost` null). `lineTotal = unitCost × packages` (`unitCost` = one pack's `landedPrice`). With several usable offers at one store, the one cheapest for the listed amount wins.
+- **Till total vs like-for-like value.** `perStore[].total` is what is paid at the till (sum of `lineTotal`). `valueTotal` is the cost of exactly the listed amounts at that store's landed unit prices (sum of `valueCost`), `null` if any line has no comparable size. A club whose total is high only because it sells bulk packs shows a low `valueTotal`. **Ranking (`bestSingleStore`, `bestSplit` assignment and savings) uses till totals only** — that is what the shopper spends today; `valueTotal` is informational.
 - `perStore`: one entry per retailer with at least one line, ordered **most items covered first, then lowest total** — so `perStore[0]` is always `bestSingleStore` (the cheapest complete store; if none is complete, the one covering the most items, ties by total).
 - `bestSplit`: every pair of stores is evaluated, each item going to the cheaper store of the pair (ties to the store that ranks better on its own). A pair is returned only if both stores actually get an item, it covers **exactly the items the best single store covers**, and it is cheaper by at least `BASKET_SPLIT_MIN_SAVINGS` (default $1). The pair with the largest saving wins; otherwise `null`.
 
-The maths lives in `src/basket.ts` as pure functions (`computeBasket`, `lineFor`).
+The maths lives in `src/basket.ts` as pure functions (`computeBasket`, `lineFor`, `packsFor`).
 
 ## How it stays fast
 
@@ -241,7 +245,7 @@ test/                 vitest suites, fixtures/
 - Device tokens do not expire or rotate; the only revocation is `DELETE /v1/profile` or the retention purge. A lost token means a new device.
 - Behind NAT/carrier-grade NAT many users share an IP: tune the registration caps (and `TRUST_PROXY`) for the deployment.
 - The tax figures are coarse state-level estimates; the grocery treatment per state is unverified (see above) and food vs non-food is decided by aisle and a few title words.
-- Basket lines cost one package of whatever that store sells: a club's equivalent is a bulk pack, so club totals are for more product than the list asked for. The response does not scale quantities to match sizes.
+- Basket lines buy whole packs: a club's bulk pack covers more than the list asked for, so its till `total` is for more product (see `overbuyRatio`, `valueTotal`). Ranking stays on the till total, so a shopper who would happily stock up is not told the club is "best". Pack sizing trusts the parsed sizes: a wrong size makes a wrong pack count. Lines with unknown sizes still buy one store pack per listed unit.
 - `bestSplit` is only compared against the best single store on identical item coverage; a pair of stores that covers MORE items than any single store is not surfaced as a split (read `perStore[].missingItemIds` for that).
 - Free-text basket items take the top search hit above a relevance threshold; nothing checks that "milk" meant whole milk rather than 2%. The app lets the user change the resolved product.
 - Unit prices are compared on `landedPrice` per unit; the displayed `unitPrice` is the pre-tax item price per unit.

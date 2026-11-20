@@ -1,0 +1,32 @@
+# Local production-like run of the API: the same image, NODE_ENV=production, data on a named volume.
+#   cp server/.env.example server/.env   # then review CORS_ORIGIN (required in production) and TRUST_PROXY
+#   docker compose up --build
+#   curl http://localhost:8787/v1/health
+# See DEPLOY.md.
+name: deallens
+
+services:
+  server:
+    build:
+      context: ./server
+    image: deallens-server:local
+    restart: unless-stopped
+    ports:
+      - "${DEALLENS_PORT:-8787}:8787"
+    # Optional: values here override the image defaults (NODE_ENV=production, DB_PATH=/data/deallens.db, ...).
+    env_file:
+      - path: ./server/.env
+        required: false
+    environment:
+      # Fixed for the container whatever .env says: listen on all interfaces, keep the DB on the volume.
+      HOST: 0.0.0.0
+      PORT: "8787"
+      DB_PATH: /data/deallens.db
+      # CORS_ORIGIN is deliberately not set here: it comes from server/.env (the example file has "*";
+      # use your web app's origin, e.g. http://localhost:8081). Without it the server refuses to start.
+    volumes:
+      - deallens-data:/data
+    stop_grace_period: 15s
+
+volumes:
+  deallens-data:
