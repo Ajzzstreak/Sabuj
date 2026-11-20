@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useCallback, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
-import { describeError } from '@/api/client';
+import { ApiRequestError, describeError } from '@/api/client';
 import { lookupGtin } from '@/api/queries';
 import { cameraAvailable, ScannerCamera } from '@/components/ScannerCamera';
 import { Page, Screen, StackHeader } from '@/components/Screen';
@@ -14,7 +14,20 @@ import { space, useTheme } from '@/theme';
 /** GTIN lengths: EAN-8 / UPC-E (8), UPC-A (12), EAN-13 (13), GTIN-14. */
 const isGtin = (code: string) => /^(\d{8}|\d{12,14})$/.test(code);
 
-type Result = { kind: 'idle' } | { kind: 'looking'; code: string } | { kind: 'notfound'; code: string } | { kind: 'error'; code: string; message: string };
+/** The GS1 mod-10 check digit (the last digit) must match, as the server requires. */
+function checkDigitOk(code: string): boolean {
+  const digits = code.padStart(14, '0');
+  if (/^0+$/.test(digits)) return false;
+  let sum = 0;
+  for (let i = 0; i < 14; i++) {
+    const d = digits.charCodeAt(13 - i) - 48;
+    sum += i % 2 === 0 ? d : d * 3;
+  }
+  return sum % 10 === 0;
+}
+const BAD_CHECK = 'That is not a valid barcode number: the last digit does not match the others. Check each digit under the barcode.';
+
+type Result = { kind: 'idle' } | { kind: 'looking'; code: string } | { kind: 'notfound'; code: string } | { kind: 'invalid'; code: string } | { kind: 'error'; code: string; message: string };
 
 /**
  * Barcode lookup. Native: a live scanner with a manual fallback. Web: manual
@@ -33,7 +46,7 @@ export default function ScanScreen() {
 
   const lookup = useCallback(
     async (code: string) => {
-      if (busy.current || !isGtin(code)) return;
+      if (busy.current || !isGtin(code) || !checkDigitOk(code)) return;
       busy.current = true;
       setResult({ kind: 'looking', code });
       try {
@@ -47,7 +60,8 @@ export default function ScanScreen() {
           setResult({ kind: 'notfound', code });
         }
       } catch (err) {
-        setResult({ kind: 'error', code, message: describeError(err).title });
+        if (err instanceof ApiRequestError && err.status === 400) setResult({ kind: 'invalid', code });
+        else setResult({ kind: 'error', code, message: describeError(err).title });
       } finally {
         busy.current = false;
       }
@@ -58,6 +72,7 @@ export default function ScanScreen() {
   const submitManual = () => {
     const code = text.replace(/\D/g, '');
     if (!isGtin(code)) return setFieldError('Enter the 8, 12 or 13 digits printed under the barcode.');
+    if (!checkDigitOk(code)) return setFieldError(BAD_CHECK);
     setFieldError(null);
     void lookup(code);
   };
@@ -90,9 +105,9 @@ export default function ScanScreen() {
             <Text variant="calloutStrong">Looking up {result.code}…</Text>
           </View>
         ) : null}
-        {result.kind === 'error' ? (
+        {result.kind === 'error' || result.kind === 'invalid' ? (
           <View style={styles.cameraError}>
-            <Banner tone="danger" title={result.message} text="The barcode could not be looked up." action={{ label: 'Try again', onPress: again }} />
+            <Banner tone="danger" title={result.kind === 'invalid' ? 'Not a valid barcode' : result.message} text={result.kind === 'invalid' ? 'That code could not be read correctly.' : 'The barcode could not be looked up.'} action={{ label: 'Scan again', onPress: again }} />
           </View>
         ) : null}
       </View>
@@ -114,13 +129,14 @@ export default function ScanScreen() {
             onChangeText={(v) => {
               setText(v.replace(/[^\d\s-]/g, '').slice(0, 18));
               setFieldError(null);
+              if (result.kind === 'invalid') setResult({ kind: 'idle' });
             }}
             placeholder="e.g. 012345678905"
             keyboardType="number-pad"
             inputMode="numeric"
             autoFocus
             disabled={looking}
-            error={fieldError}
+            error={fieldError ?? (result.kind === 'invalid' ? BAD_CHECK : null)}
             hint="8, 12 or 13 digits."
             onSubmit={submitManual}
           />

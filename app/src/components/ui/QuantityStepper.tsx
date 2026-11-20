@@ -59,7 +59,7 @@ export function QuantityStepper({ value, onChange, label, min = 1, max = 99, onR
     );
   };
   return (
-    <View testID={testID} style={[styles.wrap, style]} accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{ min, max, now: value }}>
+    <View testID={testID} style={[styles.wrap, style]} accessibilityRole="adjustable" accessibilityLabel={label} accessibilityValue={{ min, max, now: value }} aria-valuemin={min} aria-valuemax={max} aria-valuenow={value}>
       <View style={[styles.track, { backgroundColor: c.fill }]} />
       {half('dec')}
       <Text variant="calloutStrong" style={styles.value} testID={testID ? `${testID}-value` : undefined} accessibilityLiveRegion="polite">

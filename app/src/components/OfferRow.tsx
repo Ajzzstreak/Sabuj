@@ -102,11 +102,22 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, bestLabel = 
               {isCheapest ? <Badge kind="best" label={bestLabel} /> : null}
               {isRecommended ? <Badge kind="accent" label="For you" icon="sparkles" /> : null}
             </View>
-            {similar ? (
+            {similar && table ? (
               <View style={[styles.similar, dim && styles.dim]} testID={`offer-similar-${offer.retailerId}`}>
                 <Badge kind="neutral" label="Similar item" icon="swap-horizontal" />
-                <Text variant="caption" tone="textSecondary" numberOfLines={table ? 2 : 1} style={styles.note}>
+                <Text variant="caption" tone="textSecondary" numberOfLines={2} style={styles.note}>
                   {offer.offerTitle ?? 'This store’s alternative'}
+                </Text>
+              </View>
+            ) : similar ? (
+              // Compact rows: the store's own item name matters more than a badge, so it gets the room.
+              <View style={[styles.similar, dim && styles.dim]} testID={`offer-similar-${offer.retailerId}`}>
+                <Ionicons name="swap-horizontal" size={12} color={c.textSecondary} />
+                <Text variant="caption" tone="textSecondary" numberOfLines={2} style={styles.note}>
+                  <Text variant="captionStrong" tone="textSecondary">
+                    Similar item:
+                  </Text>{' '}
+                  {offer.offerTitle ?? 'this store’s alternative'}
                 </Text>
               </View>
             ) : table && size ? (
@@ -184,7 +195,7 @@ const styles = StyleSheet.create({
   storeTable: { minHeight: 60, gap: space.md, paddingVertical: space.sm },
   middle: { flex: 1, minWidth: 0 },
   nameLine: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 2 },
-  similar: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
+  similar: { flexDirection: 'row', alignItems: 'flex-start', gap: 5, marginTop: 2 },
   name: { flexShrink: 1 },
   noteLine: { flexDirection: 'row', alignItems: 'center', marginTop: 1 },
   noteIcon: { marginRight: 4 },

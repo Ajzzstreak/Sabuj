@@ -83,7 +83,8 @@ export function ToastHost() {
   return (
     <View pointerEvents="box-none" style={[styles.host, { bottom: insets.bottom + 84 }]} accessibilityLiveRegion="polite" aria-live="polite">
       {message ? (
-        <Animated.View key={message.id} entering={FadeInDown.duration(180)} exiting={FadeOutDown.duration(160)} testID="toast">
+        // A toast without an action must never block the content under it; one with Undo takes taps on itself only.
+        <Animated.View key={message.id} entering={FadeInDown.duration(180)} exiting={FadeOutDown.duration(160)} testID="toast" pointerEvents={message.action ? 'box-none' : 'none'}>
           <ToastView
             text={message.text}
             tone={message.tone}

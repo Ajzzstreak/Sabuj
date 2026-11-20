@@ -1,9 +1,9 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useState, type ReactNode } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ScrollView, StyleSheet, View, type ScrollViewInstance } from 'react-native';
 import { ApiRequestError } from '@/api/client';
 import type { BasketLine, BasketResolvedItem, BasketResponse, BasketStoreTotal, Offer, Product, RetailerId } from '@/api/contract';
-import { useBasket, useSearch, useStoreLookup } from '@/api/queries';
+import { getSeed, useBasket, useSearch, useStoreLookup } from '@/api/queries';
 import { removeListItemWithUndo } from '@/components/AddToList';
 import { Card, RetailerMark } from '@/components/bits';
 import { DemoNotice } from '@/components/DemoNotice';
@@ -45,6 +45,11 @@ export default function ListScreen() {
   const items = listStore.use();
   const [panel, setPanel] = useState<Panel>('items');
   const [changing, setChanging] = useState<ListItem | null>(null);
+  const scroller = useRef<ScrollViewInstance>(null);
+  // Switching between Items and Store totals starts the new panel at its top.
+  useEffect(() => {
+    scroller.current?.scrollTo({ y: 0, animated: false });
+  }, [panel]);
 
   const payload = useMemo(() => items.map((i) => (i.productId ? { id: i.id, productId: i.productId, quantity: i.quantity } : { id: i.id, query: i.query ?? i.title, quantity: i.quantity })), [items]);
   const debounced = useDebounced(payload, 450);
@@ -59,7 +64,7 @@ export default function ListScreen() {
 
   return (
     <Screen topInset={isPhone}>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView ref={scroller} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <Page>
           <View style={styles.header}>
             <Text variant="display" accessibilityRole="header">
@@ -171,9 +176,11 @@ function ItemsPanel({ items, resolved, loading, onChange }: { items: ListItem[];
         <Card style={[styles.gapTop, styles.rows]}>
           {items.map((item, i) => {
             const r = resolved.get(item.id);
-            const product = r?.product ?? null;
             const free = !item.productId;
-            const unmatched = r != null && product == null;
+            // While new totals load, `resolved` may still describe what this row USED to be (before
+            // "Change"). A pinned row trusts only a resolution of its own product, else the cached one.
+            const product = free ? (r?.product ?? null) : r?.product != null && r.product.id === item.productId ? r.product : (getSeed(item.productId ?? '') ?? null);
+            const unmatched = free && r != null && r.product == null;
             return (
               <View key={item.id} style={i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }} testID={`list-item-${i}`}>
                 <CheckRow
@@ -304,7 +311,7 @@ function TotalsPanel({ items, basket, resolved, pending, updating, error, onRetr
       <DemoNotice products={products} />
       {zip ? (
         <Text variant="footnote" tone="textSecondary" testID="totals-context">
-          In-store prices near {zip}. Totals include estimated sales tax.{updating ? ' Updating…' : ''}
+          In-store prices near {zip}, with estimated sales tax. Stores are ranked by how much of your list they have, then by total, so a store missing items can show a lower total.{updating ? ' Updating…' : ''}
         </Text>
       ) : (
         <Banner tone="info" compact text="National estimates without tax. Add your ZIP code to price this list at your own stores." action={{ label: 'Shopping settings', onPress: () => router.navigate('/profile') }} testID="totals-no-zip" />
@@ -419,7 +426,7 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
             {retailer.name}
           </Text>
           <Text variant="footnote" tone="textSecondary" numberOfLines={1}>
-            {location ? `${location.name} · ${location.distanceMiles.toFixed(1)} mi` : store.storeId ? 'Your store' : 'Online price, not a store near you'}
+            {location ? `${location.distanceMiles.toFixed(1)} mi · ${location.name}` : store.storeId ? 'Your store' : 'Online price, not a store near you'}
           </Text>
         </View>
         <View style={styles.right}>
@@ -437,7 +444,6 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
             Missing:
           </Text>{' '}
           {missing.map(listedTitle).join(', ')}
-          {short ? '. Its total is not comparable with stores that have more of your list.' : ''}
         </Text>
       ) : null}
       {bulk > 0 ? (
@@ -486,7 +492,7 @@ function LinesSheet({ title, total, lines, groups, missing, resolved, listedTitl
             {bulk != null ? <Badge kind="notice" label={`Bulk pack · ${sizeText(offer?.size) ?? ''} (${bulk >= 10 ? Math.round(bulk) : Math.round(bulk * 10) / 10}× listed size)`} icon="cube-outline" /> : null}
           </View>
           <Text variant="caption" tone="textSecondary">
-            For “{listedTitle(line.itemId)}”{unit ? ` · ${unit}` : ''}
+            {[listedTitle(line.itemId) !== (r?.product?.title ?? '') || similar ? `For “${listedTitle(line.itemId)}”` : null, unit].filter(Boolean).join(' · ')}
           </Text>
         </View>
         <View style={styles.right}>

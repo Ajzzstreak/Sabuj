@@ -54,6 +54,18 @@ export function PressableScale({
   const [focused, setFocused] = useState(false);
   const ringStyle = useFocusRing();
   const focusVisible = (focused || forceState === 'focus') && !disabled;
+  // react-native-web ignores `accessibilityState`; mirror it as aria-* so the web build announces
+  // checked / selected / disabled / busy too (native platforms read accessibilityState itself).
+  const a11y = rest.accessibilityState;
+  const ariaState =
+    Platform.OS === 'web' && a11y
+      ? {
+          'aria-checked': a11y.checked,
+          'aria-selected': a11y.selected,
+          'aria-disabled': a11y.disabled || disabled || undefined,
+          'aria-busy': a11y.busy || undefined,
+        }
+      : null;
   const animated = useAnimatedStyle(() => ({
     transform: [{ scale: 1 - (1 - scaleTo) * pressed.value }],
     opacity: 1 - 0.14 * pressed.value - 0.08 * hovered.value * (1 - pressed.value),
@@ -63,6 +75,7 @@ export function PressableScale({
       accessibilityRole="button"
       disabled={disabled}
       {...rest}
+      {...ariaState}
       onPressIn={(e: GestureResponderEvent) => {
         pressed.value = withTiming(1, { duration: 90 });
         onPressIn?.(e);
