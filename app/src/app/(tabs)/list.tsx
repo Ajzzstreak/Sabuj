@@ -29,11 +29,13 @@ function offerOf(line: BasketLine, resolved: BasketResolvedItem | undefined): Of
   return resolved?.product?.offers.find((o) => o.id === line.offerId) ?? null;
 }
 
-/** "Rice: buys 25 lb for your 5 lb" for the line that overbuys the most. */
+/** "Long grain white rice buys 25 lb for your 5 lb" for the line that overbuys the most. */
 function biggestOverbuy(lines: BasketLine[], title: (id: string) => string): string | null {
   const worst = lines.filter(overbuys).sort((a, b) => (b.overbuyRatio ?? 0) - (a.overbuyRatio ?? 0))[0];
   const text = worst ? overbuyText(worst) : null;
-  return worst && text ? `${title(worst.itemId)}: ${text}` : null;
+  if (!worst || !text) return null;
+  const name = title(worst.itemId);
+  return `${name.charAt(0).toUpperCase()}${name.slice(1)} ${text}`;
 }
 
 /**
@@ -469,7 +471,7 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
             tone="notice"
             compact
             icon="cube-outline"
-            text={`${over} ${over === 1 ? 'item comes' : 'items come'} only in a bigger pack here, so the till total buys more than you listed.${example ? ` ${example}.` : ''}`}
+            text={`${over === 1 ? '1 item comes' : `${over} items come`} in a bigger pack than you listed, so this till total buys more.${example ? ` ${example}.` : ''}`}
           />
         </View>
       ) : null}
