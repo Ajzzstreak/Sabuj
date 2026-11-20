@@ -15,6 +15,7 @@ import {
   type AskResponse,
   type BasketResolvedItem,
   type BasketResponse,
+  type ConsentResponse,
   type DeleteProfileResponse,
   type EventsResponse,
   type HomeResponse,
@@ -25,7 +26,7 @@ import {
   type StoresResponse,
   type SuggestResponse,
 } from './contract.js';
-import type { Store } from './db.js';
+import type { ConsentRow, Store } from './db.js';
 import { normalizeGtin } from './gtin.js';
 import { buildHomeSections } from './home.js';
 import { ClaudeBudget } from './profile/budget.js';
@@ -41,6 +42,7 @@ import {
   AlertParamsSchema,
   AskRequestSchema,
   basketRequestSchema,
+  ConsentRequestSchema,
   ContextQuerySchema,
   CreateAlertRequestSchema,
   EventsRequestSchema,
@@ -129,6 +131,8 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     categories: config.catalogCategories,
     linkOnlyFallback: deps.providers.some((p) => LIVE_PROVIDERS.includes(p.name)),
   });
+  /** An AI provider is configured (ANTHROPIC_API_KEY set). Reported to the app so it never asks for consent it cannot use. */
+  const aiAvailable = deps.claude != null || deps.claudeAsk != null;
   // One hourly Claude budget for everything that can spend: profiler + ask.
   const claudeBudget = new ClaudeBudget(config.claudeMaxCallsPerHour);
   const learner = new ProfileLearner(store, catalog, deps.claude ?? null, {
@@ -414,7 +418,9 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     const deviceId = requireDevice(req);
     limit(`ask:${deviceId}`, config.askRateLimitMax);
     const { text, zip, memberships } = parse(AskRequestSchema, req.body);
-    const result = await askService.ask(text, await catalog.contextFor(zip, memberships), learnedProfile(deviceId));
+    // Consent is read on every request, so withdrawing it applies to the very next ask.
+    const aiConsent = aiAvailable && store.hasAiConsent(deviceId);
+    const result = await askService.ask(text, await catalog.contextFor(zip, memberships), learnedProfile(deviceId), { aiConsent });
     return { ...result, tookMs: round1(performance.now() - started) };
   });
 
@@ -431,7 +437,25 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     return { profile: learner.getProfile(requireDevice(req)) };
   });
 
-  // Erases events, profile, alerts, push token AND the device row: the token stops working.
+  // AI consent: explicit, default off, revocable. GET works anonymously (ai=false) so a
+  // client can learn aiAvailable before it has a token; PUT needs the device.
+  const consentResponse = (row: ConsentRow | null): ConsentResponse => ({
+    ai: row?.ai ?? false,
+    consentedAt: row?.consentedAt != null ? new Date(row.consentedAt).toISOString() : null,
+    decidedAt: row ? new Date(row.decidedAt).toISOString() : null,
+    aiAvailable,
+  });
+  fastify.get(`${prefix}/consent`, async (req): Promise<ConsentResponse> => {
+    const deviceId = deviceFrom(req);
+    return consentResponse(deviceId ? store.getConsent(deviceId) : null);
+  });
+  fastify.put(`${prefix}/consent`, async (req): Promise<ConsentResponse> => {
+    const deviceId = requireDevice(req);
+    const { ai } = parse(ConsentRequestSchema, req.body);
+    return consentResponse(learner.setConsent(deviceId, ai));
+  });
+
+  // Erases events, profile, consent, alerts, push token AND the device row: the token stops working.
   fastify.delete(`${prefix}/profile`, async (req): Promise<DeleteProfileResponse> => {
     learner.forget(requireDevice(req));
     return { deleted: true };

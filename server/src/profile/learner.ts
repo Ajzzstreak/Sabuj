@@ -3,12 +3,17 @@
  * returns immediately; the work happens later on a debounce timer:
  *
  *   1. heuristic profile (always)
- *   2. Claude refinement (only if configured, every N new events, and at most
- *      once per cooldown window per device)
+ *   2. Claude refinement (only if configured, only for a device whose user
+ *      explicitly allowed AI sharing, every N new events, and at most once per
+ *      cooldown window per device)
+ *
+ * Consent is re-checked right before the call, again before a result is saved,
+ * and on every read: a withdrawn consent never lets a Claude call start, drops
+ * an in-flight result, and serves the heuristic profile from the next read.
  */
 import type { Catalog } from '../catalog.js';
 import type { ActivityEvent, UserProfile } from '../contract.js';
-import { emptyProfile, type Store } from '../db.js';
+import { type ConsentRow, emptyProfile, type Store } from '../db.js';
 import { qualityScore, speedScore } from '../ranking.js';
 import { ClaudeBudget } from './budget.js';
 import type { ClaudeProfiler } from './claude.js';
@@ -88,6 +93,19 @@ export class ProfileLearner {
     this.cache.delete(deviceId);
   }
 
+  /**
+   * Record the device's answer to the AI-sharing question. Withdrawing drops
+   * the Claude-written profile and any result still in flight, so the next
+   * read is the heuristic profile.
+   */
+  setConsent(deviceId: string, ai: boolean): ConsentRow {
+    const row = this.store.setConsent(deviceId, ai, this.now());
+    // An in-flight Claude result is dropped by run(), which re-checks consent before saving.
+    if (!ai) this.store.clearClaude(deviceId);
+    this.cache.delete(deviceId);
+    return row;
+  }
+
   /** Run everything pending now and wait for it (tests, graceful shutdown). */
   async flush(): Promise<void> {
     for (const [deviceId, timer] of [...this.timers]) {
@@ -101,8 +119,11 @@ export class ProfileLearner {
   private readProfile(deviceId: string): UserProfile {
     const row = this.store.getRow(deviceId);
     if (!row) return emptyProfile();
+    // A Claude-written profile is only ever served while the device has consent.
     const claudeFresh =
-      row.claude !== null && row.totalEvents - row.claudeEventCount < this.opts.claudeEveryNEvents * CLAUDE_STALE_FACTOR;
+      row.claude !== null &&
+      this.store.hasAiConsent(deviceId) &&
+      row.totalEvents - row.claudeEventCount < this.opts.claudeEveryNEvents * CLAUDE_STALE_FACTOR;
     const chosen = claudeFresh ? row.claude : row.heuristic;
     if (!chosen) return emptyProfile(row.totalEvents);
     return { ...emptyProfile(), ...chosen, eventCount: row.totalEvents };
@@ -139,13 +160,16 @@ export class ProfileLearner {
     this.cache.delete(deviceId);
 
     if (!this.claude) return;
+    // Nothing about this device is sent to Claude without explicit consent.
+    if (!this.store.hasAiConsent(deviceId)) return;
     const newEvents = row.totalEvents - row.claudeEventCount;
     const cooledDown = row.claudeAt === null || now - row.claudeAt >= this.opts.claudeCooldownMs;
     if (newEvents < this.opts.claudeEveryNEvents || !cooledDown) return;
     if (!this.budget.take()) return; // global cost ceiling reached; heuristic profile stays
 
     const refined = await this.claude.refine(events, heuristic, now);
-    if (!alive()) return; // erased while the request was in flight: drop the result
+    // Erased, or consent withdrawn, while the request was in flight: drop the result.
+    if (!alive() || !this.store.hasAiConsent(deviceId)) return;
     if (!refined) {
       // Failure: the heuristic profile stays in place. Start the cooldown so a
       // broken key or outage is not retried on every batch.

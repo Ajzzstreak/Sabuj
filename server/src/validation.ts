@@ -140,6 +140,8 @@ export const PushTokenRequestSchema = z.object({
   token: z.string().regex(EXPO_PUSH_TOKEN, 'token must be an Expo push token').nullable(),
 });
 
+export const ConsentRequestSchema = z.object({ ai: z.boolean() }).strict();
+
 export const ProductParamsSchema = z.object({ id: z.string().min(1).max(160).regex(/^[A-Za-z0-9._:~-]+$/, 'invalid product id') });
 
 export function parse<S extends z.ZodType>(schema: S, data: unknown): z.output<S> {

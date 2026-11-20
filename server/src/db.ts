@@ -12,6 +12,15 @@ export interface StoredProfileRow {
   claudeAt: number | null;
 }
 
+/** A device's answer to the AI-sharing question. Absent row = never asked (and no consent). */
+export interface ConsentRow {
+  ai: boolean;
+  /** Epoch ms "Allow" was chosen; null while ai is false. */
+  consentedAt: number | null;
+  /** Epoch ms of the last answer. */
+  decidedAt: number;
+}
+
 export interface DeviceRow {
   deviceId: string;
   lastSeenAt: number;
@@ -151,6 +160,13 @@ export class Store {
         created_at INTEGER NOT NULL,
         triggered_at INTEGER
       );
+      -- Explicit permission to send this device's data to a third-party AI. No row = no consent.
+      CREATE TABLE IF NOT EXISTS consents (
+        device_id TEXT PRIMARY KEY,
+        ai INTEGER NOT NULL DEFAULT 0,
+        consented_at INTEGER,
+        decided_at INTEGER NOT NULL
+      );
       CREATE INDEX IF NOT EXISTS alerts_device ON alerts (device_id, created_at);
       CREATE INDEX IF NOT EXISTS alerts_status ON alerts (status, id);
     `);
@@ -178,6 +194,13 @@ export class Store {
       deviceByHash: this.db.prepare('SELECT device_id, last_seen_at FROM devices WHERE token_hash = ?'),
       touchDevice: this.db.prepare('UPDATE devices SET last_seen_at = ? WHERE device_id = ?'),
       countDevices: this.db.prepare('SELECT COUNT(*) AS n FROM devices'),
+      getConsent: this.db.prepare('SELECT ai, consented_at, decided_at FROM consents WHERE device_id = ?'),
+      setConsent: this.db.prepare(
+        `INSERT INTO consents (device_id, ai, consented_at, decided_at) VALUES (?, ?, ?, ?)
+         ON CONFLICT(device_id) DO UPDATE SET ai = excluded.ai, consented_at = excluded.consented_at, decided_at = excluded.decided_at`,
+      ),
+      deleteConsent: this.db.prepare('DELETE FROM consents WHERE device_id = ?'),
+      clearClaude: this.db.prepare('UPDATE profiles SET claude_json = NULL, claude_event_count = 0, claude_at = NULL WHERE device_id = ?'),
       deleteDeviceRow: this.db.prepare('DELETE FROM devices WHERE device_id = ?'),
       setPushToken: this.db.prepare('UPDATE devices SET push_token = ? WHERE device_id = ?'),
       getPushToken: this.db.prepare('SELECT push_token FROM devices WHERE device_id = ?'),
@@ -259,11 +282,34 @@ export class Store {
     this.stmts.markClaudeAttempt.run(at, deviceId);
   }
 
-  /** Erase everything stored for a device: events, profile, alerts, push token and the device row (which kills its token). */
+  /** Drop a Claude-written profile (consent withdrawn): reads fall back to the heuristic one. */
+  clearClaude(deviceId: string): void {
+    this.stmts.clearClaude.run(deviceId);
+  }
+
+  // ---- AI consent ------------------------------------------------------------
+
+  getConsent(deviceId: string): ConsentRow | null {
+    const row = this.stmts.getConsent.get(deviceId) as { ai: number; consented_at: number | null; decided_at: number } | undefined;
+    return row ? { ai: row.ai === 1, consentedAt: row.consented_at, decidedAt: row.decided_at } : null;
+  }
+
+  /** True only when the device explicitly allowed sharing with the AI provider. */
+  hasAiConsent(deviceId: string): boolean {
+    return this.getConsent(deviceId)?.ai === true;
+  }
+
+  setConsent(deviceId: string, ai: boolean, now = Date.now()): ConsentRow {
+    this.stmts.setConsent.run(deviceId, ai ? 1 : 0, ai ? now : null, now);
+    return { ai, consentedAt: ai ? now : null, decidedAt: now };
+  }
+
+  /** Erase everything stored for a device: events, profile, consent, alerts, push token and the device row (which kills its token). */
   deleteDevice(deviceId: string): void {
     this.db.transaction(() => {
       this.stmts.deleteEvents.run(deviceId);
       this.stmts.deleteProfile.run(deviceId);
+      this.stmts.deleteConsent.run(deviceId);
       this.stmts.deleteAlerts.run(deviceId);
       this.stmts.deleteDeviceRow.run(deviceId);
     })();
@@ -312,9 +358,10 @@ export class Store {
       this.db.prepare(`DELETE FROM events WHERE device_id IN ${stale}`).run(cutoff);
       this.db.prepare(`DELETE FROM profiles WHERE device_id IN ${stale}`).run(cutoff);
       this.db.prepare(`DELETE FROM alerts WHERE device_id IN ${stale}`).run(cutoff);
+      this.db.prepare(`DELETE FROM consents WHERE device_id IN ${stale}`).run(cutoff);
       const removed = this.db.prepare('DELETE FROM devices WHERE last_seen_at < ?').run(cutoff).changes;
       const orphan = 'device_id NOT IN (SELECT device_id FROM devices)';
-      this.db.exec(`DELETE FROM events WHERE ${orphan}; DELETE FROM profiles WHERE ${orphan}; DELETE FROM alerts WHERE ${orphan};`);
+      this.db.exec(`DELETE FROM events WHERE ${orphan}; DELETE FROM profiles WHERE ${orphan}; DELETE FROM alerts WHERE ${orphan}; DELETE FROM consents WHERE ${orphan};`);
       return removed;
     })();
   }

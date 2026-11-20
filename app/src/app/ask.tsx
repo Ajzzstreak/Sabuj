@@ -2,7 +2,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FlatList, Keyboard, Platform, StyleSheet, View, type ListRenderItem } from 'react-native';
 import type { AskInterpretation, Product, RetailerId } from '@/api/contract';
-import { ASK_MAX_CHARS, useAsk, useSearch } from '@/api/queries';
+import { ASK_MAX_CHARS, consentPending, useAsk, useConsent, useSearch } from '@/api/queries';
+import { AiConsentSheet, useConsentDecision } from '@/components/AiConsentSheet';
 import { RetailerMark } from '@/components/bits';
 import { DemoNotice } from '@/components/DemoNotice';
 import { ProductCard } from '@/components/ProductCard';
@@ -19,6 +20,7 @@ import { haptic } from '@/lib/haptics';
 import { applyResultsView, type OfferFilters, type SortKey } from '@/lib/offers';
 import { getRetailer, RETAILER_ORDER } from '@/lib/retailers';
 import { track } from '@/lib/tracker';
+import { settingsStore } from '@/state';
 import { layout, space } from '@/theme';
 
 type Sort = AskInterpretation['sort'];
@@ -55,7 +57,15 @@ export default function AskScreen() {
     setEdited(null);
   }, [asked]);
 
-  const ask = useAsk(asked);
+  // First use of Ask with AI available and no answer yet: ask for consent before anything is sent.
+  // The request waits for the answer; with no answer from the server (offline) it goes ahead,
+  // and the server, which enforces consent, answers with its rules.
+  const consent = useConsent();
+  const localAi = settingsStore.use((s) => s.aiConsent);
+  const needsConsent = consentPending(consent.data, localAi);
+  const consentKnown = !consent.isPending;
+  const decision = useConsentDecision();
+  const ask = useAsk(asked, consentKnown && !needsConsent);
   const understood = ask.data?.interpretation ?? null;
   const interp = edited ?? understood;
   // Only once the user has edited the interpretation: the fast keyword path.
@@ -95,7 +105,7 @@ export default function AskScreen() {
     [columns, cellWidth, filters],
   );
 
-  const loading = edited ? search.isPending : ask.isPending && asked !== '';
+  const loading = edited ? search.isPending : ask.isPending && asked !== '' && !needsConsent;
   const error = edited ? (search.isError && !search.data ? search.error : null) : ask.isError ? ask.error : null;
   const retry = () => void (edited ? search.refetch() : ask.refetch());
 
@@ -160,6 +170,10 @@ export default function AskScreen() {
               ) : null}
               {edited ? <Button label="Back to the original reading" variant="tertiary" size="sm" icon="arrow-undo-outline" onPress={() => setEdited(null)} style={styles.undo} testID="ask-reset" /> : null}
             </View>
+          ) : needsConsent ? (
+            <Text variant="callout" tone="textSecondary" style={styles.sourceLine} testID="ask-waiting-consent">
+              Choose whether to use AI, then your results appear.
+            </Text>
           ) : loading ? (
             <View accessibilityRole="progressbar" accessibilityLabel="Reading your request" testID="ask-loading">
               <Text variant="callout" tone="textSecondary" style={styles.sourceLine}>
@@ -172,7 +186,7 @@ export default function AskScreen() {
               </View>
             </View>
           ) : null}
-          {!loading && !error ? (
+          {!loading && !error && !needsConsent ? (
             <Text variant="callout" tone="textSecondary" style={styles.count}>
               {products.length} {products.length === 1 ? 'product' : 'products'}
             </Text>
@@ -201,7 +215,7 @@ export default function AskScreen() {
     </View>
   );
 
-  const empty = !asked ? undefined : loading ? (
+  const empty = !asked || needsConsent ? undefined : loading ? (
     <View style={[styles.skeletons, { gap: GAP }]}>
       {Array.from({ length: columns * 2 }, (_, i) => (
         <View key={i} style={{ width: columns > 1 ? cellWidth : '100%' }}>
@@ -256,6 +270,7 @@ export default function AskScreen() {
         initialNumToRender={columns * 3}
         windowSize={7}
       />
+      <AiConsentSheet visible={needsConsent && consentKnown} onDecide={(allow) => void decision.decide(allow)} busy={decision.busy} error={decision.error} />
       {editing && interp ? (
         <EditSheet
           initial={interp}

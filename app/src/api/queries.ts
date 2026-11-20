@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { QUERY } from '@/config';
 import { registerRetailers } from '@/lib/retailers';
 import { getDeviceId, useDeviceId } from '@/lib/session';
-import { shopperBody, shopperKey, shopperParams, shopperStore } from '@/state';
+import { settingsStore, shopperBody, shopperKey, shopperParams, shopperStore } from '@/state';
 import { ApiRequestError, request } from './client';
 import type {
   AlertResponse,
@@ -13,6 +13,8 @@ import type {
   BasketItemInput,
   BasketRequest,
   BasketResponse,
+  ConsentRequest,
+  ConsentResponse,
   CreateAlertRequest,
   DeleteProfileResponse,
   HomeResponse,
@@ -55,7 +57,9 @@ export const keys = {
   suggest: (q: string) => ['suggest', norm(q)] as const,
   home: (s: Scope) => ['home', s.deviceId, s.ctx] as const,
   product: (s: Scope, id: string) => ['product', s.deviceId, s.ctx, id] as const,
-  ask: (s: Scope, text: string) => ['ask', s.deviceId, s.ctx, text.trim()] as const,
+  /** `ai`: whether the device had AI consent; an answer read by Claude is not reused after it is withdrawn. */
+  ask: (s: Scope, text: string, ai: boolean) => ['ask', s.deviceId, s.ctx, ai ? 'ai' : 'rules', text.trim()] as const,
+  consent: (deviceId: string) => ['consent', deviceId] as const,
   profile: (deviceId: string) => ['profile', deviceId] as const,
   alerts: (deviceId: string) => ['alerts', deviceId] as const,
   stores: (zip: string) => ['stores', zip] as const,
@@ -204,11 +208,12 @@ export async function lookupGtin(client: QueryClient, gtin: string): Promise<Pro
 export const ASK_MAX_CHARS = 300;
 
 /** POST /v1/ask. Slow (an LLM may be involved), so it has its own generous timeout and never retries. */
-export function useAsk(text: string) {
+export function useAsk(text: string, enabled = true) {
   const scope = useScope();
+  const ai = settingsStore.use((s) => s.aiConsent === true);
   const trimmed = text.trim().slice(0, ASK_MAX_CHARS);
   return useQuery({
-    queryKey: keys.ask(scope, trimmed),
+    queryKey: keys.ask(scope, trimmed, ai),
     queryFn: async ({ signal }) => {
       const body: AskRequest = { text: trimmed, ...shopperBody() };
       const res = await request<AskResponse>('/ask', { method: 'POST', body, signal, timeoutMs: QUERY.askTimeoutMs });
@@ -216,11 +221,56 @@ export function useAsk(text: string) {
       seedProducts(res.products);
       return res;
     },
-    enabled: trimmed.length > 0,
+    enabled: enabled && trimmed.length > 0,
     staleTime: QUERY.askStaleMs,
     retry: false,
     refetchOnWindowFocus: false,
   });
+}
+
+/** ---- AI consent (Anthropic's Claude) -------------------------------------------- */
+
+/** Mirror the server's answer locally (offline launches, and "Not now" is not asked again). */
+function mirrorConsent(res: ConsentResponse): void {
+  const local = res.decidedAt == null ? settingsStore.get().aiConsent : res.ai;
+  // The server never holds consent the user did not give: a local "Allow" it does not know about is not kept.
+  const next = res.decidedAt == null && local === true ? null : local;
+  if (settingsStore.get().aiConsent !== next) settingsStore.set((s) => ({ ...s, aiConsent: next }));
+}
+
+/** GET /v1/consent: whether AI is available at all, and this device's answer. */
+export function useConsent() {
+  const deviceId = useDeviceId();
+  return useQuery({
+    queryKey: keys.consent(deviceId),
+    queryFn: async ({ signal }) => {
+      const res = await request<ConsentResponse>('/consent', { signal });
+      mirrorConsent(res);
+      return res;
+    },
+    staleTime: 60_000,
+  });
+}
+
+/**
+ * The consent prompt is due: the server has an AI provider, and the user has
+ * not answered on the server or (offline "Not now") on this device.
+ */
+export function consentPending(res: ConsentResponse | undefined, local: boolean | null): boolean {
+  return res != null && res.aiAvailable && res.decidedAt == null && local !== false;
+}
+
+/**
+ * PUT /v1/consent. The server enforces it from the next request on. The
+ * learned profile and any answer read under the old setting are refetched.
+ */
+export async function setAiConsent(client: QueryClient, ai: boolean): Promise<ConsentResponse> {
+  const body: ConsentRequest = { ai };
+  const res = await request<ConsentResponse>('/consent', { method: 'PUT', body });
+  client.setQueryData(keys.consent(getDeviceId()), res);
+  mirrorConsent(res);
+  void client.invalidateQueries({ queryKey: keys.profile(getDeviceId()) });
+  return res;
 }
 
 /** ---- Price-drop alerts ---------------------------------------------------------- */

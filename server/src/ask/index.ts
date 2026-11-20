@@ -173,9 +173,14 @@ export class AskService {
     this.now = opts.now ?? Date.now;
   }
 
-  async ask(text: string, ctx: ShopperContext = NO_CONTEXT, profile: RankingProfile | null = null): Promise<AskResult> {
+  /**
+   * `aiConsent` must be true for the shopper's text to reach Claude. Without it
+   * (the default) the rules parser answers and nothing is sent to the AI
+   * provider, not even a cached Claude interpretation is reused.
+   */
+  async ask(text: string, ctx: ShopperContext = NO_CONTEXT, profile: RankingProfile | null = null, opts: { aiConsent: boolean } = { aiConsent: false }): Promise<AskResult> {
     const rules = parseAskRules(text);
-    const claude = await this.interpretWithClaude(text, rules);
+    const claude = opts.aiConsent ? await this.interpretWithClaude(text, rules) : null;
     const interpretation = claude?.interpretation ?? rules;
     const products = await searchWithInterpretation(this.opts.catalog, interpretation, ctx, profile);
     const top = products[0];

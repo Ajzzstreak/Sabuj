@@ -142,8 +142,11 @@ describe('buildActivityDigest', () => {
 });
 
 describe('ProfileLearner with Claude', () => {
-  function setup(impl: () => Promise<Anthropic.Message>, opts: { cooldownMs?: number; maxPerHour?: number } = {}) {
+  function setup(impl: () => Promise<Anthropic.Message>, opts: { cooldownMs?: number; maxPerHour?: number; consent?: boolean } = {}) {
     const store = new Store(':memory:');
+    // Claude only ever runs for a device that allowed it; these tests are about that path unless they say otherwise.
+    const consent = opts.consent ?? true;
+    if (consent) store.setConsent(DEVICE, true, NOW);
     const { client, create } = fakeClient(impl);
     let now = NOW;
     const learner = new ProfileLearner(store, null, profiler(client), {
@@ -159,6 +162,7 @@ describe('ProfileLearner with Claude', () => {
       await learner.flush();
     };
     const ingestAs = async (deviceId: string, n: number) => {
+      if (consent && !store.getConsent(deviceId)) store.setConsent(deviceId, true, NOW);
       store.insertEvents(deviceId, Array.from({ length: n }, () => click('target', { wasCheapest: false, premiumPaid: 3 })));
       learner.notify(deviceId);
       await learner.flush();
@@ -254,5 +258,87 @@ describe('ProfileLearner with Claude', () => {
     expect(t.store.getRow(DEVICE)).toBeNull();
     expect(t.store.storedEventCount(DEVICE)).toBe(0);
     expect(t.learner.getProfile(DEVICE).source).toBe('none');
+  });
+});
+
+describe('ProfileLearner AI consent', () => {
+  function setup(impl: () => Promise<Anthropic.Message>) {
+    const store = new Store(':memory:');
+    const { client, create } = fakeClient(impl);
+    let now = NOW;
+    const learner = new ProfileLearner(store, null, profiler(client), { debounceMs: 1, claudeEveryNEvents: 25, claudeCooldownMs: 60_000, now: () => now });
+    const ingest = async (n: number) => {
+      store.insertEvents(DEVICE, Array.from({ length: n }, () => click('target', { wasCheapest: false, premiumPaid: 3 })));
+      learner.notify(DEVICE);
+      await learner.flush();
+    };
+    return { store, learner, create, ingest, advance: (ms: number) => (now += ms) };
+  }
+
+  it('never calls Claude for a device without consent; the heuristic profile still works', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    await t.ingest(100);
+    t.advance(3_600_000);
+    await t.ingest(100);
+    expect(t.create).not.toHaveBeenCalled();
+    const p = t.learner.getProfile(DEVICE);
+    expect(p.source).toBe('heuristic');
+    expect(p.eventCount).toBe(200);
+    expect(p.retailerAffinity.target).toBeGreaterThan(0.5);
+  });
+
+  it('"Not now" is recorded and still sends nothing', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    expect(t.learner.setConsent(DEVICE, false)).toMatchObject({ ai: false, consentedAt: null, decidedAt: NOW });
+    await t.ingest(60);
+    expect(t.create).not.toHaveBeenCalled();
+  });
+
+  it('allowing starts refinement; withdrawing reverts to the heuristic profile at once and stops future calls', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    expect(t.learner.setConsent(DEVICE, true)).toMatchObject({ ai: true, consentedAt: NOW, decidedAt: NOW });
+    await t.ingest(30);
+    expect(t.create).toHaveBeenCalledTimes(1);
+    expect(t.learner.getProfile(DEVICE).source).toBe('claude'); // memoized read
+
+    t.learner.setConsent(DEVICE, false);
+    expect(t.learner.getProfile(DEVICE).source).toBe('heuristic');
+    expect(t.store.getRow(DEVICE)!.claude).toBeNull(); // the Claude-written profile is dropped, not just hidden
+    t.advance(3_600_000);
+    await t.ingest(60);
+    expect(t.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('a stored Claude profile is never served without consent, even if it was not cleared', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    t.learner.setConsent(DEVICE, true);
+    await t.ingest(30);
+    t.store.setConsent(DEVICE, false); // bypasses the learner: no clear, no cache drop
+    const fresh = new ProfileLearner(t.store, null, null, { debounceMs: 1, claudeEveryNEvents: 25, claudeCooldownMs: 60_000 });
+    expect(t.store.getRow(DEVICE)!.claude).not.toBeNull();
+    expect(fresh.getProfile(DEVICE).source).toBe('heuristic');
+  });
+
+  it('withdrawing while a Claude request is in flight drops its result', async () => {
+    let release!: (m: Anthropic.Message) => void;
+    const t = setup(() => new Promise<Anthropic.Message>((r) => (release = r)));
+    t.learner.setConsent(DEVICE, true);
+    t.store.insertEvents(DEVICE, Array.from({ length: 30 }, () => click('target')));
+    t.learner.notify(DEVICE);
+    const flushed = t.learner.flush();
+    await vi.waitFor(() => expect(t.create).toHaveBeenCalledTimes(1));
+    t.learner.setConsent(DEVICE, false);
+    release(message([toolUse(goodInput)]));
+    await flushed;
+    expect(t.store.getRow(DEVICE)!.claude).toBeNull();
+    expect(t.learner.getProfile(DEVICE).source).toBe('heuristic');
+  });
+
+  it('erasing the device erases its consent', async () => {
+    const t = setup(async () => message([toolUse(goodInput)]));
+    t.learner.setConsent(DEVICE, true);
+    t.learner.forget(DEVICE);
+    expect(t.store.getConsent(DEVICE)).toBeNull();
+    expect(t.store.hasAiConsent(DEVICE)).toBe(false);
   });
 });

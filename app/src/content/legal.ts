@@ -42,7 +42,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
         heading: 'How we use it',
         body: [
           '[DRAFT] To order offers the way you tend to choose, to estimate tax and membership eligibility, and to check prices for your alerts.',
-          '[DRAFT] Activity may be summarized by an AI model (Anthropic’s Claude) acting as our processor. State what is sent to it, the retention on their side and the legal basis.',
+          '[DRAFT] Only if you turn on “AI features” (it is off until you choose Allow), we send the text you type into Ask and a summary of your activity to Anthropic’s Claude, an AI model, acting as our processor, to interpret questions and describe how you shop. Never your ZIP code, device ID, name or email. You can turn it off at any time in Your profile; sending stops immediately and the AI-written profile is deleted. State the retention on Anthropic’s side and the legal basis (consent).',
         ],
       },
       {
@@ -114,8 +114,13 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
         ],
       },
       {
-        heading: 'Processed by an AI model',
-        body: ['[DRAFT] Activity may be summarized, and plain-English questions interpreted, by an AI model (Anthropic’s Claude) on the server. List exactly which fields are included in those requests.'],
+        heading: 'Sent to an AI model, only if you allow it',
+        body: [
+          '[DRAFT] Off by default. Only after you choose Allow (asked the first time you use Ask, or under Your profile › AI features) does our server send data to Anthropic’s Claude. Turning it off stops this from the next request and deletes the AI-written profile.',
+          '[DRAFT] For Ask: the text you typed, and the names, features, prices and ratings of a few catalog products that match it.',
+          '[DRAFT] For your profile: counts of your activity by type; per store, how often you tapped it, whether it was the cheapest and the extra you paid; your top searches, categories and brands; and up to 30 recent actions (type, how long ago, search or list text, store, category, brand, price, position). Also the rules-based profile, including any warehouse memberships it inferred.',
+          '[DRAFT] Never sent to the AI model: your ZIP code or any location, chosen stores, device ID or token, push token, product IDs, dates and times, name or email (which we do not collect).',
+        ],
       },
       {
         heading: 'Kept only on this device',

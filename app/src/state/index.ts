@@ -5,8 +5,15 @@ import { createStore } from '@/lib/createStore';
 export interface Settings {
   /** When true, no activity events are recorded or sent. */
   learningPaused: boolean;
+  /**
+   * Local copy of the answer to "Use AI (Anthropic's Claude)?": true = Allow,
+   * false = Not now / turned off, null = never answered. The server's copy
+   * (GET/PUT /v1/consent) is the one that is enforced; this one survives
+   * offline launches and keeps "Not now" from being asked again.
+   */
+  aiConsent: boolean | null;
 }
-export const settingsStore = createStore<Settings>('settings', { learningPaused: false });
+export const settingsStore = createStore<Settings>('settings', { learningPaused: false, aiConsent: null });
 
 /** ---- Shopper context: what turns a shelf price into a true total ---------- */
 export interface Shopper {
@@ -139,6 +146,8 @@ export const alertPrefsStore = createStore<AlertPrefs>('alertPrefs', ALERT_PREFS
 
 export async function hydrateStores(): Promise<void> {
   await Promise.all([settingsStore.hydrate(), shopperStore.hydrate(), recentsStore.hydrate(), savedStore.hydrate(), alertPrefsStore.hydrate(), listStore.hydrate()]);
+  // Stored before the AI consent question existed: never answered.
+  if (settingsStore.get().aiConsent === undefined) settingsStore.set((s) => ({ ...s, aiConsent: null }));
   // Stored before store selection existed.
   if (shopperStore.get().storeIds === undefined) shopperStore.set((s) => ({ ...s, storeIds: null }));
   migrateSaved();
@@ -185,9 +194,11 @@ function migrateSaved(): void {
 
 /**
  * "Delete my data": everything personal on this device. The pause switch is
- * kept, because resetting it would quietly turn tracking back on.
+ * kept, because resetting it would quietly turn tracking back on. The AI
+ * answer is cleared like the server's copy (a fresh device has no consent).
  */
 export function clearLocalState(): void {
+  settingsStore.set((s) => ({ ...s, aiConsent: null }));
   recentsStore.set([]);
   savedStore.set({});
   listStore.set([]);

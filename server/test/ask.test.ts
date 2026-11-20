@@ -159,8 +159,26 @@ describe('AskService', () => {
       budget: opts.budget ?? new ClaudeBudget(undefined),
       timeoutMs: opts.timeoutMs ?? 1000,
     });
-    return { svc, create: fake?.create };
+    // These tests exercise the Claude path, so the shopper has consented unless a test says otherwise.
+    const consented = {
+      ask: (text: string, ctx?: Parameters<AskService['ask']>[1], profile?: Parameters<AskService['ask']>[2]) => svc.ask(text, ctx, profile ?? null, { aiConsent: true }),
+    };
+    return { svc: consented, raw: svc, create: fake?.create };
   };
+
+  it('never calls Claude without consent (the default), not even for a cached interpretation', async () => {
+    const { svc, raw, create } = service(async () => message([toolUse(modelInput())]));
+    const plain = await raw.ask('quiet rice cooker under $60');
+    expect(plain.source).toBe('rules');
+    expect(create).not.toHaveBeenCalled();
+    expect((await raw.ask('quiet rice cooker under $60', undefined, null, { aiConsent: false })).source).toBe('rules');
+    expect(create).not.toHaveBeenCalled();
+    // Cache it with a consenting shopper; a non-consenting one still gets rules.
+    expect((await svc.ask('quiet rice cooker under $60')).source).toBe('claude');
+    expect(create).toHaveBeenCalledTimes(1);
+    expect((await raw.ask('quiet rice cooker under $60')).source).toBe('rules');
+    expect(create).toHaveBeenCalledTimes(1);
+  });
 
   it('rules fallback without a key: filters are applied to the normal search path', async () => {
     const { svc } = service(null);
@@ -342,13 +360,16 @@ describe('AskService', () => {
 describe('POST /v1/ask', () => {
   let app: App;
   let store: Store;
+  let calls: ReturnType<typeof vi.fn> | undefined;
   const start = async (overrides: Partial<Config> = {}, create?: Create) => {
     store = new Store(':memory:');
+    const fake = create ? fakeClient(create) : null;
+    calls = fake?.create;
     app = await buildApp({
       config: testConfig(overrides),
       store,
       providers: [new MockProvider({ catalog: 'general' })],
-      claudeAsk: create ? new ClaudeAsk({ client: fakeClient(create).client, model: 'claude-haiku-5-5' }) : null,
+      claudeAsk: fake ? new ClaudeAsk({ client: fake.client, model: 'claude-haiku-5-5' }) : null,
     });
     return ((await app.fastify.inject({ method: 'POST', url: '/v1/devices' })).json() as RegisterDeviceResponse).token;
   };
@@ -394,8 +415,12 @@ describe('POST /v1/ask', () => {
     expect((await ask(other, { text: 'tv' })).statusCode).toBe(200);
   });
 
+  const consent = (token: string | undefined, ai: unknown) =>
+    app.fastify.inject({ method: 'PUT', url: '/v1/consent', payload: { ai } as object, headers: token ? { authorization: `Bearer ${token}` } : {} });
+
   it('uses Claude when configured and is bounded by CLAUDE_MAX_CALLS_PER_HOUR', async () => {
     const token = await start({ claudeMaxCallsPerHour: 1 }, async () => message([toolUse(modelInput())]));
+    expect((await consent(token, true)).statusCode).toBe(200);
     expect(((await ask(token, { text: 'rice cooker a' })).json() as AskResponse).source).toBe('claude');
     expect(((await ask(token, { text: 'rice cooker b' })).json() as AskResponse).source).toBe('rules');
   });
@@ -408,5 +433,39 @@ describe('POST /v1/ask', () => {
       expect((await app.fastify.inject({ method: 'GET', url, headers: h })).statusCode).toBe(200);
     }
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it('without consent (the default) a configured key still answers with rules and never calls Claude', async () => {
+    const token = await start({}, async () => message([toolUse(modelInput())]));
+    const r = (await ask(token, { text: 'quiet rice cooker under $60', zip: '94105' })).json() as AskResponse;
+    expect(r.source).toBe('rules');
+    expect(calls).not.toHaveBeenCalled();
+    // "Not now" is a recorded answer, and still no call.
+    expect((await consent(token, false)).statusCode).toBe(200);
+    expect(((await ask(token, { text: 'rice cooker' })).json() as AskResponse).source).toBe('rules');
+    expect(calls).not.toHaveBeenCalled();
+  });
+
+  it('consent is per device, and withdrawing it stops Claude on the very next ask', async () => {
+    const token = await start({}, async () => message([toolUse(modelInput())]));
+    const other = ((await app.fastify.inject({ method: 'POST', url: '/v1/devices' })).json() as RegisterDeviceResponse).token;
+    await consent(token, true);
+    expect(((await ask(token, { text: 'rice cooker one' })).json() as AskResponse).source).toBe('claude');
+    expect(calls).toHaveBeenCalledTimes(1);
+    // Another device without consent: rules, even for text Claude has already interpreted.
+    expect(((await ask(other, { text: 'rice cooker one' })).json() as AskResponse).source).toBe('rules');
+    expect(((await ask(other, { text: 'rice cooker two' })).json() as AskResponse).source).toBe('rules');
+    expect(calls).toHaveBeenCalledTimes(1);
+    await consent(token, false);
+    expect(((await ask(token, { text: 'rice cooker three' })).json() as AskResponse).source).toBe('rules');
+    expect(((await ask(token, { text: 'rice cooker one' })).json() as AskResponse).source).toBe('rules');
+    expect(calls).toHaveBeenCalledTimes(1);
+  });
+
+  it('with consent, a failing Claude call falls back to rules', async () => {
+    const token = await start({}, async () => Promise.reject(new Error('network down')));
+    await consent(token, true);
+    expect(((await ask(token, { text: 'rice cooker' })).json() as AskResponse).source).toBe('rules');
+    expect(calls).toHaveBeenCalledTimes(1);
   });
 });

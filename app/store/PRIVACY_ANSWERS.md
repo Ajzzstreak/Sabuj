@@ -7,6 +7,7 @@ Derived from the code as built, not from intentions. Re-check whenever any of th
 - `app/src/lib/push.ts`: the Expo push token (`PUT /v1/push-token`)
 - `app/src/state/` and `app/src/api/queries.ts`: ZIP, stores, memberships, alerts
 - `server/src/db.ts`, `server/src/app.ts`, `server/src/profile/`, `server/src/ask/`: what the server keeps and what it sends to Claude
+- `app/src/components/AiConsentSheet.tsx`, `server/src/db.ts` (`consents`): the AI consent prompt and where the answer is kept
 - `app.config.js` `ios.privacyManifests`: must stay consistent with the answers below
 
 ## What actually leaves the device
@@ -26,19 +27,36 @@ Derived from the code as built, not from intentions. Re-check whenever any of th
 | Barcode numbers | `GET /v1/lookup?gtin=` | No (not logged: the server logs paths only) | `scan.tsx`, `server/src/app.ts` |
 | Price alerts | Product, title, target price, price at creation, ZIP, memberships | Yes | `server/src/db.ts` (`alerts`) |
 | Expo push token | Only if the user allows notifications | Yes | `push.ts`, `server/src/db.ts` (`devices.push_token`) |
+| AI consent answer | `PUT /v1/consent` when the user answers the AI prompt or flips Profile › AI features | Yes: allowed or not, when answered, when allowed | `AiConsentSheet.tsx`, `server/src/db.ts` (`consents`) |
 | IP address | Every request (network level) | In server request logs and in-memory rate limiting. **TODO:** depends on hosting and log retention. | `server/src/app.ts` |
 | Camera images | Never | No | `components/ScannerCamera.tsx` |
 
 Server retention: a device with no authenticated request for 180 days is erased with all its data
 (`DEVICE_RETENTION_DAYS`). At most 5,000 events per device are kept (`MAX_EVENTS_PER_DEVICE`).
-"Delete my data" in the app erases the device row, events, profile, alerts and push token at once.
+"Delete my data" in the app erases the device row, events, profile, AI consent, alerts and push token at once.
 
 Third parties that process this data on the operator's behalf (service providers):
 
-- **Anthropic (Claude)**, only when the server has an `ANTHROPIC_API_KEY`
-  (**TODO:** undecided). Receives the text of plain-English questions, and an aggregate digest plus
-  a sample of up to 30 recent events (searches, products, stores, prices) for profile writing. Never
-  the device id, token, ZIP code or push token.
+- **Anthropic (Claude)**: only when the server has an `ANTHROPIC_API_KEY` (**TODO:** undecided)
+  **and** the user explicitly chose "Allow" (App Review guideline 5.1.2(i)).
+  - **Consent.** Off by default. The app asks once, in a sheet that names Anthropic's Claude and
+    lists what is sent, the first time the user opens Ask while the server reports
+    `aiAvailable: true`; it can be changed any time under Profile › AI features (turning it on always
+    goes through the same sheet and its "Allow" button). With no key (`aiAvailable: false`) the app
+    never asks and shows no toggle. The answer is stored on the server per device and mirrored on the
+    device. The server enforces it on every request: without consent the Claude client is never
+    called — `POST /v1/ask` uses the rules parser and the profile is the rules-based one. Withdrawing
+    stops sending from the next request and deletes the Claude-written profile. "Delete my data"
+    erases the consent with everything else.
+  - **What is sent, with consent** (`server/src/ask/claude.ts`, `server/src/profile/claude.ts`):
+    the text typed into Ask plus up to 5 catalog products it matched (title, highlights, price,
+    rating); for the profile, counts of events by type, per-retailer click/save statistics, top
+    searches, categories and brands, up to 30 recent events (type, minutes ago, search or typed list
+    text, retailer, category, brand, price, position, cheapest flag, premium paid) and the rules-based
+    profile (including inferred memberships).
+  - **Never sent:** the device id, token, ZIP code, chosen stores, push token, product ids or
+    timestamps. The app collects no name or email. Free text the user types (Ask, search, list items)
+    is sent as typed.
 - **Expo push service** (`exp.host`), only when push is enabled: the push token and the alert text
   (product title, price, store).
 - **Hosting provider.** **TODO:** undecided; it will see IP addresses and store the database.
@@ -119,6 +137,9 @@ Notes:
 - Barcode numbers and shopping-list contents are processed to answer a request and not stored, so
   they are not "collected" under Play's definition (ephemeral processing).
 - Camera images never leave the device.
-- *Ask* questions: when the turn-off switch is on, the question text is still sent to the server
-  (and possibly Claude) to answer it, but no `search` event is recorded. That is processing for app
-  functionality, already covered by "In-app search history".
+- *Ask* questions: when learning is paused, the question text is still sent to the server (and to
+  Claude only if AI features are on) to answer it, but no `search` event is recorded. That is
+  processing for app functionality, already covered by "In-app search history".
+- Sharing with Anthropic happens only with the user's opt-in consent (AI features). It is processing by
+  a service provider on the operator's behalf, so it is not "shared" in Play's sense (see above);
+  Apple's 5.1.2(i) consent requirement is met by the opt-in sheet, not by the privacy label.

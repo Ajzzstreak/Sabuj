@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { describeError } from '@/api/client';
 import type { RetailerId, UserProfile } from '@/api/contract';
-import { clearSeeds, deleteProfile, useProfile } from '@/api/queries';
+import { clearSeeds, deleteProfile, setAiConsent, useConsent, useProfile } from '@/api/queries';
+import { AI_NOT_SENT, AI_SENT, AiConsentSheet, useConsentDecision } from '@/components/AiConsentSheet';
 import { Card, RetailerMark } from '@/components/bits';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Page, Screen } from '@/components/Screen';
@@ -12,7 +14,7 @@ import { ShoppingSettings } from '@/components/Shopper';
 import { Skeleton } from '@/components/Skeleton';
 import { ErrorState, OfflineBanner } from '@/components/StateView';
 import { Text } from '@/components/Text';
-import { Badge, Banner, Button, Chip, ListRow, ToggleRow } from '@/components/ui';
+import { Badge, Banner, Button, Chip, ListRow, toast, ToggleRow } from '@/components/ui';
 import { APP_NAME, DEV_ROUTES } from '@/config';
 import { LEGAL_DOCS, LEGAL_ORDER } from '@/content/legal';
 import { useLayout } from '@/hooks/useLayout';
@@ -26,8 +28,12 @@ import { addRecent, clearLocalState, settingsStore } from '@/state';
 import { radius, space, useTheme } from '@/theme';
 
 const SOURCE: Record<UserProfile['source'], { label: string; detail: string; icon: keyof typeof Ionicons.glyphMap }> = {
-  claude: { label: 'Written by Claude', detail: 'An AI model read your recent activity and wrote this description.', icon: 'sparkles' },
-  heuristic: { label: 'Estimated by simple rules', detail: 'Counted from your activity with fixed rules. No AI model was involved.', icon: 'calculator-outline' },
+  claude: {
+    label: 'Written by Claude (AI)',
+    detail: 'Because you turned on AI features, Anthropic’s Claude read a summary of your recent activity and wrote this description. Turn AI features off below to go back to simple rules.',
+    icon: 'sparkles',
+  },
+  heuristic: { label: 'Estimated by simple rules', detail: 'Counted from your activity with fixed rules on our server. No AI model was involved.', icon: 'calculator-outline' },
   none: { label: 'Nothing learned yet', detail: 'There is not enough activity to describe how you shop.', icon: 'ellipse-outline' },
 };
 
@@ -60,6 +66,33 @@ export default function ProfileScreen() {
   const profile = profileQuery.data;
   const paused = settingsStore.use((s) => s.learningPaused);
   const pending = usePendingEvents();
+  const client = useQueryClient();
+  const consent = useConsent();
+  const aiAvailable = consent.data?.aiAvailable === true;
+  const aiOn = settingsStore.use((s) => s.aiConsent === true);
+  const [askingAi, setAskingAi] = useState(false);
+  const [turningOff, setTurningOff] = useState(false);
+  const decision = useConsentDecision((allowed) => {
+    setAskingAi(false);
+    toast(allowed ? 'AI features on' : 'AI features stay off', allowed ? 'success' : 'neutral');
+  });
+  const setAi = async (on: boolean) => {
+    if (on) {
+      // Never switched on by the toggle alone: the explanation and an explicit "Allow" come first.
+      decision.clearError();
+      setAskingAi(true);
+      return;
+    }
+    setTurningOff(true);
+    try {
+      await setAiConsent(client, false);
+      toast('AI features off. Nothing more is sent to Anthropic.', 'success');
+    } catch (err) {
+      toast(`${describeError(err).title}. AI features are still on — try again.`, 'danger');
+    } finally {
+      setTurningOff(false);
+    }
+  };
 
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -228,6 +261,23 @@ export default function ProfileScreen() {
             value={!paused}
             onValueChange={(on) => setPaused(!on)}
           />
+          {aiAvailable ? (
+            <View testID="ai-row">
+              <ToggleRow
+                testID="ai-toggle"
+                label="AI features"
+                detail={
+                  aiOn
+                    ? 'On. What you type into Ask and a summary of your activity are sent to Anthropic’s Claude to read questions and describe how you shop. Turn off to stop at once.'
+                    : 'Off. Nothing is sent to an AI company; questions and your profile use simpler fixed rules. Turn on to see exactly what would be sent before you choose.'
+                }
+                value={aiOn}
+                disabled={turningOff || decision.busy != null}
+                onValueChange={(on) => void setAi(on)}
+                divider
+              />
+            </View>
+          ) : null}
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">Delete my data</Text>
           <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }}>
@@ -255,7 +305,9 @@ export default function ProfileScreen() {
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">How an AI model is involved</Text>
           <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }} testID="ai-disclosure">
-            On the server, your activity may be summarized by an AI model (Anthropic’s Claude) to write the description of how you shop, and plain-English questions may be interpreted by the same model. When it is not used, fixed rules do the job, and the screen says which one it was.
+            {aiAvailable
+              ? `Only if you turn on AI features (off unless you choose Allow). Then our server sends Anthropic’s Claude: ${AI_SENT.map((l) => l.charAt(0).toLowerCase() + l.slice(1).replace(/\.$/, '')).join('; and ')}. ${AI_NOT_SENT} Without it, fixed rules do the job, and the screen says which one it was.`
+              : 'None. This server has no AI model set up, so questions and your profile are handled by fixed rules and nothing is sent to an AI company.'}
           </Text>
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">What is not collected</Text>
@@ -322,6 +374,7 @@ export default function ProfileScreen() {
         </Page>
       </ScrollView>
 
+      <AiConsentSheet visible={askingAi} onDecide={(allow) => void decision.decide(allow)} busy={decision.busy} error={decision.error} />
       <ConfirmDialog
         visible={confirming}
         title="Delete your data?"

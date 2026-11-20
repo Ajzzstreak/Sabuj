@@ -279,6 +279,29 @@ export interface DeleteProfileResponse {
   deleted: true;
 }
 
+// ---- GET /v1/consent  |  PUT /v1/consent (ConsentRequest) -> ConsentResponse
+/**
+ * Explicit, revocable permission to send this device's data to a third-party
+ * AI (Anthropic's Claude). Default OFF. Without it the server never calls
+ * Claude for the device: the profile is the heuristic one and POST /v1/ask
+ * uses the rules parser (source 'rules'). Withdrawing takes effect on the next
+ * request and drops any Claude-written profile. DELETE /v1/profile erases it.
+ * GET works without a token (then ai=false, decidedAt=null); PUT needs one.
+ */
+export interface ConsentRequest {
+  ai: boolean;
+}
+export interface ConsentResponse {
+  /** True only after the user chose "Allow". */
+  ai: boolean;
+  /** ISO time "Allow" was last chosen; null while ai is false. */
+  consentedAt: string | null;
+  /** ISO time of the user's last answer (Allow or Not now); null = never asked. */
+  decidedAt: string | null;
+  /** The server has an AI provider configured. When false, never ask. */
+  aiAvailable: boolean;
+}
+
 // ---- GET /v1/lookup?gtin=  (barcode scan) -----------------------------
 // Returns ProductResponse, or 404 ApiError code 'not_found'.
 
@@ -305,7 +328,10 @@ export interface AskResponse {
   retailers: Retailer[];
   /** One or two sentences on why the top result fits, or null. */
   topPickReason: string | null;
-  /** 'claude' when the LLM parsed the request, 'rules' for the fallback. */
+  /**
+   * 'claude' when the LLM parsed the request, 'rules' for the fallback.
+   * Always 'rules' unless the device has AI consent (see ConsentResponse).
+   */
   source: 'claude' | 'rules';
   tookMs: number;
 }

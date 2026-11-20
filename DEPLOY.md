@@ -48,7 +48,8 @@ message naming the variable. With `NODE_ENV=production` additionally:
 | `PRICE_PROVIDERS` | Warned while it includes `mock` (synthetic demo prices). |
 
 Optional: `ANTHROPIC_API_KEY` (enables the Claude profiler and Claude interpretation in
-`POST /v1/ask`; without it both use deterministic fallbacks), `CLAUDE_MAX_CALLS_PER_HOUR`
+`POST /v1/ask`, for devices whose user allowed it in the app; without the key both use deterministic
+fallbacks and the app never shows the AI consent prompt), `CLAUDE_MAX_CALLS_PER_HOUR`
 (cost ceiling), provider credentials (`KROGER_*`, `WALMART_*`, `BESTBUY_API_KEY`),
 `PUSH_PROVIDER` / `EXPO_ACCESS_TOKEN`, rate limits. Pass secrets through the host's secret
 store, never baked into the image.

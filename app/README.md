@@ -192,6 +192,13 @@ src/
   4 seconds, at 20 queued events, or when the app is backgrounded. Unsent events are persisted. A
   failing batch is retried with exponential backoff and dropped after 6 attempts; the queue is
   capped at 500 events.
+- **AI consent.** `GET /v1/consent` says whether the server has an AI provider (`aiAvailable`) and
+  this device's answer. When AI is available and the user has not answered, opening Ask shows
+  `AiConsentSheet` (names Anthropic's Claude, lists what is sent and what is not, "Allow" / "Not now")
+  and the request waits for the answer; closing the sheet counts as "Not now". Profile › Your
+  controls › AI features changes it later (turning it on always goes through the same sheet). The
+  answer is saved with `PUT /v1/consent` and mirrored in `settingsStore.aiConsent`; the server
+  enforces it. With `aiAvailable: false` there is no sheet and no toggle.
 - **Pause.** The switch on the profile tab stops recording at the source and empties the queue.
 - **Delete my data.** Calls `DELETE /v1/profile` (which also revokes the token), then drops the
   token, clears the queue, saved items, recent searches, ZIP code, memberships, alert bookkeeping

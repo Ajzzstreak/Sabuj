@@ -26,7 +26,7 @@ Every device-scoped request sends `Authorization: Bearer <token>` and the server
 - Catalog routes (`search`, `suggest`, `home`, `products`, `lookup`) work with no token (unpersonalized) and personalize when a valid token is sent.
 - `profile`, `events`, `alerts`, `ask`, `push-token` need a token: `401 unauthorized` without one.
 - A malformed, unknown or erased token is `401` on **every** route, including catalog routes.
-- `DELETE /v1/profile` erases events, profile, alerts, push token **and the device row**, so the token stops working.
+- `DELETE /v1/profile` erases events, profile, AI consent, alerts, push token **and the device row**, so the token stops working.
 
 Abuse and growth bounds: registration is limited per IP per window (`DEVICE_REGISTRATION_RATE_MAX`) and per IP per day (`DEVICE_REGISTRATIONS_PER_IP_PER_DAY`), there is a global ceiling (`MAX_DEVICES`, 503 above it), events are capped per device (`MAX_EVENTS_PER_DEVICE`), and a purge at startup and every 6 hours erases devices with no authenticated request for `DEVICE_RETENTION_DAYS` (plus any rows that belong to no registered device, e.g. data from before tokens existed).
 
@@ -46,7 +46,9 @@ Abuse and growth bounds: registration is limited per IP per window (`DEVICE_REGI
 | POST | `/v1/ask` | required | `{ text, zip?, memberships? }` plain-English search (see below). |
 | POST | `/v1/events` | required | `{ events[] }`, max 100 events and 64 KB per request. |
 | GET | `/v1/profile` | required | New device: empty profile, `source: "none"`. |
-| DELETE | `/v1/profile` | required | Erases everything for the device, including the device/token. |
+| DELETE | `/v1/profile` | required | Erases everything for the device, including AI consent and the device/token. |
+| GET | `/v1/consent` | optional | `ConsentResponse` `{ ai, consentedAt, decidedAt, aiAvailable }`. Anonymous: `ai: false`, `decidedAt: null`. See "AI consent". |
+| PUT | `/v1/consent` | required | `{ ai: boolean }` (strict) → `ConsentResponse`. |
 | POST | `/v1/alerts` | required | `{ productId, targetPrice, zip?, memberships? }` → `{ alert }`. |
 | GET | `/v1/alerts` | required | `{ alerts[] }` with a fresh `currentBestPrice` (and its `currentBestPriceSource`; a push for a `demo` price says so in its title and body). |
 | DELETE | `/v1/alerts/:id` | required | `{ deleted: true }` or `404`. |
@@ -109,9 +111,25 @@ The maths lives in `src/basket.ts` as pure functions (`computeBasket`, `lineFor`
 - **Cache** (`src/cache.ts`): in-memory LRU with TTL + stale-while-revalidate. It stores the *unpersonalized* provider result, so one cache entry serves every user.
 - **Shopper context + personalization**: applied after the cache — `applyContext` (`src/shopper.ts`: tax, eligibility) then `rankOffers` (`src/ranking.ts`), pure functions over a few numbers. Auth is one SHA-256 and one indexed SQLite read.
 - **No LLM on catalog request paths.** Search, suggest, home, products, lookup, stores, basket, alerts and profile never call a model. `POST /v1/ask` is the single explicit exception, with a hard timeout and a deterministic fallback.
-- **Learning** (`src/profile`): runs after event ingestion on a debounce timer, never inside a request.
+- **Learning** (`src/profile`): runs after event ingestion on a debounce timer, never inside a request. Claude is used only for devices with AI consent (next section).
   - `heuristic.ts` — always on, pure function over the event log.
-  - `claude.ts` — only when `ANTHROPIC_API_KEY` is set: every `CLAUDE_PROFILE_EVERY_N_EVENTS` new events and at most once per `CLAUDE_PROFILE_COOLDOWN_MS` per device, sends a bounded digest (aggregates + up to 30 recent events, no device id) and the heuristic profile, and reads the refined profile back through a strict tool call. Every field is validated and clamped; on any failure the heuristic profile stays.
+  - `claude.ts` — only when `ANTHROPIC_API_KEY` is set **and the device has AI consent**: every `CLAUDE_PROFILE_EVERY_N_EVENTS` new events and at most once per `CLAUDE_PROFILE_COOLDOWN_MS` per device, sends a bounded digest (aggregates + up to 30 recent events, no device id) and the heuristic profile, and reads the refined profile back through a strict tool call. Every field is validated and clamped; on any failure the heuristic profile stays.
+
+## AI consent (Anthropic's Claude)
+
+Nothing about a device is sent to Claude unless its user explicitly allowed it. Consent is per device, **default off**, stored in the `consents` table (`ai`, `consented_at`, `decided_at`; no row = never asked = no consent) and exposed as `ConsentResponse` on `GET/PUT /v1/consent` (not on `UserProfile`).
+
+- `aiAvailable` is `true` when the server was started with `ANTHROPIC_API_KEY` (a Claude client exists). The app hides the consent prompt entirely when it is `false`.
+- **Profiler**: `ProfileLearner` checks consent right before a Claude call and again before saving its result; without it only the heuristic profile is built. A Claude-written profile is served only while consent holds (checked on every read).
+- **Ask**: `POST /v1/ask` reads consent on every request; without it the rules parser answers (`source: "rules"`), the Claude client is never called and no cached Claude interpretation is reused. Ask needs a token, so there is no tokenless path to Claude.
+- **Withdrawing** (`PUT { ai: false }`): applies to the next request; the stored Claude profile is deleted (`claude_json` cleared), the next `GET /v1/profile` is the heuristic one, and a result still in flight is discarded.
+- `DELETE /v1/profile` and the retention purge erase the consent row with the rest.
+- `decidedAt` records "Not now" too, so the app asks once.
+
+What is sent when consent is given (verified in `src/ask/claude.ts` and `src/profile/claude.ts`):
+
+- Ask: the typed text (JSON-encoded) and up to 5 catalog candidates (title, highlights, price, rating). Never the ZIP, memberships, stores, device id or token.
+- Profiler: counts per event type, per-retailer click/save/impression statistics, top search queries, top categories and brands, up to 30 recent events (type, minutes ago, query or typed list text, retailer, category, brand, price, position, cheapest flag, premium paid) and the heuristic profile (including inferred memberships). Never the device id, token, product ids, ZIP code, push token or absolute timestamps.
 
 ### The premium bound
 
@@ -120,7 +138,7 @@ The maths lives in `src/basket.ts` as pure functions (`computeBasket`, `lineFor`
 ## POST /v1/ask
 
 1. The rules parser (`src/ask/rules.ts`) always runs: regexes for price ceilings ("under $60", "eggs under $4"), ratings ("at least 4 stars"), retailer names (incl. "at kroger", "not at walmart"), sort words ("cheap", "cheapest", "top rated"), attribute words and phrases ("organic", "gluten free", "low sodium" → `mustHave`), and filler stripping.
-2. If `ANTHROPIC_API_KEY` is set, the hourly budget allows it and the text is not already cached, **one** Claude call (`CLAUDE_MODEL`, strict tool, low effort) returns the `AskInterpretation`. The shopper's text is passed JSON-encoded as data with an instruction to treat it as untrusted. The call has a hard deadline (`ASK_TIMEOUT_MS`, default 4 s, no retries); on timeout, error, refusal or invalid output the rules result is used and `source` is `"rules"`.
+2. If `ANTHROPIC_API_KEY` is set, the device has AI consent, the hourly budget allows it and the text is not already cached, **one** Claude call (`CLAUDE_MODEL`, strict tool, low effort) returns the `AskInterpretation`. The shopper's text is passed JSON-encoded as data with an instruction to treat it as untrusted. The call has a hard deadline (`ASK_TIMEOUT_MS`, default 4 s, no retries); on timeout, error, refusal or invalid output the rules result is used and `source` is `"rules"`.
 3. The normal search path runs with the interpretation as filters: `retailers` (offers are limited to those stores), `maxPrice` (on the lowest in-stock eligible `landedPrice`), `minRating`, `mustHave` (relevance boost against title/highlights; with a price or rating sort, products matching more of it come first — "cheap gluten free pasta" lists the gluten-free ones first, cheapest first), `sort`.
 4. `topPickReason`: the same Claude call may write a note per candidate product (the top few results of the rules query: title, highlights, price, rating). The server uses the note for whichever product ends up first only if every dollar figure in it equals a real price field of that product's offers and it contains no link, store name or savings claim; otherwise (and always in rules mode) a server-side template is used, or `null` when there are no results. The model is never the source of a price.
 
@@ -228,7 +246,7 @@ src/
   home.ts             home feed sections
   alerts.ts           alert pricing + checker
   push.ts             PushSender, Expo + no-op
-  db.ts               SQLite store (devices, events, profiles, alerts)
+  db.ts               SQLite store (devices, events, profiles, consents, alerts)
   rateLimit.ts        fixed-window limiter
   validation.ts       zod schemas
   retailers.ts        retailer table, buildOutboundUrl
@@ -250,5 +268,5 @@ test/                 vitest suites, fixtures/
 - Free-text basket items take the top search hit above a relevance threshold; nothing checks that "milk" meant whole milk rather than 2%. The app lets the user change the resolved product.
 - Unit prices are compared on `landedPrice` per unit; the displayed `unitPrice` is the pre-tax item price per unit.
 - The alert checker reads prices through the catalog cache, so a trigger can lag a price change by the cache TTL/SWR window; `priceAtCreation` is fixed at creation and is not updated by later checks.
-- Neither Claude path (profiler, ask) has been exercised against the real API — only against a mocked client. Expo push has only been exercised against a mocked `fetch`.
+- Neither Claude path (profiler, ask) has been exercised against the real API — only against a mocked client (and, for ask, against an unreachable/invalid-key endpoint to confirm the fallback). Expo push has only been exercised against a mocked `fetch`.
 - `events` fields such as `wasCheapest`/`premiumPaid` are client-reported; a client can only influence its own profile with them.

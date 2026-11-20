@@ -1,8 +1,10 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type Anthropic from '@anthropic-ai/sdk';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { buildApp, hashToken, type App } from '../src/app.js';
 import type { Config } from '../src/config.js';
 import type {
   ActivityEvent,
+  ConsentResponse,
   HomeResponse,
   Product,
   ProductResponse,
@@ -14,6 +16,7 @@ import type {
 import { Store } from '../src/db.js';
 import { MockProvider } from '../src/providers/mock/index.js';
 import type { PriceProvider } from '../src/providers/types.js';
+import { ClaudeProfiler, type ProfilerClient } from '../src/profile/claude.js';
 import { testConfig } from './helpers.js';
 
 let app: App;
@@ -662,5 +665,96 @@ describe('learning loop', () => {
     expect(s.getRow(id)!.totalEvents).toBe(180);
     expect(s.recentEvents(id, 1)[0]!.query).toBe('q2-59');
     s.close();
+  });
+});
+
+describe('AI consent (GET/PUT /v1/consent)', () => {
+  const put = (payload: unknown, token?: string) => app.fastify.inject({ method: 'PUT', url: '/v1/consent', payload: payload as object, headers: bearer(token) });
+  const refined = {
+    retailerAffinity: { amazon: 0, walmart: 0, samsclub: 0, target: 0.9, costco: 0, bestbuy: 0, kroger: 0 },
+    priceSensitivity: 0.2, speedPreference: 0.1, qualityPreference: 0.1, memberships: [],
+    categoryAffinity: [], brandAffinity: [], summary: 'Written by the model.', insights: [], suggestedQueries: [],
+  };
+  let create: ReturnType<typeof vi.fn>;
+  async function startWithClaude(impl: () => Promise<unknown> = async () => ({ content: [{ type: 'tool_use', id: 't', name: 'save_profile', input: refined }], stop_reason: 'tool_use' })) {
+    await app.fastify.close();
+    store.close();
+    store = new Store(':memory:');
+    create = vi.fn(impl);
+    const client = { messages: { create } } as unknown as ProfilerClient;
+    app = await buildApp({
+      config: testConfig({ claudeEveryNEvents: 25 }),
+      store,
+      providers: [new MockProvider({ catalog: 'general' })],
+      claude: new ClaudeProfiler({ client, model: 'claude-haiku-5-5', timeoutMs: 1000 }),
+    });
+  }
+  const clicks = (n: number) => ({ events: Array.from({ length: n }, () => ({ type: 'offer_click', ts: Date.now(), retailerId: 'target', price: 50, wasCheapest: false, premiumPaid: 2 })) });
+
+  it('reports aiAvailable false without a key; default is no consent; anonymous GET works', async () => {
+    const anon = (await get('/v1/consent')).json() as ConsentResponse;
+    expect(anon).toEqual({ ai: false, consentedAt: null, decidedAt: null, aiAvailable: false });
+    const { token } = await register();
+    expect((await get('/v1/consent', token)).json()).toEqual({ ai: false, consentedAt: null, decidedAt: null, aiAvailable: false });
+  });
+
+  it('PUT needs a token and a strict boolean body, records the answer and its time', async () => {
+    const { token } = await register();
+    expectError(await put({ ai: true }), 401, 'unauthorized');
+    expectError(await put({}, token), 400, 'invalid_request');
+    expectError(await put({ ai: 'yes' }, token), 400, 'invalid_request');
+    expectError(await put({ ai: true, extra: 1 }, token), 400, 'invalid_request');
+    const no = (await put({ ai: false }, token)).json() as ConsentResponse;
+    expect(no.ai).toBe(false);
+    expect(no.consentedAt).toBeNull();
+    expect(typeof no.decidedAt).toBe('string');
+    const yes = (await put({ ai: true }, token)).json() as ConsentResponse;
+    expect(yes.ai).toBe(true);
+    expect(Date.parse(yes.consentedAt!)).toBeGreaterThan(0);
+    expect((await get('/v1/consent', token)).json()).toEqual(yes);
+    // Per device.
+    const other = await register();
+    expect(((await get('/v1/consent', other.token)).json() as ConsentResponse).ai).toBe(false);
+  });
+
+  it('aiAvailable is true with a key; the profiler never runs without consent, runs with it, and withdrawal reverts the profile', async () => {
+    await startWithClaude();
+    const { token } = await register();
+    expect(((await get('/v1/consent', token)).json() as ConsentResponse).aiAvailable).toBe(true);
+
+    expect((await postEvents(clicks(60), token)).statusCode).toBe(200);
+    await app.learner.flush();
+    expect(create).not.toHaveBeenCalled();
+    expect(((await get('/v1/profile', token)).json() as ProfileResponse).profile.source).toBe('heuristic');
+
+    await put({ ai: true }, token);
+    await postEvents(clicks(1), token);
+    await app.learner.flush();
+    expect(create).toHaveBeenCalledTimes(1);
+    // What was sent: an aggregate digest, never the device id or token.
+    const body = JSON.stringify((create.mock.calls[0] as [Anthropic.MessageCreateParamsNonStreaming])[0]);
+    const deviceId = store.deviceByTokenHash(hashToken(token))!.deviceId;
+    expect(body).not.toContain(deviceId);
+    expect(body).not.toContain(token);
+    expect(((await get('/v1/profile', token)).json() as ProfileResponse).profile.source).toBe('claude');
+
+    await put({ ai: false }, token);
+    const reverted = ((await get('/v1/profile', token)).json() as ProfileResponse).profile;
+    expect(reverted.source).toBe('heuristic');
+    expect(reverted.summary).not.toBe('Written by the model.');
+    await postEvents(clicks(60), token);
+    await app.learner.flush();
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it('DELETE /v1/profile erases consent too', async () => {
+    await startWithClaude();
+    const { token } = await register();
+    const deviceId = store.deviceByTokenHash(hashToken(token))!.deviceId;
+    await put({ ai: true }, token);
+    expect(store.hasAiConsent(deviceId)).toBe(true);
+    expect((await del('/v1/profile', token)).statusCode).toBe(200);
+    expect(store.getConsent(deviceId)).toBeNull();
+    expectError(await get('/v1/consent', token), 401, 'unauthorized');
   });
 });
