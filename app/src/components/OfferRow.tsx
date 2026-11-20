@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type { Offer } from '@/api/contract';
-import { breakdownLine, money, relativeTime, shippingNote } from '@/lib/format';
+import { breakdownLine, money, relativeTime, shippingNote, sizeText, unitPriceText } from '@/lib/format';
 import { hasPrice } from '@/lib/offers';
 import { getRetailer } from '@/lib/retailers';
 import { continuous, layout, radius, space, useTheme } from '@/theme';
@@ -14,6 +14,10 @@ import { Badge } from './ui';
 export interface OfferRowProps {
   offer: Offer;
   isCheapest: boolean;
+  /** Wording for the best offer: "Best price", or "Best value per oz" when offers are compared per unit. */
+  bestLabel?: string;
+  /** Name of the store location this price is from (detail table). */
+  storeName?: string | null;
   isRecommended: boolean;
   /** Opens the retailer's page. */
   onPress: (offer: Offer) => void;
@@ -30,10 +34,12 @@ export interface OfferRowProps {
  * Rules that must hold here:
  * - the price shown is `landedPrice`;
  * - a 'link_only' offer shows "Check price" and never a number;
+ * - an 'equivalent' offer says "Similar item" and names what the store actually sells;
+ * - the unit price sits right under the price, because "best" may be per unit;
  * - an ineligible offer is dimmed, says "Membership required", and the caller
  *   never passes isCheapest for it (see viewOffers).
  */
-export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommended, onPress, onBreakdown, density = 'compact' }: OfferRowProps) {
+export const OfferRow = memo(function OfferRow({ offer, isCheapest, bestLabel = 'Best price', storeName, isRecommended, onPress, onBreakdown, density = 'compact' }: OfferRowProps) {
   const { c } = useTheme();
   const retailer = getRetailer(offer.retailerId);
   const table = density === 'table';
@@ -42,23 +48,31 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
   const locked = !offer.eligible;
   const dim = out || locked;
 
+  const similar = offer.matchType === 'equivalent';
+  const unit = priced ? unitPriceText(offer) : null;
+  const size = sizeText(offer.size);
+
   const notes: string[] = [];
   if (locked) notes.push('Membership required');
   else if (offer.membershipRequired) notes.push(table ? 'Member price' : 'Member');
   if (out) notes.push('Out of stock');
   else if (!priced) notes.push('No price available here');
   else {
-    notes.push(shippingNote(offer));
+    // An in-store price has no shipping line; "Free shipping" would be noise there.
+    if (offer.storeId == null || (offer.shipping ?? 0) > 0) notes.push(shippingNote(offer));
     if (offer.delivery) notes.push(offer.delivery);
   }
+  if (table && storeName) notes.push(storeName);
   const tint = isCheapest ? c.bestSoft : isRecommended ? c.accentSoft : 'transparent';
   const asOf = priced && offer.priceSource === 'live' ? `as of ${relativeTime(offer.observedAt)}` : null;
 
   const label = [
     retailer.name,
+    similar ? `similar item: ${offer.offerTitle ?? 'store alternative'}` : null,
     !priced ? 'check price at the store' : `${money(offer.landedPrice)} total`,
+    unit,
     ...notes,
-    isCheapest ? 'best price' : null,
+    isCheapest ? bestLabel : null,
     isRecommended ? 'picked for you' : null,
   ]
     .filter(Boolean)
@@ -85,9 +99,21 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
                 {retailer.name}
               </Text>
               <Ionicons name="open-outline" size={12} color={c.textTertiary} />
-              {isCheapest ? <Badge kind="best" label="Best price" /> : null}
+              {isCheapest ? <Badge kind="best" label={bestLabel} /> : null}
               {isRecommended ? <Badge kind="accent" label="For you" icon="sparkles" /> : null}
             </View>
+            {similar ? (
+              <View style={[styles.similar, dim && styles.dim]} testID={`offer-similar-${offer.retailerId}`}>
+                <Badge kind="neutral" label="Similar item" icon="swap-horizontal" />
+                <Text variant="caption" tone="textSecondary" numberOfLines={table ? 2 : 1} style={styles.note}>
+                  {offer.offerTitle ?? 'This store’s alternative'}
+                </Text>
+              </View>
+            ) : table && size ? (
+              <Text variant="caption" tone="textSecondary" style={dim && styles.dim}>
+                {size}
+              </Text>
+            ) : null}
             <View style={styles.noteLine}>
               {locked ? <Ionicons name="lock-closed" size={11} color={c.textSecondary} style={styles.noteIcon} /> : null}
               <Text variant="caption" tone={out && !locked ? 'danger' : 'textSecondary'} numberOfLines={table ? 2 : 1} style={styles.note}>
@@ -119,6 +145,11 @@ export const OfferRow = memo(function OfferRow({ offer, isCheapest, isRecommende
               </Text>
               <Ionicons name="information-circle-outline" size={14} color={c.textTertiary} />
             </View>
+            {unit ? (
+              <Text variant={isCheapest ? 'captionStrong' : 'caption'} tone={isCheapest ? 'best' : 'textSecondary'} style={dim && styles.dim} testID={`offer-unit-${offer.retailerId}`}>
+                {unit}
+              </Text>
+            ) : null}
             {table && offer.listPrice != null && offer.listPrice > offer.price ? (
               <Text variant="caption" tone="textTertiary" style={styles.strike}>
                 {money(offer.listPrice)}
@@ -152,7 +183,8 @@ const styles = StyleSheet.create({
   store: { flex: 1, minWidth: 0, minHeight: layout.minTouch + 2, flexDirection: 'row', alignItems: 'center', gap: space.sm + 2, paddingVertical: 5, borderRadius: radius.sm },
   storeTable: { minHeight: 60, gap: space.md, paddingVertical: space.sm },
   middle: { flex: 1, minWidth: 0 },
-  nameLine: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  nameLine: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', columnGap: 6, rowGap: 2 },
+  similar: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 },
   name: { flexShrink: 1 },
   noteLine: { flexDirection: 'row', alignItems: 'center', marginTop: 1 },
   noteIcon: { marginRight: 4 },

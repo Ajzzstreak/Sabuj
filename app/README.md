@@ -1,7 +1,8 @@
 # DealLens app
 
-The client for DealLens (working name), a price-comparison product: search a product and see every
-retailer's price side by side, with the best deal marked. One Expo / React Native codebase runs on
+The client for DealLens (working name), a grocery price-comparison product: build a shopping list
+and see what the whole list costs at each store near you; search an item and see every store's
+price (or that store's own-brand equivalent) side by side, compared per unit. One Expo / React Native codebase runs on
 iOS, Android, tablets and the web.
 
 ## Requirements
@@ -37,7 +38,7 @@ The Android emulator reaches the host machine at `http://10.0.2.2:8787`.
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `EXPO_PUBLIC_API_URL` | `http://localhost:8787` | Base URL of the API. Read at bundle time; restart the bundler after changing it. |
-| `EXPO_PUBLIC_DEV_ROUTES` | unset | Set to `1` to include `/dev/components` (the component gallery) in an exported build. It is always on in development and off in production otherwise. |
+| `EXPO_PUBLIC_SHOW_DEV` | unset | Set to `1` at export time to make `/dev/components` (the component gallery) reachable in an exported build, for review. Always on in development; otherwise the route redirects home and nothing links to it. |
 
 Copy `.env.example` to `.env` to set it locally. `EXPO_PUBLIC_*` values are compiled into the
 bundle, so never put a secret in one.
@@ -119,6 +120,7 @@ src/
   app/                 expo-router routes
     _layout.tsx        providers, fonts, startup, onboarding gate, global sheets and toasts
     (tabs)/index.tsx   Home / search, Ask examples
+    (tabs)/list.tsx    Shopping list and per-store totals        -> POST /v1/basket
     (tabs)/saved.tsx   Saved | Alerts
     (tabs)/profile.tsx What the app has learned, Shopping settings, pause, delete, About & legal
     search.tsx         Keyword results (?q=)            -> GET /v1/search
@@ -129,13 +131,16 @@ src/
     dev/components.tsx Component gallery (not in production builds)
   components/
     ui/                THE shared primitives: Button, IconButton, Chip, SegmentedControl, Sheet,
-                       TextField, ListRow, ToggleRow, Banner, Toast, EmptyState, Badge
+                       TextField, ListRow, ToggleRow, CheckRow, QuantityStepper, Banner, Toast,
+                       EmptyState, Badge
     PressableScale.tsx the one touchable under all of them (press, hover, focus ring, disabled)
     ...                cards, offer rows, chart, skeletons, tab bar, onboarding, alert and breakdown sheets
   content/             legal templates, Ask example prompts
   hooks/               useLayout (breakpoints), useTypeahead
-  lib/                 session (device + token), tracker, push (+ .web no-op), offers, formatting, storage
-  state/               local stores: settings, shopper (ZIP, memberships), recents, saved, alert prefs
+  lib/                 session (device + token), tracker, list actions, push (+ .web no-op), offers
+                       (best / unit-mode logic), formatting, storage
+  state/               local stores: settings, shopper (ZIP, stores, memberships), shopping list,
+                       recents, saved, alert prefs
   theme/               design tokens (color, type, spacing, radius, chart palette)
 ```
 
@@ -155,6 +160,20 @@ src/
   dimmed, labelled "Membership required" and never marked best price. `priceSource` `demo` shows a
   persistent "Demo prices" notice, `link_only` shows "Check price" and no number, `live` shows
   "as of <time>". `recommendationReason` is rendered exactly as the server sends it.
+- **Stores and unit prices.** After the ZIP, onboarding lists stores from `GET /v1/stores` grouped by
+  chain, the nearest of each preselected; the choice is editable under Shopping settings and sent as
+  `storeIds` (omitted when not chosen: the server then uses the nearest). Every offer row shows its
+  unit price. A store's own-brand alternative is labelled "Similar item" with its real name. When a
+  product's offers are different sizes or items, the server ranks per unit; the app then says
+  "Best value per oz" (never "Best price"), explains the per-unit comparison, and names the lowest
+  shelf price when that is a different store.
+- **Shopping list.** The List tab holds a local list (quick-add text, "Add to list" on any product,
+  quantities, check-off, remove with undo). Store totals come from `POST /v1/basket`, debounced
+  450 ms and cancellable, with the previous totals kept on screen while new ones load: a card per
+  store (total, items covered, missing items, bulk-pack note), the best single store highlighted, a
+  "Split across two stores" card when the server returns `bestSplit`, and a line-by-line sheet per
+  store. Free-text items show what they were priced as, with "Change" to pin a specific product.
+  Adds and removes emit `list_add` / `list_remove`.
 - **Ask.** The sparkle button, the "Ask" row under the search field and the example prompts go to
   `POST /v1/ask` (30 s timeout, skeleton while waiting). Enter in the search field always uses
   `/v1/search`. Editing an "understood as" chip re-runs the edited keywords on `/v1/search` and

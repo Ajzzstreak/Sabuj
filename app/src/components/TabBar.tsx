@@ -5,7 +5,7 @@ import { APP_NAME } from '@/config';
 import { useLayout } from '@/hooks/useLayout';
 import { haptic } from '@/lib/haptics';
 import { useAlerts } from '@/api/queries';
-import { alertPrefsStore } from '@/state';
+import { alertPrefsStore, listStore } from '@/state';
 import { fonts, layout, radius, space, useTheme } from '@/theme';
 import { PressableScale } from './PressableScale';
 import { Text } from './Text';
@@ -14,8 +14,9 @@ import { CountBadge } from './ui';
 type Glyph = keyof typeof Ionicons.glyphMap;
 const TABS: Record<string, { label: string; icon: Glyph; iconActive: Glyph }> = {
   index: { label: 'Search', icon: 'search-outline', iconActive: 'search' },
+  list: { label: 'List', icon: 'list-outline', iconActive: 'list' },
   saved: { label: 'Saved', icon: 'bookmark-outline', iconActive: 'bookmark' },
-  profile: { label: 'Your profile', icon: 'sparkles-outline', iconActive: 'sparkles' },
+  profile: { label: 'Profile', icon: 'sparkles-outline', iconActive: 'sparkles' },
 };
 
 export const WIDE_TAB_BAR_MIN = layout.tabletMin;
@@ -28,20 +29,21 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
   // Polled here (refetched whenever the app regains focus) so a triggered alert is visible from any tab.
   const alerts = useAlerts().data;
   const seen = alertPrefsStore.use((s) => s.seenTriggered);
+  const toBuy = listStore.use((list) => list.filter((i) => !i.checked).length);
   const triggered = alerts?.filter((a) => a.status === 'triggered' && !seen.includes(a.id)).length ?? 0;
 
   const items = state.routes.map((route, index) => {
     const meta = TABS[route.name];
     if (!meta) return null;
     const focused = state.index === index;
-    const badge = route.name === 'saved' ? triggered : 0;
+    const badge = route.name === 'saved' ? triggered : route.name === 'list' ? toBuy : 0;
     return (
       <PressableScale
         key={route.key}
         testID={`tab-${route.name}`}
         accessibilityRole="tab"
         accessibilityState={{ selected: focused }}
-        accessibilityLabel={badge ? `${meta.label}, ${badge} price ${badge === 1 ? 'alert' : 'alerts'} triggered` : meta.label}
+        accessibilityLabel={!badge ? meta.label : route.name === 'list' ? `${meta.label}, ${badge} to buy` : `${meta.label}, ${badge} price ${badge === 1 ? 'alert' : 'alerts'} triggered`}
         scaleTo={0.94}
         onPress={() => {
           if (!focused) haptic.selection();
@@ -53,7 +55,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
           <Ionicons name={focused ? meta.iconActive : meta.icon} size={wide ? 17 : 23} color={focused ? c.accent : c.textSecondary} />
           {badge && !wide ? (
             <View style={styles.dot}>
-              <CountBadge count={badge} testID="alerts-badge" />
+              <CountBadge count={badge} testID={`${route.name === 'list' ? 'list' : 'alerts'}-badge`} />
             </View>
           ) : null}
         </View>
@@ -65,7 +67,7 @@ export function TabBar({ state, navigateToTab, insets }: BottomTabBarProps) {
         >
           {meta.label}
         </Text>
-        {badge && wide ? <CountBadge count={badge} testID="alerts-badge" /> : null}
+        {badge && wide ? <CountBadge count={badge} testID={`${route.name === 'list' ? 'list' : 'alerts'}-badge`} /> : null}
       </PressableScale>
     );
   });

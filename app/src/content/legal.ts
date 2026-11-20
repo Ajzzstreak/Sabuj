@@ -34,7 +34,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
       {
         heading: 'What we collect',
         body: [
-          `[DRAFT] ${APP_NAME} has no accounts. The app is issued an anonymous device ID and token. With it we store your searches and plain-English questions, the products you open, the offers you tap, saves, price alerts and, if you set them, your ZIP code and warehouse-club memberships.`,
+          `[DRAFT] ${APP_NAME} has no accounts. The app is issued an anonymous device ID and token. With it we store your searches and plain-English questions, the products you open, the offers you tap, saves, shopping-list additions and removals, price alerts and, if you set them, your ZIP code, chosen stores and warehouse-club memberships.`,
           '[DRAFT] If you allow notifications we store a push token so a price alert can reach your device.',
         ],
       },
@@ -63,7 +63,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
       {
         heading: 'Prices are not guarantees',
         body: [
-          '[DRAFT] Prices, shipping costs and stock are gathered from retailers and can be out of date or wrong. Sales tax is an estimate from your ZIP code. The retailer’s checkout is the final word.',
+          '[DRAFT] Prices, shipping costs and stock are gathered from retailers and can be out of date or wrong. A “similar item” is our best match for a store’s own product, not a guarantee that it is equivalent. Shopping-list totals are estimates; a warehouse club’s line is one bulk pack, which is more product than listed. Sales tax is an estimate from your ZIP code. The retailer’s checkout is the final word.',
           '[DRAFT] Prices labelled “Demo” are sample data and are not offers.',
         ],
       },
@@ -78,7 +78,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
       {
         heading: 'By total price and your own preferences. Not by payment.',
         body: [
-          '[DRAFT] Offers are ranked by total price — item, shipping and estimated tax — and by your own preferences. No retailer can pay for a higher position, a “Best price” badge or a “For you” pick.',
+          '[DRAFT] Offers are ranked by total price — item, shipping and estimated tax, per unit (per oz, per count) when stores sell different sizes or their own version of an item — and by your own preferences. No retailer can pay for a higher position, a “Best price” badge or a “For you” pick.',
           '[DRAFT] “Best price” is always the lowest total among offers that are in stock, that you are eligible to buy, and that have a known price.',
         ],
       },
@@ -106,7 +106,8 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
         heading: 'Sent to our server',
         body: [
           '[DRAFT] Searches and plain-English questions (the text).',
-          '[DRAFT] ZIP code and memberships, when set, with every search, product and alert request.',
+          '[DRAFT] ZIP code, chosen stores and memberships, when set, with every search, product, list-total and alert request.',
+          '[DRAFT] The items and quantities on your shopping list, each time it is totalled. State whether the server keeps them (today it does not).',
           '[DRAFT] Products opened; offers tapped, with the store, price, position and whether it was the cheapest; saves and removals.',
           '[DRAFT] Price alerts: product and target price. A push token, only if notifications are allowed.',
           '[DRAFT] Barcode numbers you scan or type. Never the camera image.',
@@ -118,7 +119,7 @@ export const LEGAL_DOCS: Record<LegalDocId, LegalDoc> = {
       },
       {
         heading: 'Kept only on this device',
-        body: ['[DRAFT] Your saved list, recent searches, ZIP code and membership answers, and unsent activity. “Delete my data” clears all of them.'],
+        body: ['[DRAFT] Your shopping list, saved products, recent searches, ZIP code, store and membership answers, and unsent activity. “Delete my data” clears all of them.'],
       },
       { heading: 'Never collected', body: ['[DRAFT] Name, email, contacts, precise location, advertising identifiers. Confirm this list against the shipped build and any SDKs added later.'] },
     ],

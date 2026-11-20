@@ -6,10 +6,12 @@ import { StyleSheet, View } from 'react-native';
 import type { Offer, Product } from '@/api/contract';
 import { prefetchProduct, seedProducts } from '@/api/queries';
 import { goToStore } from '@/lib/actions';
-import { moneyShort } from '@/lib/format';
+import { money, moneyShort, sizeText } from '@/lib/format';
 import { NO_FILTERS, viewOffers, type OfferFilters } from '@/lib/offers';
 import { showBreakdown } from '@/lib/overlays';
+import { getRetailer } from '@/lib/retailers';
 import { continuous, radius, space, useTheme } from '@/theme';
+import { AddToListButton } from './AddToList';
 import { Rating } from './bits';
 import { OfferRow } from './OfferRow';
 import { PressableScale } from './PressableScale';
@@ -59,7 +61,7 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
           <ProductTile imageUrl={product.imageUrl} category={product.category} title={product.title} size={76} />
           <View style={styles.headerText}>
             <Text variant="overline" tone="textTertiary" numberOfLines={1}>
-              {product.brand}
+              {[product.brand, sizeText(product.size)].filter(Boolean).join(' · ')}
             </Text>
             <Text variant="title3" numberOfLines={2} style={styles.title}>
               {product.title}
@@ -86,6 +88,7 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
             key={offer.id}
             offer={offer}
             isCheapest={offer.id === view.cheapestId}
+            bestLabel={view.bestLabel}
             isRecommended={offer.id === view.recommendedId}
             onPress={onOffer}
             onBreakdown={onBreakdown}
@@ -93,8 +96,26 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
         ))}
       </View>
 
-      <View style={styles.footer}>
-        {view.savings >= 0.01 ? (
+      {/* Per-unit comparison: say so, and say when the best value is not the lowest shelf price. */}
+      {view.unitMode && view.cheapestId ? (
+        <View style={styles.unitNote} testID="unit-note">
+          <Ionicons name="scale-outline" size={14} color={c.textSecondary} style={styles.unitIcon} />
+          <Text variant="footnote" tone="textSecondary" style={styles.reasonText}>
+            Sizes or items differ, so stores are compared {view.unit === 'each' ? 'per item' : `per ${view.unit ?? 'unit'}`}.
+            {view.lowestShelf ? ` Lowest shelf price: ${money(view.lowestShelf.landedPrice)} at ${getRetailer(view.lowestShelf.retailerId).name}${sizeText(view.lowestShelf.size) ? ` (${sizeText(view.lowestShelf.size)})` : ''}.` : ''}
+          </Text>
+        </View>
+      ) : null}
+
+      <View style={styles.savingsLine}>
+        {view.unitMode && view.savingsPct >= 0.01 ? (
+          <View style={styles.savings}>
+            <Ionicons name="trending-down" size={15} color={c.best} />
+            <Text variant="footnoteStrong" tone="best">
+              Up to {Math.round(view.savingsPct * 100)}% less {view.unit === 'each' ? 'each' : `per ${view.unit ?? 'unit'}`}
+            </Text>
+          </View>
+        ) : !view.unitMode && view.savings >= 0.01 ? (
           <View style={styles.savings}>
             <Ionicons name="trending-down" size={15} color={c.best} />
             <Text variant="footnoteStrong" tone="best">
@@ -106,6 +127,9 @@ export const ProductCard = memo(function ProductCard({ product, filters = NO_FIL
             {view.offers.length === 1 ? 'One store carries this' : view.bestPrice == null ? 'No comparable price' : 'Same price everywhere'}
           </Text>
         )}
+      </View>
+      <View style={styles.footer}>
+        <AddToListButton product={product} />
         <Button label="Details" variant="tertiary" size="sm" trailingIcon="chevron-forward" onPress={open} accessibilityLabel={`Details for ${product.title}`} style={styles.detailsLink} />
       </View>
       {footnote}
@@ -122,7 +146,10 @@ const styles = StyleSheet.create({
   reason: { flexDirection: 'row', alignItems: 'flex-start', gap: 6, marginTop: space.sm, marginHorizontal: 4, paddingHorizontal: space.sm + 2, paddingVertical: 7, borderRadius: radius.sm },
   reasonText: { flex: 1 },
   offers: { marginTop: space.sm, gap: 2 },
-  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto', paddingTop: space.sm + 2, paddingHorizontal: space.sm, minHeight: 34 },
+  unitNote: { flexDirection: 'row', gap: 6, marginTop: space.sm, paddingHorizontal: space.sm },
+  unitIcon: { marginTop: 2 },
+  savingsLine: { marginTop: 'auto', paddingTop: space.sm + 2, paddingHorizontal: space.sm },
+  footer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: space.xs, marginTop: 2 },
   savings: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  detailsLink: { marginRight: -space.sm, marginVertical: -4 },
+  detailsLink: { marginRight: -space.xs },
 });

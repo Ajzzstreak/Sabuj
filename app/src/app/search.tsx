@@ -26,6 +26,7 @@ import { layout, space, useTheme } from '@/theme';
 const SORTS: { key: SortKey; label: string }[] = [
   { key: 'best', label: 'Best match' },
   { key: 'price', label: 'Lowest price' },
+  { key: 'unit', label: 'Lowest unit price' },
   { key: 'rating', label: 'Top rated' },
 ];
 const GAP = space.lg;
@@ -144,7 +145,7 @@ export default function ResultsScreen() {
         </View>
       ) : (
         <Text variant="callout" tone="textSecondary" style={styles.subMeta}>
-          {!q ? 'Type a product to compare prices.' : search.isError ? 'Could not load results.' : 'Comparing stores…'}
+          {!q ? 'Type a grocery item to compare stores.' : search.isError ? 'Could not load results.' : 'Comparing stores…'}
         </Text>
       )}
 
@@ -204,7 +205,7 @@ export default function ResultsScreen() {
     <EmptyState
       icon="search-outline"
       title={`No results for “${q}”`}
-      detail="Check the spelling or try a more general term. If you described what you need in a sentence, ask instead."
+      detail="Check the spelling or try a more general word, like “pasta” instead of a brand. If you described what you need in a sentence, ask instead."
       action={<Button label="Ask in plain English" icon="sparkles" variant="secondary" onPress={() => ask(q)} />}
     />
   );

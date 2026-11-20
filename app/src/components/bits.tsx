@@ -66,10 +66,11 @@ export const Rating = memo(function Rating({ rating, count, size = 'sm' }: { rat
 });
 
 /** ---- Card surface --------------------------------------------------------------- */
-export function Card({ children, style, padded = true }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean }) {
+export function Card({ children, style, padded = true, testID }: { children: ReactNode; style?: StyleProp<ViewStyle>; padded?: boolean; testID?: string }) {
   const t = useTheme();
   return (
     <View
+      testID={testID}
       style={[
         continuous,
         { backgroundColor: t.c.surface, borderRadius: radius.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: t.c.border },

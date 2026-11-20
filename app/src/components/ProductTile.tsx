@@ -34,9 +34,26 @@ const GLYPHS: [RegExp, Glyph][] = [
   [/electronic|tech|charger|battery|cable/, 'hardware-chip-outline'],
 ];
 
+/** Grocery aisles: the aisle decides the picture (a title like "Butter Popcorn" must not). */
+const AISLES: [RegExp, Glyph][] = [
+  [/produce|fruit|vegetable/, 'leaf-outline'],
+  [/dairy|egg/, 'egg-outline'],
+  [/meat|seafood|deli/, 'fish-outline'],
+  [/bakery|bread/, 'pizza-outline'],
+  [/pantry|baking|spice|condiment/, 'file-tray-stacked-outline'],
+  [/canned/, 'layers-outline'],
+  [/snack|candy/, 'fast-food-outline'],
+  [/beverage|drink/, 'wine-outline'],
+  [/frozen/, 'snow-outline'],
+  [/breakfast|cereal/, 'sunny-outline'],
+  [/baby/, 'happy-outline'],
+  [/household|cleaning|paper/, 'home-outline'],
+];
+
 export function glyphFor(category: string, title = ''): Glyph {
   const title_ = title.toLowerCase();
   const category_ = category.toLowerCase();
+  for (const [re, glyph] of AISLES) if (re.test(category_)) return glyph;
   for (const [re, glyph] of GLYPHS) if (re.test(title_)) return glyph;
   for (const [re, glyph] of GLYPHS) if (re.test(category_)) return glyph;
   return 'pricetag-outline';

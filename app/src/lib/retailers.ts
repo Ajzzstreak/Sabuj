@@ -12,9 +12,11 @@ const registry: Record<RetailerId, Retailer> = {
   target: { id: 'target', name: 'Target', color: '#CC0000', membershipRequired: false },
   costco: { id: 'costco', name: 'Costco', color: '#E31837', membershipRequired: true },
   bestbuy: { id: 'bestbuy', name: 'Best Buy', color: '#0046BE', membershipRequired: false },
+  kroger: { id: 'kroger', name: 'Kroger', color: '#084999', membershipRequired: false },
 };
 
-export const RETAILER_ORDER: RetailerId[] = ['amazon', 'walmart', 'samsclub', 'target', 'costco', 'bestbuy'];
+/** Display order: the launch grocery stores first. */
+export const RETAILER_ORDER: RetailerId[] = ['walmart', 'kroger', 'target', 'costco', 'samsclub', 'amazon', 'bestbuy'];
 
 export function registerRetailers(list: Retailer[] | undefined): void {
   for (const r of list ?? []) registry[r.id] = r;

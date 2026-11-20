@@ -176,6 +176,7 @@ export const chartSeries: Record<ColorScheme, Record<RetailerId, string>> = {
     target: '#E34948',
     costco: '#6250D6',
     bestbuy: '#EDA100',
+    kroger: '#C2408F',
   },
   dark: {
     amazon: '#D95926',
@@ -184,6 +185,7 @@ export const chartSeries: Record<ColorScheme, Record<RetailerId, string>> = {
     target: '#E66767',
     costco: '#9085E9',
     bestbuy: '#C98500',
+    kroger: '#D65AA5',
   },
 };
 

@@ -150,7 +150,7 @@ export default function SavedScreen() {
             <EmptyState
               icon="bookmark-outline"
               title="Nothing saved yet"
-              detail="Tap the bookmark on any product to keep an eye on its prices here."
+              detail="Tap the bookmark on any product to keep an eye on its price at each store."
               action={<Button label="Find something" icon="search" onPress={() => router.navigate('/')} />}
             />
           }

@@ -76,6 +76,8 @@ export function toSnapshot(p: Product): Product {
     title: p.title,
     brand: p.brand,
     category: p.category,
+    size: p.size,
+    isStoreBrand: p.isStoreBrand,
     imageUrl: p.imageUrl,
     gtin: p.gtin,
     highlights: p.highlights,

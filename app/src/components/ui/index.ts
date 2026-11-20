@@ -2,10 +2,12 @@
 export { Badge, CountBadge, type BadgeKind } from './Badge';
 export { Banner, type BannerProps, type BannerTone } from './Banner';
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant, type Glyph } from './Button';
+export { CheckRow, type CheckRowProps } from './CheckRow';
 export { Chip, type ChipProps } from './Chip';
 export { EmptyState, type EmptyStateProps } from './EmptyState';
 export { IconButton, type IconButtonProps } from './IconButton';
 export { ListRow, ToggleRow, type ListRowProps, type ToggleRowProps } from './rows';
+export { QuantityStepper, type QuantityStepperProps } from './QuantityStepper';
 export { SegmentedControl, type SegmentOption } from './SegmentedControl';
 export { Sheet, SheetSurface, type SheetProps } from './Sheet';
 export { TextField, type TextFieldProps } from './TextField';

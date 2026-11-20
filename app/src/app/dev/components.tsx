@@ -9,11 +9,13 @@ import {
   Badge,
   Banner,
   Button,
+  CheckRow,
   Chip,
   CountBadge,
   EmptyState,
   IconButton,
   ListRow,
+  QuantityStepper,
   SegmentedControl,
   Sheet,
   SheetSurface,
@@ -70,6 +72,9 @@ function Panel({ scheme }: { scheme: ColorScheme }) {
   const [chip, setChip] = useState(true);
   const [field, setField] = useState('94103');
   const [sheet, setSheet] = useState(false);
+  const [qty, setQty] = useState(2);
+  const [ticked, setTicked] = useState(false);
+  const [store, setStore] = useState('a');
   const noop = () => undefined;
   return (
     <View style={[styles.panel, { backgroundColor: c.bg, borderColor: c.borderStrong }]} testID={`gallery-${scheme}`}>
@@ -192,6 +197,50 @@ function Panel({ scheme }: { scheme: ColorScheme }) {
         </Card>
       </Group>
 
+      <Group title="QuantityStepper">
+        <View style={styles.wrapRow}>
+          <Sample label="live (tap)">
+            <QuantityStepper label="example quantity" value={qty} onChange={setQty} />
+          </Sample>
+          <Sample label="at min">
+            <QuantityStepper label="quantity at minimum" value={1} onChange={noop} />
+          </Sample>
+          <Sample label="min = remove">
+            <QuantityStepper label="quantity with remove" value={1} onChange={noop} onRemove={noop} />
+          </Sample>
+          <Sample label="at max">
+            <QuantityStepper label="quantity at maximum" value={99} onChange={noop} />
+          </Sample>
+          <Sample label="hover">
+            <QuantityStepper label="hovered quantity" value={3} onChange={noop} forceState="hover" />
+          </Sample>
+          <Sample label="pressed">
+            <QuantityStepper label="pressed quantity" value={3} onChange={noop} forceState="pressed" />
+          </Sample>
+          <Sample label="focus">
+            <QuantityStepper label="focused quantity" value={3} onChange={noop} forceState="focus" />
+          </Sample>
+          <Sample label="disabled">
+            <QuantityStepper label="disabled quantity" value={3} onChange={noop} disabled />
+          </Sample>
+        </View>
+      </Group>
+
+      <Group title="CheckRow — checkbox and radio">
+        <Card>
+          <CheckRow label="Checkbox (tap)" detail="Strikes through when ticked, like a shopping list." strikeWhenChecked checked={ticked} onChange={setTicked} />
+          <CheckRow label="Checked, with trailing control" checked onChange={noop} divider trailing={<QuantityStepper label="trailing quantity" value={2} onChange={noop} onRemove={noop} />} />
+          <CheckRow label="Hover" checked={false} onChange={noop} forceState="hover" divider />
+          <CheckRow label="Pressed" checked={false} onChange={noop} forceState="pressed" divider />
+          <CheckRow label="Focus" checked={false} onChange={noop} forceState="focus" divider />
+          <CheckRow label="Disabled" checked onChange={noop} disabled divider />
+        </Card>
+        <Card>
+          <CheckRow kind="radio" label="Radio A (tap)" detail="1.7 mi · 8526 Mockingbird Ln" checked={store === 'a'} onChange={() => setStore('a')} />
+          <CheckRow kind="radio" label="Radio B (tap)" detail="4.8 mi · 5368 Example Ave" checked={store === 'b'} onChange={() => setStore('b')} divider />
+        </Card>
+      </Group>
+
       <Group title="ListRow">
         <Card>
           <ListRow title="Navigation row" icon="shield-checkmark-outline" onPress={noop} />
@@ -228,7 +277,7 @@ function Panel({ scheme }: { scheme: ColorScheme }) {
 
       <Group title="Toast">
         <ToastView text="Alert set at $48.49. Check Saved › Alerts." tone="success" />
-        <ToastView text="Alert deleted." tone="neutral" />
+        <ToastView text="Removed milk" tone="neutral" action={{ label: 'Undo', onPress: noop }} />
         <ToastView text="Can't reach the server. The alert was not deleted." tone="danger" />
         <Button label="Show a real toast" variant="secondary" size="sm" onPress={() => toast('This is a toast.', 'success')} testID={`gallery-toast-${scheme}`} />
       </Group>

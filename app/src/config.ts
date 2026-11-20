@@ -38,6 +38,8 @@ export const QUERY = {
   productStaleMs: 60_000,
   profileStaleMs: 15_000,
   alertsStaleMs: 30_000,
+  storesStaleMs: 60 * 60_000,
+  basketStaleMs: 60_000,
   askStaleMs: 5 * 60_000,
   /** /v1/ask may wait on an LLM. */
   askTimeoutMs: 30_000,
@@ -48,9 +50,10 @@ export const QUERY = {
 
 /**
  * Routes under /dev (the component gallery) exist in development builds only.
- * Set EXPO_PUBLIC_DEV_ROUTES=1 to include them in an exported build for review.
+ * Set EXPO_PUBLIC_SHOW_DEV=1 at export time to include them in an exported build for
+ * review. Without it /dev/components redirects home and nothing links to it.
  */
-export const DEV_ROUTES: boolean = __DEV__ || process.env.EXPO_PUBLIC_DEV_ROUTES === '1';
+export const DEV_ROUTES: boolean = __DEV__ || process.env.EXPO_PUBLIC_SHOW_DEV === '1' || process.env.EXPO_PUBLIC_DEV_ROUTES === '1';
 
 /**
  * TEMPLATE. Set to true only once outbound links actually carry affiliate

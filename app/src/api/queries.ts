@@ -10,6 +10,9 @@ import type {
   AlertsResponse,
   AskRequest,
   AskResponse,
+  BasketItemInput,
+  BasketRequest,
+  BasketResponse,
   CreateAlertRequest,
   DeleteProfileResponse,
   HomeResponse,
@@ -20,6 +23,8 @@ import type {
   ProfileResponse,
   PushTokenRequest,
   SearchResponse,
+  Store,
+  StoresResponse,
   SuggestResponse,
 } from './contract';
 
@@ -53,6 +58,8 @@ export const keys = {
   ask: (s: Scope, text: string) => ['ask', s.deviceId, s.ctx, text.trim()] as const,
   profile: (deviceId: string) => ['profile', deviceId] as const,
   alerts: (deviceId: string) => ['alerts', deviceId] as const,
+  stores: (zip: string) => ['stores', zip] as const,
+  basket: (s: Scope, signature: string) => ['basket', s.deviceId, s.ctx, signature] as const,
 };
 
 /**
@@ -253,4 +260,61 @@ export async function deleteAlert(client: QueryClient, id: string): Promise<void
 export function putPushToken(token: string | null): Promise<{ ok: true }> {
   const body: PushTokenRequest = { token };
   return request<{ ok: true }>('/push-token', { method: 'PUT', body });
+}
+
+/** ---- Stores ------------------------------------------------------------------------ */
+
+/** GET /v1/stores?zip= : store locations near a ZIP, nearest first. */
+export function useStores(zip: string | null) {
+  return useQuery({
+    queryKey: keys.stores(zip ?? ''),
+    queryFn: async ({ signal }) => (await request<StoresResponse>('/stores', { params: { zip: zip ?? '' }, signal })).stores,
+    enabled: zip != null && /^\d{5}$/.test(zip),
+    staleTime: QUERY.storesStaleMs,
+  });
+}
+
+/** The nearest store of each retailer: what the server uses when none is chosen, and the picker's preselection. */
+export function nearestPerRetailer(stores: readonly Store[]): string[] {
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const s of [...stores].sort((a, b) => a.distanceMiles - b.distanceMiles)) {
+    if (seen.has(s.retailerId)) continue;
+    seen.add(s.retailerId);
+    ids.push(s.id);
+  }
+  return ids;
+}
+
+/** Store id -> store, for the shopper's ZIP ("which store is this price from"). */
+export function useStoreLookup(): Map<string, Store> {
+  const zip = shopperStore.use((s) => s.zip);
+  const { data } = useStores(zip);
+  return useMemo(() => new Map((data ?? []).map((s) => [s.id, s])), [data]);
+}
+
+/** ---- Shopping-list totals -------------------------------------------------------------- */
+
+/**
+ * POST /v1/basket for the given list. The caller debounces `items`; a change
+ * of list or shopper context is a new key, the in-flight request is cancelled
+ * through the signal, and the previous totals stay on screen meanwhile.
+ */
+export function useBasket(items: BasketItemInput[]) {
+  const scope = useScope();
+  const signature = useMemo(() => items.map((i) => `${i.id}:${i.productId ?? `q=${i.query ?? ''}`}:${i.quantity}`).join('|'), [items]);
+  return useQuery({
+    queryKey: keys.basket(scope, signature),
+    queryFn: async ({ signal }) => {
+      const body: BasketRequest = { items, ...shopperBody() };
+      const res = await request<BasketResponse>('/basket', { method: 'POST', body, signal });
+      registerRetailers(res.retailers);
+      seedProducts(res.items.flatMap((i) => (i.product ? [i.product] : [])));
+      return res;
+    },
+    enabled: items.length > 0,
+    staleTime: QUERY.basketStaleMs,
+    placeholderData: keepPreviousData,
+    retry: false,
+  });
 }

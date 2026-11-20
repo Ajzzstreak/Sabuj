@@ -12,13 +12,13 @@ import { SearchField, SuggestionList } from '@/components/Search';
 import { Skeleton } from '@/components/Skeleton';
 import { ErrorState, OfflineBanner } from '@/components/StateView';
 import { Text } from '@/components/Text';
-import { Button, Chip, ListRow } from '@/components/ui';
+import { Banner, Button, Chip, ListRow } from '@/components/ui';
 import { APP_NAME } from '@/config';
 import { ASK_EXAMPLES } from '@/content/ask';
 import { useLayout } from '@/hooks/useLayout';
 import { useTypeahead } from '@/hooks/useTypeahead';
 import { haptic } from '@/lib/haptics';
-import { addRecent, recentsStore } from '@/state';
+import { addRecent, recentsStore, shopperStore } from '@/state';
 import { continuous, fonts, radius, space, useTheme } from '@/theme';
 
 export default function HomeScreen() {
@@ -31,6 +31,7 @@ export default function HomeScreen() {
   const { suggestions } = useTypeahead(text);
   const home = useHome();
   const recents = recentsStore.use();
+  const hasZip = shopperStore.use((st) => st.zip != null);
 
   /** Keyword search: the fast /v1/search path. Enter always does this. */
   const submit = useCallback(
@@ -80,7 +81,7 @@ export default function HomeScreen() {
 
           <View style={[styles.hero, isDesktop && styles.heroWide]}>
             <Text variant="display" accessibilityRole="header" style={isDesktop ? styles.displayWide : undefined}>
-              Every store’s price,{'\n'}side by side.
+              Your groceries,{'\n'}priced at every store.
             </Text>
             <View style={styles.searchWrap}>
               <SearchField
@@ -90,7 +91,7 @@ export default function HomeScreen() {
                 onScan={() => router.push('/scan')}
                 onAsk={ask}
                 large
-                placeholder={isPhone ? 'Search or ask for a product' : 'Search rice cooker, AirPods, diapers… or ask in plain English'}
+                placeholder={isPhone ? 'Search milk, eggs, bread…' : 'Search milk, eggs, bread… or ask in plain English'}
               />
             </View>
 
@@ -135,11 +136,21 @@ export default function HomeScreen() {
             <Page>
               <View style={styles.banner}>
                 <OfflineBanner />
+                {hasZip ? null : (
+                  <Banner
+                    testID="home-no-zip"
+                    tone="info"
+                    icon="location-outline"
+                    title="These are national estimates"
+                    text="Add your ZIP code to see shelf prices at the stores near you, with tax."
+                    action={{ label: 'Shopping settings', onPress: () => router.navigate('/profile') }}
+                  />
+                )}
                 <DemoNotice products={shown} />
               </View>
 
               <View style={styles.block}>
-                <SectionTitle title="Ask in plain English" subtitle="Describe what you need. Budgets, ratings and stores are understood." />
+                <SectionTitle title="Ask in plain English" subtitle="Describe what you need. Budgets, diets, ratings and stores are understood." />
                 <View style={styles.chips}>
                   {ASK_EXAMPLES.map((example) => (
                     <Chip key={example} label={example} icon="sparkles" tone="accent" onPress={() => ask(example)} accessibilityLabel={`Ask: ${example}`} />

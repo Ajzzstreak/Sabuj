@@ -1,6 +1,7 @@
 import type { Offer, Product, RetailerId } from '@/api/contract';
+import { unitWord } from './format';
 
-export type SortKey = 'best' | 'price' | 'rating';
+export type SortKey = 'best' | 'price' | 'unit' | 'rating';
 
 export interface OfferFilters {
   /** Empty means every retailer. */
@@ -14,20 +15,46 @@ export const NO_FILTERS: OfferFilters = { retailers: [], inStockOnly: false };
 export const hasPrice = (o: Offer): boolean => o.priceSource !== 'link_only';
 
 /**
- * Can this offer be called "best price"? Only if the user can actually buy it
- * at a known price: in stock, eligible (membership) and not link-only.
+ * Can this offer be called "best"? Only if the user can actually buy it at a
+ * known price: in stock, eligible (membership) and not link-only.
  */
 export const rankable = (o: Offer): boolean => o.inStock && o.eligible && hasPrice(o);
 
+/**
+ * The server compares a product's offers PER UNIT as soon as one of them is a
+ * comparable item rather than the same one ('equivalent'), or the packs differ
+ * in size. A 25 lb bag is then "best" at a higher shelf price than a 5 lb bag,
+ * and the UI must say "best value per oz", never "best price".
+ */
+export function isUnitMode(offers: readonly Offer[]): boolean {
+  if (offers.some((o) => o.matchType === 'equivalent')) return true;
+  const sizes = new Set(offers.filter((o) => o.size).map((o) => `${o.size?.amount} ${o.size?.unit}`));
+  return sizes.size > 1;
+}
+
 export interface OfferView {
   offers: Offer[];
+  /** The best offer: lowest landed price, or lowest price per unit in unit mode. */
   cheapestId: string | null;
   recommendedId: string | null;
   /** The server's reason for its pick, verbatim, only when that pick is not the cheapest. */
   reason: string | null;
+  /** Dollar gap between the best and worst offer. 0 in unit mode (see savingsPct). */
   savings: number;
-  /** Lowest landed price (item + shipping + estimated tax) among rankable offers. */
+  /** Unit mode: how much less per unit the best offer is than the worst, 0-1. */
+  savingsPct: number;
+  /** Landed price (item + shipping + estimated tax) of the best offer. */
   bestPrice: number | null;
+  unitMode: boolean;
+  /** "oz", "fl oz", "ct"... of the best offer in unit mode. */
+  unit: string | null;
+  /** "Best price", or "Best value per oz" in unit mode. */
+  bestLabel: string;
+  /**
+   * Unit mode only: the offer with the lowest shelf total when that is NOT the
+   * best-value one, so the card can say so explicitly.
+   */
+  lowestShelf: Offer | null;
 }
 
 /** The offers of a product as they should be displayed under the given filters. */
@@ -41,18 +68,42 @@ export function viewOffers(product: Product, filters: OfferFilters = NO_FILTERS)
       )
     : product.offers;
 
+  // Decided on the product's full offer set, like the server does, so a filter does not flip the wording.
+  const unitMode = isUnitMode(product.offers);
+  const ranked = offers.filter(rankable);
+
   let cheapestId = product.cheapestOfferId;
-  let savings = product.maxSavings;
   const serverPick = offers.find((o) => o.id === cheapestId);
   // Trust the server's answer unless a filter hid it or it is not something this user can buy at a known price.
   if (filtered || cheapestId == null || !serverPick || !rankable(serverPick)) {
-    const prices = offers.filter(rankable).map((o) => o.landedPrice);
-    const min = prices.length ? Math.min(...prices) : null;
-    cheapestId = min == null ? null : (offers.find((o) => rankable(o) && o.landedPrice === min)?.id ?? null);
-    savings = prices.length > 1 ? Math.max(...prices) - (min ?? 0) : 0;
+    if (unitMode) {
+      // Only offers priced per the same unit can be compared.
+      const label = ranked.find((o) => o.unitPrice != null)?.unitLabel ?? null;
+      const pool = ranked.filter((o) => o.unitPrice != null && o.unitLabel === label);
+      const min = pool.length ? Math.min(...pool.map((o) => o.unitPrice ?? 0)) : null;
+      cheapestId = min == null ? null : (pool.find((o) => o.unitPrice === min)?.id ?? null);
+    } else {
+      const min = ranked.length ? Math.min(...ranked.map((o) => o.landedPrice)) : null;
+      cheapestId = min == null ? null : (ranked.find((o) => o.landedPrice === min)?.id ?? null);
+    }
   }
   const cheapest = offers.find((o) => o.id === cheapestId) ?? null;
 
+  let savings = 0;
+  let savingsPct = 0;
+  let lowestShelf: Offer | null = null;
+  if (cheapest && unitMode) {
+    const units = ranked.filter((o) => o.unitPrice != null && o.unitLabel === cheapest.unitLabel).map((o) => o.unitPrice ?? 0);
+    const max = units.length ? Math.max(...units) : 0;
+    if (cheapest.unitPrice != null && max > 0) savingsPct = Math.max(0, (max - cheapest.unitPrice) / max);
+    const low = ranked.reduce<Offer | null>((best, o) => (best == null || o.landedPrice < best.landedPrice ? o : best), null);
+    if (low && low.id !== cheapest.id && low.landedPrice < cheapest.landedPrice - 0.005) lowestShelf = low;
+  } else if (cheapest) {
+    const prices = ranked.map((o) => o.landedPrice);
+    savings = filtered || !serverPick ? (prices.length > 1 ? Math.max(...prices) - Math.min(...prices) : 0) : product.maxSavings;
+  }
+
+  const unit = unitMode && cheapest?.unitLabel ? unitWord(cheapest.unitLabel) : null;
   const recommended = offers.find((o) => o.id === product.recommendedOfferId) ?? null;
   const differs = recommended != null && rankable(recommended) && recommended.id !== cheapestId;
   return {
@@ -61,11 +112,16 @@ export function viewOffers(product: Product, filters: OfferFilters = NO_FILTERS)
     recommendedId: differs ? recommended.id : null,
     reason: differs ? product.recommendationReason : null,
     savings: Math.max(0, savings),
+    savingsPct,
     bestPrice: cheapest ? cheapest.landedPrice : null,
+    unitMode,
+    unit,
+    bestLabel: !unitMode ? 'Best price' : unit === 'each' ? 'Best value each' : unit ? `Best value per ${unit}` : 'Best value',
+    lowestShelf,
   };
 }
 
-/** Lowest landed price the user can actually get, or null. */
+/** Landed price of the best offer the user can actually get (what price alerts watch), or null. */
 export function bestPrice(product: Product): number | null {
   return viewOffers(product).bestPrice;
 }
@@ -92,12 +148,16 @@ export function applyResultsView(products: Product[], sort: SortKey, filters: Of
       return best != null && best <= maxPrice;
     });
   if (sort === 'best') return list;
-  const keyed = list.map((p, index) => ({ p, index, best: viewOffers(p, filters).bestPrice }));
+  const keyed = list.map((p, index) => {
+    const view = viewOffers(p, filters);
+    const best = view.offers.find((o) => o.id === view.cheapestId);
+    return { p, index, best: view.bestPrice, unit: best?.unitPrice ?? null };
+  });
+  const asc = (a: number | null, b: number | null) => (a ?? Number.POSITIVE_INFINITY) - (b ?? Number.POSITIVE_INFINITY);
   keyed.sort((a, b) => {
-    if (sort === 'price') {
-      const d = (a.best ?? Number.POSITIVE_INFINITY) - (b.best ?? Number.POSITIVE_INFINITY);
-      return d !== 0 ? d : a.index - b.index;
-    }
+    if (sort === 'price') return asc(a.best, b.best) || a.index - b.index;
+    // Unit prices across different units (per oz vs each) are not truly comparable; this is a plain numeric order.
+    if (sort === 'unit') return asc(a.unit, b.unit) || a.index - b.index;
     const d = (b.p.rating ?? -1) - (a.p.rating ?? -1);
     return d !== 0 ? d : b.p.reviewCount - a.p.reviewCount || a.index - b.index;
   });

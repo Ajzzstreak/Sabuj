@@ -189,7 +189,7 @@ export default function AskScreen() {
             Ask in plain English
           </Text>
           <Text variant="body" tone="textSecondary" style={styles.lead}>
-            Describe what you need, with a budget, a rating or stores if you like. For a plain product name, the regular search is faster.
+            Describe what you need, with a budget, a diet, a rating or stores if you like. For a plain item like “milk”, the regular search is faster.
           </Text>
           <View style={styles.chips}>
             {ASK_EXAMPLES.map((example) => (
@@ -235,7 +235,7 @@ export default function AskScreen() {
           onChangeText={setText}
           onSubmit={submit}
           icon="sparkles"
-          placeholder="e.g. quiet rice cooker under $60"
+          placeholder="e.g. eggs under $4"
           accessibilityLabel="Ask in plain English"
           maxLength={ASK_MAX_CHARS}
           autoFocus={!asked}

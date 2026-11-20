@@ -1,4 +1,4 @@
-import type { Offer } from '@/api/contract';
+import type { Offer, PackageSize } from '@/api/contract';
 
 export function money(value: number): string {
   const fixed = Math.abs(value).toFixed(2);
@@ -54,4 +54,34 @@ export function relativeTime(iso: string | null): string {
   if (hours < 24) return `${hours} hr ago`;
   const days = Math.round(hours / 24);
   return days === 1 ? 'yesterday' : `${days} days ago`;
+}
+
+const UNIT_WORD: Record<PackageSize['unit'], string> = { oz: 'oz', lb: 'lb', fl_oz: 'fl oz', gal: 'gal', ct: 'ct', each: 'each' };
+
+/** { amount: 5, unit: 'lb' } -> "5 lb". */
+export function sizeText(size: PackageSize | null | undefined): string | null {
+  if (!size) return null;
+  const amount = Number.isInteger(size.amount) ? String(size.amount) : String(Math.round(size.amount * 100) / 100);
+  return size.unit === 'each' ? (size.amount === 1 ? 'each' : `${amount} each`) : `${amount} ${UNIT_WORD[size.unit]}`;
+}
+
+/** "per oz" -> "oz"; "each" stays "each". */
+export const unitWord = (unitLabel: string) => unitLabel.replace(/^per\s+/i, '');
+
+/** Unit price for display: under a dollar in cents ("4.9¢/oz"), otherwise dollars ("$1.25/lb"). */
+export function unitPriceText(offer: Pick<Offer, 'unitPrice' | 'unitLabel'>): string | null {
+  if (offer.unitPrice == null || !offer.unitLabel) return null;
+  const word = unitWord(offer.unitLabel);
+  const amount = offer.unitPrice < 1 ? `${(offer.unitPrice * 100).toFixed(1)}¢` : money(offer.unitPrice);
+  return word === 'each' ? `${amount} each` : `${amount}/${word}`;
+}
+
+/** Amount of product in a base unit, to compare pack sizes. null when sizes are not comparable. */
+export function sizeRatio(a: PackageSize | null | undefined, b: PackageSize | null | undefined): number | null {
+  const base = (s: PackageSize) =>
+    s.unit === 'lb' ? { d: 'w', n: s.amount * 16 } : s.unit === 'oz' ? { d: 'w', n: s.amount } : s.unit === 'gal' ? { d: 'v', n: s.amount * 128 } : s.unit === 'fl_oz' ? { d: 'v', n: s.amount } : { d: 'c', n: s.amount };
+  if (!a || !b) return null;
+  const x = base(a);
+  const y = base(b);
+  return x.d === y.d && y.n > 0 ? x.n / y.n : null;
 }

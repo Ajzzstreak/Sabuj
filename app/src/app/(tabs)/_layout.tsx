@@ -17,6 +17,7 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="index" options={{ title: APP_NAME }} />
+      <Tabs.Screen name="list" options={{ title: `List · ${APP_NAME}` }} />
       <Tabs.Screen name="saved" options={{ title: `Saved · ${APP_NAME}` }} />
       <Tabs.Screen name="profile" options={{ title: `Your profile · ${APP_NAME}` }} />
     </Tabs>

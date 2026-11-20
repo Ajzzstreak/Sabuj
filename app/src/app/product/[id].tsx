@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import { Platform, ScrollView, StyleSheet, View, type ViewStyle } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 import type { Offer, Product, ProductDetail } from '@/api/contract';
-import { getSeed, useProduct } from '@/api/queries';
+import { getSeed, useProduct, useStoreLookup } from '@/api/queries';
+import { AddToListButton } from '@/components/AddToList';
 import { AlertButton } from '@/components/AlertSheet';
 import { Card, Rating, RetailerMark } from '@/components/bits';
 import { DemoNotice } from '@/components/DemoNotice';
@@ -20,7 +21,7 @@ import { Badge, Button } from '@/components/ui';
 import { AFFILIATE_LINKS_ENABLED } from '@/config';
 import { useLayout } from '@/hooks/useLayout';
 import { goToStore, toSnapshot } from '@/lib/actions';
-import { breakdownLine, money, moneyShort, relativeTime, shippingNote } from '@/lib/format';
+import { breakdownLine, money, moneyShort, relativeTime, shippingNote, sizeText, unitPriceText } from '@/lib/format';
 import { hasPrice, viewOffers } from '@/lib/offers';
 import { showBreakdown } from '@/lib/overlays';
 import { getRetailer } from '@/lib/retailers';
@@ -65,7 +66,7 @@ export default function ProductScreen() {
     const title = (
       <View style={styles.titleBlock}>
         <Text variant="overline" tone="textTertiary">
-          {product.brand} · {product.category}
+          {[product.brand, product.category, sizeText(product.size)].filter(Boolean).join(' · ')}
         </Text>
         <Text variant="title1" accessibilityRole="header" style={styles.title}>
           {product.title}
@@ -77,7 +78,7 @@ export default function ProductScreen() {
     const failedRest = !detail && query.isError;
 
     const offers = (
-      <Section title="Compare prices" subtitle={`${product.offers.length} ${product.offers.length === 1 ? 'store' : 'stores'} · totals include shipping${hasZip ? ' and estimated tax' : ''}`}>
+      <Section title="Compare prices" subtitle={`${product.offers.length} ${product.offers.length === 1 ? 'store' : 'stores'} · ${hasZip ? 'in-store prices with estimated tax' : 'national estimates, no tax'}`}>
         <OffersTable product={product} onOffer={onOffer} onBreakdown={onBreakdown} />
         {AFFILIATE_LINKS_ENABLED ? (
           <Text variant="footnote" tone="textSecondary" style={styles.disclosure} testID="affiliate-disclosure">
@@ -223,6 +224,7 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
         {first ? (
           <Button testID="go-to-store" variant="secondary" size="lg" fullWidth accessibilityRole="link" label={`View at ${getRetailer(first.retailerId).name}`} trailingIcon="open-outline" onPress={() => onOffer(first)} style={styles.cta} />
         ) : null}
+        <AddToListButton product={product} size="lg" fullWidth />
         <AlertButton product={product} fullWidth />
       </Card>
     );
@@ -232,14 +234,19 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
     <Card style={styles.buy}>
       <View style={styles.bestLabel}>
         <Ionicons name="checkmark-circle" size={16} color={c.best} />
-        <Text variant="overline" tone="best">
-          Best price
+        <Text variant="overline" tone="best" testID="best-label">
+          {view.bestLabel}
         </Text>
       </View>
       <View style={styles.priceLine}>
         <Text variant="priceHero" testID="best-total">
           {money(best.landedPrice)}
         </Text>
+        {unitPriceText(best) ? (
+          <Text variant="title3" tone="best" testID="best-unit">
+            {unitPriceText(best)}
+          </Text>
+        ) : null}
         {best.listPrice != null && best.listPrice > best.price ? (
           <Text variant="body" tone="textTertiary" style={styles.strike}>
             {money(best.listPrice)}
@@ -249,7 +256,9 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
       <View style={styles.at}>
         <RetailerMark id={best.retailerId} size={20} />
         <Text variant="callout" tone="textSecondary" style={{ flex: 1 }}>
-          <Text variant="calloutStrong">{store.name}</Text> · {shippingNote(best)}
+          <Text variant="calloutStrong">{store.name}</Text>
+          {best.matchType === 'equivalent' ? ` · Similar item: ${best.offerTitle ?? 'store alternative'}` : sizeText(best.size) ? ` · ${sizeText(best.size)}` : ''}
+          {best.storeId == null || (best.shipping ?? 0) > 0 ? ` · ${shippingNote(best)}` : ''}
           {best.delivery ? ` · ${best.delivery}` : ''}
           {best.membershipRequired ? ' · Member price' : ''}
         </Text>
@@ -258,11 +267,24 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
         {breakdownLine(best)}
         {best.priceSource === 'live' ? ` · as of ${relativeTime(best.observedAt)}` : ''}
       </Text>
-      {view.savings >= 0.01 ? (
+      {view.unitMode ? (
+        <Text variant="callout" tone="textSecondary" style={{ marginTop: space.sm }} testID="unit-note">
+          Stores sell different sizes or their own versions of this, so they are compared {view.unit === 'each' ? 'per item' : `per ${view.unit ?? 'unit'}`}, not by shelf price.
+          {view.lowestShelf ? ` The lowest shelf price is ${money(view.lowestShelf.landedPrice)} at ${getRetailer(view.lowestShelf.retailerId).name}${sizeText(view.lowestShelf.size) ? ` for ${sizeText(view.lowestShelf.size)}` : ''}.` : ''}
+        </Text>
+      ) : null}
+      {view.unitMode && view.savingsPct >= 0.01 ? (
+        <Text variant="calloutStrong" tone="best" style={{ marginTop: space.sm }}>
+          Up to {Math.round(view.savingsPct * 100)}% less {view.unit === 'each' ? 'each' : `per ${view.unit ?? 'unit'}`} than the most expensive store
+        </Text>
+      ) : !view.unitMode && view.savings >= 0.01 ? (
         <Text variant="calloutStrong" tone="best" style={{ marginTop: space.sm }}>
           Save up to {moneyShort(view.savings)} compared with the highest price
         </Text>
       ) : null}
+      <View style={styles.listAdd}>
+        <AddToListButton product={product} size="lg" fullWidth />
+      </View>
       <Button
         testID="go-to-store"
         label={`Go to ${store.name}`}
@@ -305,12 +327,19 @@ function BuyBox({ product, onOffer }: { product: Product; onOffer: (o: Offer) =>
 function OffersTable({ product, onOffer, onBreakdown }: { product: Product; onOffer: (o: Offer) => void; onBreakdown: (o: Offer) => void }) {
   const { c } = useTheme();
   const view = useMemo(() => viewOffers(product), [product]);
+  const stores = useStoreLookup();
   return (
     <Card padded={false} style={styles.table}>
       {view.offers.map((offer, i) => (
         <View key={offer.id} style={i > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border }}>
           <View style={styles.tableRow}>
-            <OfferRow density="table" offer={offer} isCheapest={offer.id === view.cheapestId} isRecommended={offer.id === view.recommendedId} onPress={onOffer} onBreakdown={onBreakdown} />
+            <OfferRow
+              density="table"
+              offer={offer}
+              isCheapest={offer.id === view.cheapestId}
+              bestLabel={view.bestLabel}
+              storeName={offer.storeId ? (stores.get(offer.storeId)?.name ?? 'Your store') : offer.priceSource !== 'link_only' ? 'Online price' : null}
+              isRecommended={offer.id === view.recommendedId} onPress={onOffer} onBreakdown={onBreakdown} />
           </View>
         </View>
       ))}
@@ -380,11 +409,12 @@ const styles = StyleSheet.create({
   title: { marginTop: 6, marginBottom: space.sm + 2 },
   buy: { marginTop: space.xl, padding: space.xl },
   bestLabel: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  priceLine: { flexDirection: 'row', alignItems: 'baseline', gap: space.md, marginTop: 4 },
+  priceLine: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', columnGap: space.md, marginTop: 4 },
   strike: { textDecorationLine: 'line-through' },
   at: { flexDirection: 'row', alignItems: 'center', gap: space.sm, marginTop: space.sm },
-  cta: { marginTop: space.lg, marginBottom: space.xs },
+  cta: { marginTop: space.xs, marginBottom: space.xs },
   notice: { marginBottom: space.md },
+  listAdd: { marginTop: space.lg },
   disclosure: { marginTop: space.md },
   rankLink: { marginTop: space.xs, marginLeft: -space.sm },
   pick: { marginTop: space.xl, paddingTop: space.lg, borderTopWidth: StyleSheet.hairlineWidth },

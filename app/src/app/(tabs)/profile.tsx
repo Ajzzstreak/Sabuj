@@ -231,7 +231,7 @@ export default function ProfileScreen() {
           <View style={[styles.rule, { backgroundColor: c.border }]} />
           <Text variant="bodyStrong">Delete my data</Text>
           <Text variant="callout" tone="textSecondary" style={{ marginTop: 2 }}>
-            Erases your profile, activity and price alerts from the server, clears saved items, recent searches, ZIP code and memberships on this device, and gives you a new anonymous ID.
+            Erases your profile, activity and price alerts from the server, clears your shopping list, saved items, recent searches, ZIP code, stores and memberships on this device, and gives you a new anonymous ID.
           </Text>
           <Button testID="delete-data" variant="destructive" icon="trash-outline" label="Delete my data" onPress={() => { setDeleteError(null); setConfirming(true); }} style={{ marginTop: space.md }} />
           {deleted ? (
@@ -245,7 +245,8 @@ export default function ProfileScreen() {
       <Block title="What is collected">
         <Card style={styles.pad}>
           <Collected icon="search-outline" title="Searches and questions" detail="The words you search for, and the full text of anything you ask in plain English." />
-          <Collected icon="location-outline" title="ZIP code and memberships" detail="If you set them, they are sent with every search, product and alert request, to estimate tax and decide which member prices apply. They are stored on this device." />
+          <Collected icon="location-outline" title="ZIP code, stores and memberships" detail="If you set them, they are sent with every search, product, list-total and alert request, to price from your stores, estimate tax and decide which member prices apply. They are stored on this device." />
+          <Collected icon="list-outline" title="Shopping list" detail="The list is kept on this device. To total it, its items and quantities are sent to the server, which does not store them. Adding or removing an item is recorded as activity." />
           <Collected icon="eye-outline" title="Products you open" detail="Which product, its category and brand." />
           <Collected icon="open-outline" title="Offers you tap" detail="The store, the price, where it sat in the list, and whether it was the cheapest — or how much more you chose to pay." />
           <Collected icon="bookmark-outline" title="Saves" detail="When you save or remove a product. The saved list itself stays on this device." />
@@ -324,7 +325,7 @@ export default function ProfileScreen() {
       <ConfirmDialog
         visible={confirming}
         title="Delete your data?"
-        message="Your learned profile and activity are erased from the server, and saved items and recent searches are cleared from this device. This cannot be undone."
+        message="Your learned profile, activity and price alerts are erased from the server, and your shopping list, saved items, recent searches and shopping settings are cleared from this device. This cannot be undone."
         confirmLabel="Delete"
         busy={deleting}
         error={deleteError}
