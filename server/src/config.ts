@@ -64,6 +64,7 @@ const EnvSchema = z.object({
   KROGER_CLIENT_SECRET: z.string().optional(),
   BASKET_MAX_ITEMS: int(60, 1, 200),
   BASKET_RATE_LIMIT_MAX: int(30, 1),
+  BASKET_UNCACHED_LOOKUPS_MAX: int(300, 1),
   BASKET_SPLIT_MIN_SAVINGS: z
     .string()
     .optional()
@@ -128,6 +129,12 @@ export interface Config {
   basketMaxItems: number;
   /** POST /v1/basket per device (or per IP when anonymous) per rate-limit window. */
   basketRateLimitMax: number;
+  /**
+   * Basket item lookups that missed the catalog cache, per device (or IP) per
+   * rate-limit window. Each miss is a provider call and a new cache entry, so
+   * this bounds what one client can cost upstream and evict from the cache.
+   */
+  basketUncachedLookupsMax: number;
   /** A two-store split is only suggested when it saves at least this many dollars. */
   basketSplitMinSavings: number;
   /** Lower-cased category names the catalog is limited to; empty = everything. */
@@ -192,6 +199,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     krogerClientSecret: opt(e.KROGER_CLIENT_SECRET),
     basketMaxItems: e.BASKET_MAX_ITEMS,
     basketRateLimitMax: e.BASKET_RATE_LIMIT_MAX,
+    basketUncachedLookupsMax: e.BASKET_UNCACHED_LOOKUPS_MAX,
     basketSplitMinSavings: e.BASKET_SPLIT_MIN_SAVINGS,
     catalogCategories: e.CATALOG_CATEGORIES.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean),
     bestbuyApiKey: opt(e.BESTBUY_API_KEY),

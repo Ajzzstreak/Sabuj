@@ -325,6 +325,8 @@ export interface PriceAlert {
   priceAtCreation: number;
   currentBestPrice: number | null;
   currentBestRetailerId: RetailerId | null;
+  /** Where currentBestPrice comes from ('demo' = synthetic data, label it as such); null with no price. */
+  currentBestPriceSource: PriceSource | null;
   status: 'active' | 'triggered';
   createdAt: string;
   triggeredAt: string | null;

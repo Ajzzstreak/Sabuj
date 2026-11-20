@@ -250,7 +250,7 @@ export function personalizeProduct(
   ctx: ShopperContext = NO_CONTEXT,
 ): Product {
   const effective: RankingProfile = ctx.memberships ? { ...profile, memberships: [...ctx.memberships] } : profile;
-  const offers = rankOffers(applyContext(base.offers, ctx), effective, base.size);
+  const offers = rankOffers(applyContext(base.offers, ctx, base), effective, base.size);
   const cmp = buildComparison(offers, base.size);
   const cheapest = cheapestContender(offers, cmp);
   // Only a contender is ever "recommended": not an ineligible, out-of-stock,

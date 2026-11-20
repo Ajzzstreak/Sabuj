@@ -67,9 +67,26 @@ describe('parseSize', () => {
     expect(parseSize('Barilla Gluten Free Penne Pasta, 12 oz')).toEqual(oz(12));
     expect(parseSize('Coca-Cola Classic Soda Pop, 12 fl oz, 12 Pack Cans')).toEqual(floz(144));
     expect(parseSize("Eggland's Best Large White Eggs, 12 Count")).toEqual(ct(12));
-    expect(parseSize('Charmin Ultra Soft Toilet Paper 12 Mega Rolls')).toBeNull(); // "12 mega rolls" is not a recognised unit phrase
+    expect(parseSize('Charmin Ultra Soft Toilet Paper 12 Mega Rolls')).toEqual(ct(12));
     expect(parseSize('Tide PODS 42-ct')).toEqual(ct(42));
-    expect(parseSize('Glad 13 Gallon Trash Bags, 40 Count')).toEqual({ amount: 13, unit: 'gal' }); // known limitation: a weight/volume beats a count
+    expect(parseSize('Glad 13 Gallon Trash Bags, 40 Count')).toEqual(ct(40));
+  });
+
+  it('household titles: bag capacity is not contents, and size words may sit inside a count', () => {
+    expect(parseSize('13 Gallon Trash Bags, 40 Count')).toEqual(ct(40));
+    expect(parseSize('Hefty Ultra Strong 13 Gallon, 40 Count Tall Kitchen Bags')).toEqual(ct(40)); // not 13 x 40 gal
+    expect(parseSize('Ziploc 1 Gallon Storage Bags, 38 ct')).toEqual(ct(38));
+    expect(parseSize('Great Value 1 Quart Freezer Bags 50 ct')).toEqual(ct(50));
+    expect(parseSize('30 Gallon Trash Bags')).toBeNull(); // only a capacity: no package size
+    expect(parseSize('12 Mega Rolls')).toEqual(ct(12));
+    expect(parseSize('Charmin 6 Double Rolls')).toEqual(ct(6));
+    expect(parseSize('Bounty Paper Towels, 8 Family Mega Rolls')).toEqual(ct(8));
+    expect(parseSize('Eggs, 6 Large')).toBeNull();
+    // Unchanged: volumes outside a bag context, multipacks, plain counts.
+    expect(parseSize('Great Value Whole Milk, 1 gal')).toEqual({ amount: 1, unit: 'gal' });
+    expect(parseSize('2 x 1 gal')).toEqual({ amount: 2, unit: 'gal' });
+    expect(parseSize('Starbucks Ground Coffee, 12 oz bag')).toEqual(oz(12));
+    expect(parseSize('12 fl oz, 12 count')).toEqual(floz(144));
   });
 
   it('returns null for text without a size and for junk', () => {
@@ -175,11 +192,14 @@ describe('unit-price comparison', () => {
 
   it('eligibility, stock and tax still apply in unit mode', () => {
     const offers = [own(3), equivalent('costco', 20, lb(25)), equivalent('samsclub', 18, lb(25), { inStock: false }), equivalent('kroger', 2.8, lb(2))];
-    const noClub = personalizeProduct(product(offers), undefined, shopperContext('94105', []));
+    // Idaho (83702) taxes groceries at the full rate (~6.03%): rice is taxed there, not in California.
+    const noClub = personalizeProduct(product(offers), undefined, shopperContext('83702', []));
     expect(noClub.cheapestOfferId).toBe('p1:kroger');
     expect(noClub.offers.map((o) => o.retailerId)).toEqual(['kroger', 'walmart', 'costco', 'samsclub']);
-    expect(noClub.offers[0]!.estimatedTax).toBe(0.25);
-    expect(noClub.maxSavings).toBe(0.22); // landed 3.27 vs 3.05 for the same 2 lb
+    expect(noClub.offers[0]!.estimatedTax).toBe(0.17);
+    expect(noClub.maxSavings).toBe(0.21); // landed 3.18 vs 2.97 for the same 2 lb
+    const ca = personalizeProduct(product(offers), undefined, shopperContext('94105', []));
+    expect(ca.offers.every((o) => o.estimatedTax === 0)).toBe(true);
   });
 
   it('the recommendation reason states the PER-UNIT gap, not a shelf-price gap', () => {

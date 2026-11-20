@@ -70,6 +70,31 @@ export const listStore = createStore<ListItem[]>('list', []);
 export const LIST_MAX_ITEMS = 60;
 export const QTY_MAX = 99;
 
+/** Make a stored list safe to send: well-formed rows, unique ids, quantities 1-99, at most LIST_MAX_ITEMS. */
+export function sanitizeList(raw: unknown): ListItem[] {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set<string>();
+  const out: ListItem[] = [];
+  for (const r of raw as Partial<ListItem>[]) {
+    if (!r || typeof r.id !== 'string' || !r.id || r.id.length > 64 || seen.has(r.id)) continue;
+    const productId = typeof r.productId === 'string' && r.productId ? r.productId : undefined;
+    const query = typeof r.query === 'string' && r.query.trim() ? r.query.trim().slice(0, 100) : undefined;
+    const title = typeof r.title === 'string' && r.title.trim() ? r.title : (query ?? '');
+    if (!productId && !query && !title.trim()) continue;
+    seen.add(r.id);
+    out.push({
+      id: r.id,
+      ...(productId ? { productId } : { query: query ?? title.trim().slice(0, 100) }),
+      title,
+      quantity: Math.min(QTY_MAX, Math.max(1, Math.round(typeof r.quantity === 'number' && Number.isFinite(r.quantity) ? r.quantity : 1))),
+      checked: r.checked === true,
+      addedAt: typeof r.addedAt === 'number' ? r.addedAt : Date.now(),
+    });
+    if (out.length >= LIST_MAX_ITEMS) break;
+  }
+  return out;
+}
+
 /** ---- Recent searches (local only) --------------------------------------- */
 export const recentsStore = createStore<string[]>('recents', []);
 
@@ -117,6 +142,10 @@ export async function hydrateStores(): Promise<void> {
   // Stored before store selection existed.
   if (shopperStore.get().storeIds === undefined) shopperStore.set((s) => ({ ...s, storeIds: null }));
   migrateSaved();
+  // A malformed stored list (older shape, duplicate ids, too long) would make every basket request a 400.
+  const list = listStore.get();
+  const clean = sanitizeList(list);
+  if (clean.length !== list.length || clean.some((item, i) => JSON.stringify(item) !== JSON.stringify(list[i]))) listStore.set(clean);
 }
 
 /** Snapshots saved before offers had landedPrice / eligible / priceSource get safe values until they refresh. */

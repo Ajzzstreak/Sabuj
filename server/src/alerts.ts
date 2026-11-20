@@ -5,7 +5,7 @@
  */
 import type { Catalog } from './catalog.js';
 import { buildComparison } from './compare.js';
-import type { PriceAlert, RetailerId } from './contract.js';
+import type { PriceAlert, PriceSource, RetailerId } from './contract.js';
 import type { AlertRow, Store } from './db.js';
 import type { ProviderProduct } from './providers/types.js';
 import type { PushMessage, PushSender } from './push.js';
@@ -16,6 +16,7 @@ import { sameSize } from './size.js';
 export interface BestPrice {
   price: number;
   retailerId: RetailerId;
+  priceSource: PriceSource;
 }
 
 /**
@@ -25,12 +26,12 @@ export interface BestPrice {
  * only offers for the exact item in the product's own size count.
  */
 export function bestPriceFor(product: ProviderProduct, ctx: ShopperContext): BestPrice | null {
-  const offers = applyContext(product.offers, ctx);
+  const offers = applyContext(product.offers, ctx, product);
   const pool = buildComparison(offers, product.size).unitMode
     ? offers.filter((o) => o.matchType === 'exact' && sameSize(o.size, product.size))
     : offers;
   const best = cheapestRankable(pool);
-  return best ? { price: best.landedPrice, retailerId: best.retailerId } : null;
+  return best ? { price: best.landedPrice, retailerId: best.retailerId, priceSource: best.priceSource } : null;
 }
 
 export function toPriceAlert(row: AlertRow, best: BestPrice | null): PriceAlert {
@@ -42,6 +43,7 @@ export function toPriceAlert(row: AlertRow, best: BestPrice | null): PriceAlert 
     priceAtCreation: row.priceAtCreation,
     currentBestPrice: best?.price ?? null,
     currentBestRetailerId: best?.retailerId ?? null,
+    currentBestPriceSource: best?.priceSource ?? null,
     status: row.status,
     createdAt: new Date(row.createdAt).toISOString(),
     triggeredAt: row.triggeredAt === null ? null : new Date(row.triggeredAt).toISOString(),
@@ -107,8 +109,11 @@ export async function checkAlerts(deps: AlertCheckDeps): Promise<AlertCheckResul
         if (!token) continue; // no push token registered: the app sees it on GET /v1/alerts
         messages.push({
           to: token,
-          title: 'Price drop',
-          body: `${alert.productTitle} is now ${money(best.price)} at ${retailerName(best.retailerId)} (your target: ${money(alert.targetPrice)}).`,
+          // A push is read outside the app, away from its demo banners: say so in the message itself.
+          title: best.priceSource === 'demo' ? 'Price drop (demo data)' : 'Price drop',
+          body:
+            `${alert.productTitle} is now ${money(best.price)} at ${retailerName(best.retailerId)} (your target: ${money(alert.targetPrice)}).` +
+            (best.priceSource === 'demo' ? ' Demo prices for testing, not real store prices.' : ''),
           data: { type: 'price_alert', alertId: alert.id, productId: alert.productId },
         });
       }

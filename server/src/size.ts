@@ -91,12 +91,33 @@ function readUnit(s: string): { spec: UnitSpec; rest: string } | null {
   return null;
 }
 
+/** Size words that may sit between a count and its unit: "12 Mega Rolls", "6 Double Rolls", "8 Family Mega Rolls". */
+const COUNT_ADJECTIVES = /^(?:(?:mega|double|triple|family|giant|jumbo|huge|super|big|regular|large|xl|plus)\s+){1,2}/;
+
 function readQuantity(s: string): { amount: number; spec: UnitSpec; rest: string } | null {
   const n = NUMBER.exec(s);
   if (!n) return null;
-  const unit = readUnit(s.slice(n[0].length).trimStart());
+  const after = s.slice(n[0].length).trimStart();
+  let unit = readUnit(after);
+  if (!unit) {
+    // A count with size adjectives in between; only a count unit may follow.
+    const adj = COUNT_ADJECTIVES.exec(after);
+    const counted = adj ? readUnit(after.slice(adj[0].length)) : null;
+    if (counted?.spec.unit === 'ct') unit = counted;
+  }
   if (!unit) return null;
   return { amount: Number(n[0]), spec: unit.spec, rest: unit.rest };
+}
+
+/**
+ * Bags and liners are sold by CAPACITY ("13 Gallon Trash Bags", "1 Quart
+ * Freezer Bags"): in such a title a volume is the size of each bag, not the
+ * contents of the package, and the count is what is bought.
+ */
+const BAG_CONTEXT = /\b(?:bags?|liners?)\b/;
+function isVolumeCapacity(spec: UnitSpec, text: string): boolean {
+  const volumeWord = spec.unit === 'gal' || (spec.unit === 'fl_oz' && spec.factor !== 1);
+  return volumeWord && BAG_CONTEXT.test(text);
 }
 
 function toSize(amount: number, spec: UnitSpec): PackageSize | null {
@@ -113,6 +134,10 @@ function toSize(amount: number, spec: UnitSpec): PackageSize | null {
  * multipack wins, then the LAST plain size (titles usually end with it).
  * Returns null when nothing size-like is found. Heuristic by nature: a title
  * such as "Formula 409 Cleaner 32 oz" parses fine, "7 Up 12 pack" reads as 12 ct.
+ * Household titles: a gallon/quart/liter figure in a title about bags or
+ * liners is the bag's capacity and is ignored ("13 Gallon Trash Bags, 40
+ * Count" -> 40 ct), and size adjectives may sit between a count and its unit
+ * ("12 Mega Rolls" -> 12 ct).
  */
 export function parseSize(text: string | null | undefined): PackageSize | null {
   if (typeof text !== 'string' || text.length === 0 || text.length > 400) return null;
@@ -128,10 +153,10 @@ export function parseSize(text: string | null | undefined): PackageSize | null {
     const times = /^\s*(?:x|×|-?\s*(?:pack|pk|ct|count)\b(?:\s*(?:of|x|×))?)\s*/.exec(afterNumber);
     if (times) {
       const each = readQuantity(afterNumber.slice(times[0].length));
-      if (each && each.spec.unit !== 'ct') return toSize(Number(head[0]) * each.amount, each.spec);
+      if (each && each.spec.unit !== 'ct' && !isVolumeCapacity(each.spec, s)) return toSize(Number(head[0]) * each.amount, each.spec);
     }
     const first = readQuantity(s.slice(i));
-    if (first && first.spec.unit !== 'ct') {
+    if (first && first.spec.unit !== 'ct' && !isVolumeCapacity(first.spec, s)) {
       // "12 fl oz, 12 count" / "12 fl oz cans 12 pack": a container word may sit in between.
       const count = /^\s*(?:cans?|bottles?|each|ea)?\s*(?:x\s*)?(\d+)\s*-?\s*(?:ct|count|pack|pk|cans?|bottles?)\b/.exec(first.rest);
       if (count) return toSize(first.amount * Number(count[1]), first.spec);
@@ -144,7 +169,7 @@ export function parseSize(text: string | null | undefined): PackageSize | null {
   for (let i = 0; i < s.length; i++) {
     if (i > 0 && /[\d.a-z]/.test(s[i - 1]!)) continue;
     const q = readQuantity(s.slice(i));
-    if (!q) continue;
+    if (!q || isVolumeCapacity(q.spec, s)) continue;
     const size = toSize(q.amount, q.spec);
     if (!size) continue;
     if (size.unit === 'ct') counted = size;

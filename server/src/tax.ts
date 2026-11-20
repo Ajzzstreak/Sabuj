@@ -7,6 +7,12 @@
  * be presented as an estimate. The five states with no statewide sales tax
  * (AK, DE, MT, NH, OR) are 0 — local taxes in Alaska are ignored.
  * Rates are approximate figures (percent) and need periodic review.
+ *
+ * Groceries: most states exempt food for home consumption or tax it at a
+ * reduced rate. `GROCERY_TAX` holds one treatment per state and `taxClassOf`
+ * decides whether an item is food (that treatment applies) or general
+ * merchandise (household / paper goods, personal care, diapers, soft drinks:
+ * the general rate). ESTIMATE — NEEDS VERIFICATION, see the table.
  */
 
 /** Approximate combined average state + local sales tax rate, percent. */
@@ -18,6 +24,71 @@ export const STATE_TAX_RATE_PCT: Readonly<Record<string, number>> = {
   SC: 7.5, SD: 6.11, TN: 9.55, TX: 8.2, UT: 7.25, VT: 6.36, VA: 5.77, WA: 9.38, WV: 6.57, WI: 5.7,
   WY: 5.44,
 };
+
+export type GroceryTreatment =
+  | { kind: 'exempt' }
+  /** Combined (state + typical local) rate on food, percent. */
+  | { kind: 'reduced'; ratePct: number }
+  | { kind: 'full' };
+
+const EXEMPT: GroceryTreatment = { kind: 'exempt' };
+const FULL: GroceryTreatment = { kind: 'full' };
+const reduced = (ratePct: number): GroceryTreatment => ({ kind: 'reduced', ratePct });
+
+/**
+ * How each state taxes groceries (food for home consumption).
+ * ESTIMATE, WRITTEN FROM MEMORY, NEEDS VERIFICATION against each state's
+ * revenue department before anyone relies on it. Conventions:
+ *  - exempt: no state and (generally) no local tax on food.
+ *  - reduced(x): x = combined food rate. Where the STATE exempts food but
+ *    local sales taxes still apply to it, x = the local share of the combined
+ *    average (combined average minus the state rate) — an upper bound, since
+ *    not every locality taxes food.
+ *  - full: food taxed like everything else.
+ * States not listed fall back to full (no states currently).
+ */
+export const GROCERY_TAX: Readonly<Record<string, GroceryTreatment>> = {
+  // No statewide sales tax (rate is 0 anyway).
+  AK: EXEMPT, DE: EXEMPT, MT: EXEMPT, NH: EXEMPT, OR: EXEMPT,
+  // Food exempt at state and local level.
+  CA: EXEMPT, CT: EXEMPT, DC: EXEMPT, FL: EXEMPT, IN: EXEMPT, IA: EXEMPT, KY: EXEMPT, ME: EXEMPT,
+  MD: EXEMPT, MA: EXEMPT, MI: EXEMPT, MN: EXEMPT, NE: EXEMPT, NV: EXEMPT, NJ: EXEMPT, NM: EXEMPT,
+  NY: EXEMPT, ND: EXEMPT, OH: EXEMPT, PA: EXEMPT, RI: EXEMPT, TX: EXEMPT, VT: EXEMPT, WA: EXEMPT,
+  WV: EXEMPT, WI: EXEMPT, WY: EXEMPT,
+  // State exempts food; local taxes may still apply (local share of the combined average).
+  AZ: reduced(2.78), CO: reduced(4.91), GA: reduced(3.38), KS: reduced(2.15), LA: reduced(5.11),
+  OK: reduced(4.49), SC: reduced(1.5), AR: reduced(2.95),
+  NC: reduced(2.0), // state exempt, flat 2% local rate on food
+  // Reduced state rate on food (plus local where it applies).
+  AL: reduced(7.29), // state 2% on food + local
+  IL: reduced(1.0), // ~1% on groceries (state portion repealed 2026; local option)
+  MS: reduced(5.07), // state 5% on food
+  MO: reduced(5.39), // state 1.225% + local
+  TN: reduced(6.55), // state 4% on food + local
+  UT: reduced(3.0), // 3% combined food rate
+  VA: reduced(1.0), // 1% local on food, state portion eliminated
+  // Food taxed at the full rate (some offer income-tax credits instead).
+  HI: FULL, ID: FULL, SD: FULL,
+};
+
+export type TaxClass = 'food' | 'general';
+
+/** Grocery aisles whose items are food (unless the title says otherwise). */
+const FOOD_CATEGORIES = new Set(
+  ['produce', 'dairy & eggs', 'meat & seafood', 'bakery', 'pantry', 'canned goods', 'snacks', 'beverages', 'frozen', 'breakfast', 'baby',
+   'grocery', 'food'].map((c) => c.toLowerCase()),
+);
+/**
+ * Items in food aisles that are NOT food for sales-tax purposes in most states:
+ * diapers / wipes (Baby aisle) and soft drinks (most food-exempt states tax them).
+ */
+const NON_FOOD_TITLE = /\b(diapers?|wipes|soda|cola|soft drinks?|thirst quencher|sports drink)\b/i;
+
+/** Food or general merchandise, from the item's category and title. Heuristic. */
+export function taxClassOf(category: string, title: string): TaxClass {
+  if (!FOOD_CATEGORIES.has(category.toLowerCase())) return 'general';
+  return NON_FOOD_TITLE.test(title) ? 'general' : 'food';
+}
 
 /** [first prefix, last prefix, state]. Later rows override earlier ones. */
 const ZIP3_RANGES: ReadonlyArray<readonly [number, number, string]> = [
@@ -42,10 +113,18 @@ export function stateForZip(zip: string): string | null {
   return ZIP3_TO_STATE[Number(zip.slice(0, 3))] ?? null;
 }
 
-/** Estimated tax rate as a fraction (0.0825), or null when the ZIP maps to no state. */
-export function estimatedTaxRateForZip(zip: string): number | null {
+/**
+ * Estimated tax rate as a fraction (0.0825), or null when the ZIP maps to no state.
+ * `taxClass` 'food' applies the state's grocery treatment; default is general merchandise.
+ */
+export function estimatedTaxRateForZip(zip: string, taxClass: TaxClass = 'general'): number | null {
   const state = stateForZip(zip);
   if (!state) return null;
   const pct = STATE_TAX_RATE_PCT[state];
-  return pct === undefined ? null : pct / 100;
+  if (pct === undefined) return null;
+  if (taxClass === 'general') return pct / 100;
+  const g = GROCERY_TAX[state] ?? FULL;
+  if (g.kind === 'exempt') return 0;
+  if (g.kind === 'reduced') return Math.min(g.ratePct, pct) / 100;
+  return pct / 100;
 }

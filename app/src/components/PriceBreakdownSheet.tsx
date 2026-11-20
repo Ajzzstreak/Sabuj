@@ -78,7 +78,15 @@ export function PriceBreakdownSheet() {
       <Line
         label="Estimated tax"
         value={offer.estimatedTax == null ? '—' : money(offer.estimatedTax)}
-        note={offer.estimatedTax == null ? 'Not estimated: no ZIP code set.' : `An estimate for ZIP ${zip ?? 'you entered'}. The store's checkout is final.`}
+        note={
+          offer.estimatedTax == null
+            ? zip
+              ? `Not estimated: ZIP ${zip} is outside the states we estimate.`
+              : 'Not estimated: no ZIP code set.'
+            : offer.estimatedTax === 0
+              ? `No tax estimated for this item at ZIP ${zip ?? 'you entered'}: many states exempt or reduce tax on groceries. The store's checkout is final.`
+              : `An estimate for ZIP ${zip ?? 'you entered'}, at that state's rate for this kind of item. The store's checkout is final.`
+        }
         testID="breakdown-tax"
       />
       <View style={[styles.rule, { backgroundColor: c.borderStrong }]} />
@@ -86,7 +94,7 @@ export function PriceBreakdownSheet() {
       {!offer.eligible ? (
         <Banner tone="info" icon="lock-closed-outline" compact text="Membership required. You told us you do not hold this one, so it is never marked best price." style={styles.note} />
       ) : null}
-      {offer.estimatedTax == null ? (
+      {offer.estimatedTax == null && !zip ? (
         <Banner
           tone="info"
           compact

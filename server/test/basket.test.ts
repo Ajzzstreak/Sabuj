@@ -346,6 +346,21 @@ describe('POST /v1/basket', () => {
     expect(fallback.items.map((i) => [i.product !== null, i.resolvedFromQuery])).toEqual([[true, true], [false, false]]);
   });
 
+  it('caps lookups that miss the cache per client (cache churn / upstream cost), not cached re-totals', async () => {
+    await app.fastify.close();
+    store.close();
+    await start({ basketUncachedLookupsMax: 5 });
+    const list = (prefix: string, n: number) => ({ items: Array.from({ length: n }, (_, i) => ({ id: `i${i}`, query: `${prefix} ${i}`, quantity: 1 })) });
+    expect((await basket(list('unique', 5))).statusCode).toBe(200); // 5 misses: budget spent
+    // Re-totalling the same list is all cache hits; it is still refused once the budget is spent this window.
+    const res = await basket(list('unique', 5));
+    expect(res.statusCode).toBe(429);
+    expect(res.headers['retry-after']).toBeDefined();
+    // A device has its own budget, and cached lookups do not spend it.
+    const { token } = (await app.fastify.inject({ method: 'POST', url: '/v1/devices' })).json() as RegisterDeviceResponse;
+    for (let i = 0; i < 4; i++) expect((await basket(list('unique', 5), token)).statusCode).toBe(200);
+  });
+
   it('works with or without a token, rejects a bad one, and is rate limited', async () => {
     await app.fastify.close();
     store.close();

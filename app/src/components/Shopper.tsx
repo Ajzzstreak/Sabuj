@@ -71,7 +71,7 @@ export function StorePicker({ zip, value, onChange }: { zip: string; value: stri
               testID={`store-${store.id}`}
               kind="radio"
               label={store.name}
-              detail={`${store.distanceMiles.toFixed(1)} mi · ${store.address}`}
+              detail={`${store.distanceMiles > 0 ? `${store.distanceMiles.toFixed(1)} mi · ` : ''}${store.address}`}
               checked={selected.includes(store.id)}
               onChange={() => pick(store)}
               divider={i > 0}

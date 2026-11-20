@@ -14,7 +14,8 @@ export class RateLimiter {
     private readonly maxKeys = 100_000,
   ) {}
 
-  hit(key: string, limit: number): RateLimitDecision {
+  /** Count `cost` against the key (0 = only check whether it is already over). */
+  hit(key: string, limit: number, cost = 1): RateLimitDecision {
     const now = this.now();
     this.sweep(now);
     let b = this.buckets.get(key);
@@ -22,7 +23,7 @@ export class RateLimiter {
       b = { windowStart: now, count: 0 };
       this.buckets.set(key, b);
     }
-    b.count += 1;
+    b.count += cost;
     if (b.count > limit) {
       return { ok: false, retryAfterSec: Math.max(1, Math.ceil((b.windowStart + this.windowMs - now) / 1000)) };
     }

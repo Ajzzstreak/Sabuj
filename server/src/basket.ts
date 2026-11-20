@@ -27,6 +27,15 @@ export interface BasketOptions {
   minSplitSavings: number;
 }
 
+/**
+ * A free-text item resolves to the top search hit only when that hit is at
+ * least this relevant (0..1). Mock search scores a head-noun match ~0.85,
+ * an exact word in a modifier position ~0.7, a keyword-only match ~0.64, and
+ * typo / description-only matches below 0.6; live providers score their
+ * first hit 0.9 (position only).
+ */
+export const BASKET_MIN_RELEVANCE = 0.6;
+
 const round2 = (n: number) => Math.round(n * 100) / 100;
 /** Sum in integer cents so totals never carry floating-point dust. */
 const sum = (lines: readonly BasketLine[]) => lines.reduce((cents, l) => cents + Math.round(l.lineTotal * 100), 0) / 100;

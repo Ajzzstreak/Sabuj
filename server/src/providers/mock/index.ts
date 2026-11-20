@@ -135,7 +135,7 @@ export class MockProvider implements PriceProvider {
       if (!g) return { keywords: this.seeds.get(p.id)?.keywords, categoryNoun: NOUNS[p.category] };
       // Plain staples (store brands, loose produce) lead a generic query such as
       // "milk" ahead of speciality national brands.
-      return { keywords: g.keywords, categoryNoun: NOUNS[p.category], nounOnly: true, boost: p.isStoreBrand || p.brand === FRESH ? 0.03 : 0 };
+      return { keywords: g.keywords, categoryNoun: NOUNS[p.category], nounOnly: true, boost: p.isStoreBrand || p.brand === FRESH ? 0.03 : 0, heads: g.heads ?? undefined };
     });
     // Only trending queries that find something in what was actually loaded.
     const candidates = kind === 'grocery' ? GROCERY_TRENDING : kind === 'general' ? TRENDING_QUERIES : [...GROCERY_TRENDING, ...TRENDING_QUERIES];

@@ -2,7 +2,7 @@ import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import cors from '@fastify/cors';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import { type AlertCheckResult, bestPriceFor, checkAlerts, toPriceAlert } from './alerts.js';
-import { computeBasket } from './basket.js';
+import { BASKET_MIN_RELEVANCE, computeBasket } from './basket.js';
 import type { ClaudeAsk } from './ask/claude.js';
 import { AskService } from './ask/index.js';
 import { Catalog, UpstreamError } from './catalog.js';
@@ -162,8 +162,8 @@ export async function buildApp(deps: AppDeps): Promise<App> {
     }
   });
 
-  const limitWith = (rl: RateLimiter, key: string, max: number) => {
-    const decision = rl.hit(key, max);
+  const limitWith = (rl: RateLimiter, key: string, max: number, cost = 1) => {
+    const decision = rl.hit(key, max, cost);
     if (!decision.ok) {
       throw new HttpError(429, 'rate_limited', 'Too many requests, slow down.', {
         'retry-after': String(decision.retryAfterSec),
@@ -370,8 +370,14 @@ export async function buildApp(deps: AppDeps): Promise<App> {
   fastify.post(`${prefix}/basket`, async (req): Promise<BasketResponse> => {
     const started = performance.now();
     const deviceId = deviceFrom(req);
-    limit(`basket:${deviceId ?? `ip:${req.ip}`}`, config.basketRateLimitMax);
+    const who = deviceId ?? `ip:${req.ip}`;
+    limit(`basket:${who}`, config.basketRateLimitMax);
+    // Free-text and productId lookups that miss the cache are what cost upstream calls
+    // and evict other users' cache entries: refuse once this client's budget is spent.
+    // (cost 0 = check only; refused once the window's count has reached the budget)
+    limitWith(limiter, `basket-lookups:${who}`, config.basketUncachedLookupsMax - 1, 0);
     const body = parse(BasketRequestSchema, req.body);
+    let misses = 0;
     const ctx = await catalog.contextFor(body.zip, body.memberships, body.storeIds);
     const profile = learnedProfile(deviceId) ?? NEUTRAL_RANKING_PROFILE;
     const items = await Promise.all(
@@ -379,16 +385,26 @@ export async function buildApp(deps: AppDeps): Promise<App> {
         const unresolved = { id: item.id, quantity: item.quantity, product: null, resolvedFromQuery: false };
         // An upstream failure on one item leaves that item unresolved instead of failing the whole list.
         if (item.productId) {
-          const detail = await catalog.product(item.productId, ctx.stores).then((r) => r.value, () => null);
+          const detail = await catalog.product(item.productId, ctx.stores).then(
+            (r) => ((misses += r.cached ? 0 : 1), r.value),
+            () => ((misses += 1), null),
+          );
           if (detail) return { ...unresolved, product: personalizeProduct(detail, profile, ctx) };
         }
         if (item.query) {
-          const hits = await catalog.search(item.query, ctx.stores).then((r) => r.value, () => []);
-          if (hits[0]) return { ...unresolved, product: personalizeProduct(hits[0].product, profile, ctx), resolvedFromQuery: true };
+          const hits = await catalog.search(item.query, ctx.stores).then(
+            (r) => ((misses += r.cached ? 0 : 1), r.value),
+            () => ((misses += 1), []),
+          );
+          // Strict: a weak top hit (typo/prefix/description-only match) is worse than "no match",
+          // because the shopper would be totalled for something they did not list.
+          const top = hits[0];
+          if (top && top.relevance >= BASKET_MIN_RELEVANCE) return { ...unresolved, product: personalizeProduct(top.product, profile, ctx), resolvedFromQuery: true };
         }
         return unresolved;
       }),
     );
+    limiter.hit(`basket-lookups:${who}`, config.basketUncachedLookupsMax, misses);
     const totals = computeBasket(items, { minSplitSavings: config.basketSplitMinSavings });
     return { items, ...totals, retailers: RETAILERS, tookMs: round1(performance.now() - started) };
   });

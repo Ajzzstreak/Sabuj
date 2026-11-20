@@ -46,7 +46,7 @@ Abuse and growth bounds: registration is limited per IP per window (`DEVICE_REGI
 | GET | `/v1/profile` | required | New device: empty profile, `source: "none"`. |
 | DELETE | `/v1/profile` | required | Erases everything for the device, including the device/token. |
 | POST | `/v1/alerts` | required | `{ productId, targetPrice, zip?, memberships? }` → `{ alert }`. |
-| GET | `/v1/alerts` | required | `{ alerts[] }` with a fresh `currentBestPrice`. |
+| GET | `/v1/alerts` | required | `{ alerts[] }` with a fresh `currentBestPrice` (and its `currentBestPriceSource`; a push for a `demo` price says so in its title and body). |
 | DELETE | `/v1/alerts/:id` | required | `{ deleted: true }` or `404`. |
 | PUT | `/v1/push-token` | required | `{ token: "ExponentPushToken[...]" \| null }` → `{ ok: true }`. |
 
@@ -61,7 +61,7 @@ Every offer carries `estimatedTax`, `landedPrice`, `eligible` and `priceSource`.
 - `landedPrice = totalPrice + (estimatedTax ?? 0)`.
 - `memberships=costco,samsclub` states which memberships the shopper holds; `memberships=` (empty) means none; omit it when unknown. `eligible` is `false` for an offer that needs a membership the shopper said they lack, and always `true` when the parameter is absent. Stated memberships override whatever the profile inferred.
 - `cheapestOfferId`, `maxSavings` and ranking use `landedPrice` over in-stock, eligible, priced offers — per unit when the offers are not the same item in the same size (next section).
-- **Groceries are taxed like everything else here.** Most states exempt or reduce sales tax on food; this table does not know that, so `estimatedTax` on food items is usually too high. Treat it as a known error until a per-state grocery rule is added.
+- **Groceries**: `GROCERY_TAX` in `src/tax.ts` gives each state a treatment for food — `exempt` (e.g. CA, NY, TX, OH), `reduced` (combined food rate, e.g. UT 3%, NC 2% local, TN, IL, VA; for states that exempt food but let local taxes apply, the local share of the combined average — an upper bound) or `full` (HI, ID, SD). `taxClassOf(category, title)` decides food vs general merchandise: the food aisles (Produce, Dairy & Eggs, Meat & Seafood, Bakery, Pantry, Canned Goods, Snacks, Beverages, Frozen, Breakfast, Baby) are food, except diapers, wipes and soft drinks; Household (paper goods, cleaning) and every non-grocery category use the general rate. **The grocery table is an estimate written from memory and must be verified per state before anyone relies on it**; `estimatedTax` keeps its meaning (an estimate, null without a usable ZIP). Basket lines use the offer's `landedPrice`, so totals follow the same rule.
 
 Offer order (an offer never outranks one in an earlier group): eligible in-stock comparable offers within the shopper's premium bound → eligible in-stock offers beyond it or not comparable → ineligible → out of stock → `link_only`. `recommendedOfferId` is `offers[0].id` when that offer is in stock, eligible and priced, otherwise `null`.
 
@@ -69,7 +69,7 @@ Offer order (an offer never outranks one in an earlier group): eligible in-stock
 
 ## Grocery: sizes, unit prices, store brands
 
-Products and offers carry a `size` (`{ amount, unit }`, units `oz | lb | fl_oz | gal | ct | each`). Each offer gets `unitPrice` + `unitLabel`, normalized **within a dimension only**: weight → `per oz`, volume → `per fl oz`, count → `each` (`src/size.ts`; `parseSize` reads "16 oz", "5 lb", "half gallon", "12 ct", "2 L", and multipacks such as "12 x 12 fl oz" or "12 fl oz, 12 count").
+Products and offers carry a `size` (`{ amount, unit }`, units `oz | lb | fl_oz | gal | ct | each`). Each offer gets `unitPrice` + `unitLabel`, normalized **within a dimension only**: weight → `per oz`, volume → `per fl oz`, count → `each` (`src/size.ts`; `parseSize` reads "16 oz", "5 lb", "half gallon", "12 ct", "2 L", and multipacks such as "12 x 12 fl oz" or "12 fl oz, 12 count"; in a title about bags/liners a gallon/quart/liter figure is the bag's capacity, so "13 Gallon Trash Bags, 40 Count" is 40 ct, and "12 Mega Rolls" is 12 ct).
 
 `matchType` says what an offer is: `exact` = the same item (same GTIN); `equivalent` = a comparable item at that store, with its real name in `offerTitle` and possibly another size — typically that store's own brand. `Product.isStoreBrand` marks a retailer's own label.
 
@@ -91,7 +91,8 @@ Cache correctness: the shared cache holds national, unpersonalized provider resu
 
 `{ items: [{ id, productId?, query?, quantity }], zip?, memberships?, storeIds? }` → `BasketResponse`. Works with or without a token; limits: `BASKET_MAX_ITEMS` (60) items, quantity 1-99, query ≤ 100 chars, unique item ids, `BASKET_RATE_LIMIT_MAX` per device (per IP when anonymous). No LLM: every item resolves concurrently through the cached catalog path.
 
-- An item resolves to its `productId`; otherwise (or if that id is unknown) to the top search match of `query` with `resolvedFromQuery: true`; otherwise `product: null`.
+- An item resolves to its `productId`; otherwise (or if that id is unknown) to the top search match of `query` with `resolvedFromQuery: true`, but only when that match's relevance is at least `BASKET_MIN_RELEVANCE` (0.6, `src/basket.ts`); otherwise `product: null` — no match is better than totalling something the shopper did not list. Mock search ranks a **head-noun** match first: "butter" is what Salted Butter Sticks are, but only a flavour of Butter Microwave Popcorn, and "Creamy Peanut Butter" is peanut butter (kinds can name what they are via `heads` in `groceryData.ts`; default is the last word of the product name). A word matched only in a modifier position is penalized; prefix/typo matches ("eggs" → Eggo) rank below exact head matches.
+- Cost bounds: besides `BASKET_RATE_LIMIT_MAX`, item lookups that MISS the catalog cache count against `BASKET_UNCACHED_LOOKUPS_MAX` (300) per device / IP per window; once spent, the basket is `429`. Re-totalling an unchanged list is all cache hits and costs nothing. A store id of a store-scoped retailer (Kroger) is honoured only when a store lookup returned it, so made-up ids cannot mint uncached upstream calls.
 - A store can supply an item when the product has an in-stock, eligible, priced (not `link_only`) offer there — the exact item or that store's equivalent. The line is `unitCost` (= the offer's `landedPrice`) × `quantity`.
 - `perStore`: one entry per retailer with at least one line, ordered **most items covered first, then lowest total** — so `perStore[0]` is always `bestSingleStore` (the cheapest complete store; if none is complete, the one covering the most items, ties by total).
 - `bestSplit`: every pair of stores is evaluated, each item going to the cheaper store of the pair (ties to the store that ranks better on its own). A pair is returned only if both stores actually get an item, it covers **exactly the items the best single store covers**, and it is cheaper by at least `BASKET_SPLIT_MIN_SAVINGS` (default $1). The pair with the largest saving wins; otherwise `null`.
@@ -239,10 +240,10 @@ test/                 vitest suites, fixtures/
 - Cache, rate limiters (including the per-IP daily registration cap), the ask cache, the Claude budget and all timers are in-process: run one instance, or move them to shared infrastructure before scaling out. The registration caps reset on restart.
 - Device tokens do not expire or rotate; the only revocation is `DELETE /v1/profile` or the retention purge. A lost token means a new device.
 - Behind NAT/carrier-grade NAT many users share an IP: tune the registration caps (and `TRUST_PROXY`) for the deployment.
-- The tax figures are coarse state-level estimates and ignore grocery exemptions, so tax on food is usually overstated (see above).
+- The tax figures are coarse state-level estimates; the grocery treatment per state is unverified (see above) and food vs non-food is decided by aisle and a few title words.
 - Basket lines cost one package of whatever that store sells: a club's equivalent is a bulk pack, so club totals are for more product than the list asked for. The response does not scale quantities to match sizes.
 - `bestSplit` is only compared against the best single store on identical item coverage; a pair of stores that covers MORE items than any single store is not surfaced as a split (read `perStore[].missingItemIds` for that).
-- Free-text basket items take the top search hit; nothing checks that "milk" meant whole milk. The app should let the user change the resolved product.
+- Free-text basket items take the top search hit above a relevance threshold; nothing checks that "milk" meant whole milk rather than 2%. The app lets the user change the resolved product.
 - Unit prices are compared on `landedPrice` per unit; the displayed `unitPrice` is the pre-tax item price per unit.
 - The alert checker reads prices through the catalog cache, so a trigger can lag a price change by the cache TTL/SWR window; `priceAtCreation` is fixed at creation and is not updated by later checks.
 - Neither Claude path (profiler, ask) has been exercised against the real API — only against a mocked client. Expo push has only been exercised against a mocked `fetch`.

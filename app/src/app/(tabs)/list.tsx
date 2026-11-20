@@ -362,7 +362,7 @@ function TotalsPanel({ items, basket, resolved, pending, updating, error, onRetr
             </Text>
           </View>
           <Text variant="callout" tone="textSecondary">
-            {money(split.savingsVsBestSingle)} less than buying everything at {getRetailer(best.retailerId).name} ({money(best.total)}), for the same {split.assignments.length} items.
+            {money(split.savingsVsBestSingle)} less than buying the same {split.assignments.length} {split.assignments.length === 1 ? 'item' : 'items'} at {getRetailer(best.retailerId).name} alone ({money(best.total)}).
           </Text>
           {split.stores.map((s) => {
             const mine = split.assignments.filter((a) => a.retailerId === s.retailerId);
@@ -426,7 +426,7 @@ function StoreCard({ store, best, priced, short, resolved, listedTitle, onOpen }
             {retailer.name}
           </Text>
           <Text variant="footnote" tone="textSecondary" numberOfLines={1}>
-            {location ? `${location.distanceMiles.toFixed(1)} mi · ${location.name}` : store.storeId ? 'Your store' : 'Online price, not a store near you'}
+            {location ? `${location.distanceMiles > 0 ? `${location.distanceMiles.toFixed(1)} mi · ` : ''}${location.name}` : store.storeId ? 'Your store' : 'Online price, not a store near you'}
           </Text>
         </View>
         <View style={styles.right}>
@@ -567,7 +567,9 @@ function ChangeItemSheet({ item, onClose }: { item: ListItem; onClose: () => voi
             Nothing matches “{q}”. Try a more general word.
           </Text>
         ) : (
-          products.slice(0, 12).map((p, i) => {
+          <>
+          <DemoNotice products={products.slice(0, 12)} style={styles.gapBottom} />
+          {products.slice(0, 12).map((p, i) => {
             const view = viewOffers(p);
             const best = view.offers.find((o) => o.id === view.cheapestId);
             return (
@@ -582,7 +584,8 @@ function ChangeItemSheet({ item, onClose }: { item: ListItem; onClose: () => voi
                 onPress={() => pick(p)}
               />
             );
-          })
+          })}
+          </>
         )}
       </View>
     </Sheet>
@@ -598,6 +601,7 @@ const styles = StyleSheet.create({
   colRight: { flex: 6, minWidth: 0 },
   right: { alignItems: 'flex-end' },
   gapTop: { marginTop: space.md },
+  gapBottom: { marginBottom: space.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', columnGap: space.sm, marginTop: space.xs },
   center: { justifyContent: 'center' },
   addButton: { marginRight: -space.sm },

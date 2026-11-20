@@ -8,7 +8,7 @@ import { Banner } from './ui';
  * synthetic (priceSource 'demo'), so mock data is never mistaken for a real
  * store price.
  */
-export function DemoNotice({ products, style }: { products: readonly Product[]; style?: StyleProp<ViewStyle> }) {
-  if (!hasDemoPrices(products)) return null;
+export function DemoNotice({ products = [], demo = false, style }: { products?: readonly Product[]; demo?: boolean; style?: StyleProp<ViewStyle> }) {
+  if (!demo && !hasDemoPrices(products)) return null;
   return <Banner testID="demo-notice" tone="notice" compact title="Demo prices" text="Sample data for testing. These are not real store prices." style={style} />;
 }

@@ -7,6 +7,7 @@ import type {
   ActivityEvent,
   AlertResponse,
   AskResponse,
+  BasketResponse,
   HomeResponse,
   ProductResponse,
   ProfileResponse,
@@ -362,8 +363,13 @@ describe('stores', () => {
       },
       getProduct: async () => null,
       lookupGtin: async () => null,
+      stores: async () => ['kroger-1', 'kroger-2'].map((id, i) => ({ id, retailerId: 'kroger' as const, name: id, address: '', distanceMiles: i })),
     };
     const catalog = new Catalog([scoped], catalogOpts);
+    // An id no store lookup has returned is ignored: it would otherwise be an uncached upstream call per made-up id.
+    const unknown = await catalog.contextFor(null, null, ['kroger-made-up-1']);
+    expect(unknown.stores?.kroger).toBeUndefined();
+    await catalog.stores('45202');
     const run = async (storeIds?: string[]) => {
       const ctx = await catalog.contextFor(null, null, storeIds);
       const { value, cached } = await catalog.search('milk', ctx.stores);
@@ -586,5 +592,94 @@ describe('heuristic profiler: shopping-list events', () => {
     const mixed = build([add({ brand: 'Kroger' }), add({ brand: 'Kroger' }), add({ brand: 'Barilla' }), add({ brand: 'Jif' })]);
     expect(mixed.insights.join()).not.toMatch(/store brands/);
     expect(build([add({ brand: 'Kroger' })]).insights.join()).not.toMatch(/store brands/); // too little data
+  });
+});
+
+describe('staple search relevance and basket free-text resolution', () => {
+  const mock = new MockProvider();
+  const top = async (q: string) => (await mock.search(q, { limit: 10 }))[0];
+
+  it.each<[string, string, RegExp]>([
+    ['butter', 'Dairy & Eggs', /Butter( Sticks)?, /],
+    ['eggs', 'Dairy & Eggs', /Eggs, /],
+    ['milk', 'Dairy & Eggs', /\bMilk, /],
+    ['bread', 'Bakery', /Bread, /],
+    ['rice', 'Pantry', /Rice, /],
+    ['chicken', 'Meat & Seafood', /Chicken Breasts, /],
+    ['bananas', 'Produce', /^Bananas, /],
+  ])('"%s" ranks the staple itself first (head noun), not a product it only flavours', async (q, category, title) => {
+    const hit = (await top(q))!;
+    expect(hit.product.category).toBe(category);
+    expect(hit.product.title).toMatch(title);
+  });
+
+  it('modifier-only and prefix matches rank below every head-noun match', async () => {
+    const butter = await mock.search('butter', { limit: 20 });
+    const firstPopcorn = butter.findIndex((h) => /Popcorn/.test(h.product.title));
+    const firstPeanut = butter.findIndex((h) => /Peanut Butter/.test(h.product.title));
+    const realButter = butter.filter((h) => h.product.category === 'Dairy & Eggs').map((h) => butter.indexOf(h));
+    expect(Math.max(...realButter)).toBeLessThan(Math.min(firstPopcorn, firstPeanut));
+    const eggs = await mock.search('eggs', { limit: 20 });
+    expect(eggs.findIndex((h) => /Eggo/.test(h.product.title))).toBeGreaterThan(eggs.findLastIndex((h) => /Eggs, /.test(h.product.title)));
+    // "milk" means milk: almond / oat milk come after dairy milk.
+    const milk = await mock.search('milk', { limit: 20 });
+    expect(milk.findIndex((h) => /Almond|Oat/.test(h.product.title))).toBeGreaterThan(milk.findLastIndex((h) => /(Whole|Reduced Fat|Ultra-Filtered) Milk/.test(h.product.title)));
+    // Compound staples still work.
+    expect((await top('peanut butter'))!.product.title).toMatch(/Peanut Butter/);
+    expect((await top('almond milk'))!.product.title).toMatch(/Almond Milk/);
+    expect((await top('chicken broth'))!.product.title).toMatch(/Chicken Broth/);
+  });
+
+  it('a nonsense term finds nothing', async () => {
+    expect(await mock.search('xqzvtrple', { limit: 10 })).toEqual([]);
+  });
+
+  describe('POST /v1/basket resolution', () => {
+    let app: App;
+    let store: Store;
+    beforeEach(async () => {
+      store = new Store(':memory:');
+      app = await buildApp({ config: testConfig(), store, providers: [new MockProvider()] });
+    });
+    afterEach(async () => {
+      await app.fastify.close();
+      store.close();
+    });
+    const basket = async (payload: object) => (await app.fastify.inject({ method: 'POST', url: '/v1/basket', payload })).json() as BasketResponse;
+
+    it('resolves staple terms to the staple, and leaves nonsense / weak matches unresolved', async () => {
+      const terms = ['butter', 'eggs', 'milk', 'bread', 'rice', 'chicken', 'bananas', 'xqzvtrple', 'buttre popcrn'];
+      const body = await basket({ items: terms.map((query, i) => ({ id: `i${i}`, query, quantity: 1 })) });
+      const got = Object.fromEntries(body.items.map((it, i) => [terms[i]!, it.product ? `${it.product.category}|${it.product.title}` : null]));
+      expect(got.butter).toMatch(/^Dairy & Eggs\|.*Butter/);
+      expect(got.eggs).toMatch(/^Dairy & Eggs\|.*Eggs/);
+      expect(got.milk).toMatch(/^Dairy & Eggs\|.*(Whole|2%).*Milk/);
+      expect(got.bread).toMatch(/^Bakery\|.*Bread/);
+      expect(got.rice).toMatch(/^Pantry\|.*Rice/);
+      expect(got.chicken).toMatch(/^Meat & Seafood\|.*Chicken Breasts/);
+      expect(got.bananas).toMatch(/^Produce\|Bananas/);
+      expect(got.xqzvtrple).toBeNull();
+      // Typo-only matches are below the threshold: unresolved rather than a guess.
+      expect(got['buttre popcrn']).toBeNull();
+      expect(body.items.filter((i) => i.product).every((i) => i.resolvedFromQuery)).toBe(true);
+    });
+
+    it('taxes food by the state grocery rule and household goods at the general rate', async () => {
+      const items = [{ id: 'm', query: 'whole milk', quantity: 2 }, { id: 't', query: 'paper towels', quantity: 1 }];
+      const ca = await basket({ items, zip: '94105' }); // food exempt
+      const id = await basket({ items, zip: '83702' }); // food taxed in full
+      const wm = (b: BasketResponse) => b.perStore.find((s) => s.retailerId === 'walmart')!;
+      const offerOf = (b: BasketResponse, itemId: string) => {
+        const line = wm(b).lines.find((l) => l.itemId === itemId)!;
+        return b.items.find((i) => i.id === itemId)!.product!.offers.find((o) => o.id === line.offerId)!;
+      };
+      expect(offerOf(ca, 'm').estimatedTax).toBe(0);
+      expect(offerOf(ca, 't').estimatedTax).toBeGreaterThan(0);
+      expect(offerOf(id, 'm').estimatedTax).toBeGreaterThan(0);
+      expect(offerOf(id, 't').estimatedTax).toBeGreaterThan(0);
+      // Line costs carry it: milk costs the shelf price in CA, shelf + tax in ID.
+      expect(wm(ca).lines.find((l) => l.itemId === 'm')!.unitCost).toBe(offerOf(ca, 'm').price);
+      expect(wm(id).lines.find((l) => l.itemId === 'm')!.unitCost).toBeCloseTo(offerOf(id, 'm').price + offerOf(id, 'm').estimatedTax!, 2);
+    });
   });
 });

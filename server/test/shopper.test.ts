@@ -5,7 +5,7 @@ import { MockProvider, parsePriceOverrides } from '../src/providers/mock/index.j
 import type { PriceProvider, ProviderProduct, ProviderProductDetail } from '../src/providers/types.js';
 import { personalizeProduct, premiumBound, rankOffers } from '../src/ranking.js';
 import { applyContext, NO_CONTEXT, shopperContext } from '../src/shopper.js';
-import { estimatedTaxRateForZip, STATE_TAX_RATE_PCT, stateForZip } from '../src/tax.js';
+import { estimatedTaxRateForZip, GROCERY_TAX, STATE_TAX_RATE_PCT, stateForZip, taxClassOf } from '../src/tax.js';
 import { offer, profile, providerOffer } from './helpers.js';
 
 const base = (offers: ProviderProduct['offers'], extra: Partial<ProviderProduct> = {}): ProviderProduct => ({
@@ -59,6 +59,58 @@ describe('sales-tax estimate', () => {
     expect(estimatedTaxRateForZip('19901')).toBe(0);
     expect(estimatedTaxRateForZip('94105')).toBeCloseTo(0.0885, 4);
     expect(estimatedTaxRateForZip('00901')).toBeNull();
+  });
+});
+
+describe('grocery sales tax (estimate)', () => {
+  it('has a grocery treatment for every state, never above the general rate', () => {
+    expect(Object.keys(GROCERY_TAX).sort()).toEqual(Object.keys(STATE_TAX_RATE_PCT).sort());
+    for (const [state, g] of Object.entries(GROCERY_TAX)) {
+      if (g.kind === 'reduced') {
+        expect(g.ratePct, state).toBeGreaterThan(0);
+        expect(g.ratePct, state).toBeLessThanOrEqual(STATE_TAX_RATE_PCT[state]!);
+      }
+    }
+  });
+
+  it('food: exempt, reduced or full by state; general merchandise always at the general rate', () => {
+    expect(estimatedTaxRateForZip('94105', 'food')).toBe(0); // CA exempts groceries
+    expect(estimatedTaxRateForZip('10001', 'food')).toBe(0); // NY
+    expect(estimatedTaxRateForZip('45202', 'food')).toBe(0); // OH
+    expect(estimatedTaxRateForZip('84101', 'food')).toBeCloseTo(0.03, 4); // UT reduced
+    expect(estimatedTaxRateForZip('27601', 'food')).toBeCloseTo(0.02, 4); // NC: 2% local on food
+    expect(estimatedTaxRateForZip('83702', 'food')).toBeCloseTo(0.0603, 4); // ID: full rate
+    expect(estimatedTaxRateForZip('57101', 'food')).toBeCloseTo(0.0611, 4); // SD: full rate
+    expect(estimatedTaxRateForZip('00901', 'food')).toBeNull();
+    for (const zip of ['94105', '10001', '84101', '83702']) {
+      expect(estimatedTaxRateForZip(zip, 'general')).toBe(estimatedTaxRateForZip(zip));
+    }
+    expect(estimatedTaxRateForZip('94105')).toBeCloseTo(0.0885, 4);
+  });
+
+  it('classifies food aisles as food, and household / diapers / soft drinks as general', () => {
+    expect(taxClassOf('Dairy & Eggs', 'Great Value Whole Milk, 1 gal')).toBe('food');
+    expect(taxClassOf('Produce', 'Bananas, 1 lb')).toBe('food');
+    expect(taxClassOf('Baby', 'Similac 360 Total Care Infant Formula Powder, 30.8 oz')).toBe('food');
+    expect(taxClassOf('Household', 'Bounty Select-A-Size Paper Towels Double Rolls, 6 ct')).toBe('general');
+    expect(taxClassOf('Baby', 'Pampers Swaddlers Diapers Size 3, 78 ct')).toBe('general');
+    expect(taxClassOf('Baby', 'Huggies Natural Care Sensitive Baby Wipes, 168 ct')).toBe('general');
+    expect(taxClassOf('Beverages', 'Coca-Cola Classic Soda, 12 x 12 fl oz')).toBe('general');
+    expect(taxClassOf('Beverages', 'Great Value Classic Roast Ground Coffee, 30.5 oz')).toBe('food');
+    expect(taxClassOf('Rice Cookers', 'Aroma 8-Cup Rice Cooker')).toBe('general');
+  });
+
+  it('applyContext taxes food at the grocery rate only when it knows the item', () => {
+    const raw = [providerOffer('walmart', 10)];
+    const milk = { category: 'Dairy & Eggs', title: 'Whole Milk, 1 gal' };
+    const towels = { category: 'Household', title: 'Paper Towels, 6 ct' };
+    expect(applyContext(raw, shopperContext('94105', null), milk)[0]).toMatchObject({ estimatedTax: 0, landedPrice: 10 });
+    expect(applyContext(raw, shopperContext('94105', null), towels)[0]).toMatchObject({ estimatedTax: 0.89, landedPrice: 10.89 });
+    expect(applyContext(raw, shopperContext('83702', null), milk)[0]).toMatchObject({ estimatedTax: 0.6, landedPrice: 10.6 });
+    expect(applyContext(raw, shopperContext('84101', null), milk)[0]).toMatchObject({ estimatedTax: 0.3 });
+    // No item: general merchandise (electronics etc.); no ZIP: no tax.
+    expect(applyContext(raw, shopperContext('94105', null))[0]!.estimatedTax).toBe(0.89);
+    expect(applyContext(raw, NO_CONTEXT, milk)[0]!.estimatedTax).toBeNull();
   });
 });
 

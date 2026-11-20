@@ -69,13 +69,37 @@ export function removeFromList(id: string): (() => void) | null {
   track({ type: 'list_remove', productId: item.productId, query: item.productId ? undefined : item.query });
   haptic.light();
   return () => {
-    const now = listStore.get();
-    if (now.some((i) => i.id === item.id)) return;
-    const next = [...now];
-    next.splice(Math.min(index, next.length), 0, item);
-    listStore.set(next);
-    track({ type: 'list_add', productId: item.productId, query: item.productId ? undefined : item.query });
+    if (restoreItems([item], index)) track({ type: 'list_add', productId: item.productId, query: item.productId ? undefined : item.query });
   };
+}
+
+const sameThing = (a: ListItem, b: ListItem) =>
+  a.productId ? a.productId === b.productId : !b.productId && (a.query ?? a.title).toLowerCase() === (b.query ?? b.title).toLowerCase();
+
+/**
+ * Put removed items back (Undo) into the list as it is NOW, not as it was: an
+ * item re-added meanwhile is merged rather than duplicated, and the list never
+ * grows past LIST_MAX_ITEMS (the server rejects a longer list, which would
+ * break every total). Returns false when nothing could be restored.
+ */
+function restoreItems(items: readonly ListItem[], at?: number): boolean {
+  let next = [...listStore.get()];
+  let restored = false;
+  for (const item of items) {
+    if (next.some((i) => i.id === item.id)) continue;
+    const twin = next.find((i) => sameThing(i, item));
+    if (twin) {
+      next = next.map((i) => (i === twin ? { ...i, quantity: clampQty(i.quantity + item.quantity) } : i));
+      restored = true;
+      continue;
+    }
+    if (next.length >= LIST_MAX_ITEMS) continue;
+    if (at === undefined) next.push(item);
+    else next.splice(Math.min(at, next.length), 0, item);
+    restored = true;
+  }
+  if (restored) listStore.set(next);
+  return restored;
 }
 
 /** Remove every checked item. Returns an undo, or null when nothing was checked. */
@@ -85,7 +109,8 @@ export function clearChecked(): (() => void) | null {
   if (gone.length === 0) return null;
   listStore.set(before.filter((i) => !i.checked));
   for (const item of gone) track({ type: 'list_remove', productId: item.productId, query: item.productId ? undefined : item.query });
-  return () => listStore.set(before);
+  // Restores into the current list, so anything added or changed since is kept.
+  return () => void restoreItems(gone);
 }
 
 /** "Change": pin a free-text (or wrongly matched) item to a specific product. */

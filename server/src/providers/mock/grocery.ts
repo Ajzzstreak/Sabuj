@@ -59,6 +59,8 @@ export interface GroceryMeta {
   group: string | null;
   /** Rank among its group in search results (0 = shown first). */
   groupRank: number;
+  /** Head phrases for search relevance (kind.heads), or null for the default (last word of the name). */
+  heads: string[] | null;
 }
 
 export interface GroceryCatalog {
@@ -198,7 +200,7 @@ export function buildGroceryCatalog(observedAt: string): GroceryCatalog {
               highlights: [...kind.tags, 'Store brand'],
               offers: [],
             },
-            { title: own.title, brand, category, keywords, group, groupRank: rank },
+            { title: own.title, brand, category, keywords, group, groupRank: rank, heads: kind.heads ?? null },
             // Its own listing first, then every other store's counterpart.
             [own, ...listings.filter((l) => l !== own)],
           );
@@ -226,7 +228,7 @@ export function buildGroceryCatalog(observedAt: string): GroceryCatalog {
             highlights: tags ?? [],
             offers: [],
           },
-          { title, brand, category, keywords, group: null, groupRank: 0 },
+          { title, brand, category, keywords, group: null, groupRank: 0, heads: kind.heads ?? null },
           // The same item (same GTIN) at every store: one listing per retailer.
           retailers.map((r) => makeListing(id, title, r, base, sizeText)),
         );

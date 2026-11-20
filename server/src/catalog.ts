@@ -45,6 +45,9 @@ export interface Cached<T> {
   cached: boolean;
 }
 
+/** Bound on Catalog.knownStoreIds. */
+const MAX_KNOWN_STORE_IDS = 50_000;
+
 /** How many hits to request per query; the per-request `limit` slices this. */
 export const SEARCH_FETCH_LIMIT = 50;
 
@@ -163,6 +166,14 @@ export class Catalog {
   /** Retailers whose prices some provider must fetch per store (part of the cache key). */
   private readonly storeScoped: RetailerId[];
   private readonly localizers: PriceProvider[];
+  /**
+   * Store ids some provider actually returned from a store lookup. A store id
+   * of a store-scoped retailer is part of the cache key and costs upstream
+   * calls, so it is only honoured when it is a real store we have seen —
+   * otherwise any well-formed id ("kroger-<anything>") would mint a fresh,
+   * uncached upstream request per call. Bounded; reset when full.
+   */
+  private readonly knownStoreIds = new Set<string>();
 
   constructor(
     private readonly providers: PriceProvider[],
@@ -203,6 +214,8 @@ export class Catalog {
         .filter((s) => !seen.has(s.id) && seen.add(s.id))
         .sort((a, b) => a.distanceMiles - b.distanceMiles);
     });
+    if (this.knownStoreIds.size + value.length > MAX_KNOWN_STORE_IDS) this.knownStoreIds.clear();
+    for (const s of value) this.knownStoreIds.add(s.id);
     return value;
   }
 
@@ -214,15 +227,16 @@ export class Catalog {
    */
   async resolveStores(zip: string | null | undefined, storeIds: readonly string[] | null | undefined): Promise<StoreSelection> {
     const selection: StoreSelection = {};
+    // Looked up first: it also registers the ZIP's real store ids (see knownStoreIds).
+    const nearby = zip ? await this.stores(zip).catch(() => []) : [];
     for (const id of storeIds ?? []) {
       let retailer: RetailerId | null = null;
       for (const p of this.providers) if ((retailer = p.storeRetailer?.(id) ?? null)) break;
+      // A store-scoped retailer's id must be a store a lookup returned (cache-key / upstream-quota abuse).
+      if (retailer && this.storeScoped.includes(retailer) && !this.knownStoreIds.has(id)) continue;
       if (retailer && !selection[retailer]) selection[retailer] = id;
     }
-    if (zip) {
-      const nearby = await this.stores(zip).catch(() => []);
-      for (const s of nearby) selection[s.retailerId] ??= s.id; // already nearest-first
-    }
+    for (const s of nearby) selection[s.retailerId] ??= s.id; // already nearest-first
     return selection;
   }
 

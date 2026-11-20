@@ -22,6 +22,12 @@ export interface GroceryKind {
   price: number;
   tags: string[];
   keywords?: string[];
+  /**
+   * What every product of this kind IS, when the last word of its name says
+   * otherwise ("Salted Butter Sticks" is butter; "Creamy Peanut Butter" is
+   * peanut butter, not butter). Used for head-noun search relevance.
+   */
+  heads?: string[];
   /** Bulk package the warehouse clubs sell under their own label: [size, price]. */
   club?: [size: string, price: number];
   /** False: no store-brand version exists (fresh produce sold loose, etc.). */
@@ -82,6 +88,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Salted Butter Sticks', '16 oz', 3.98, ['4 sticks', 'Grade AA'], {
+      heads: ['butter', 'butter stick'],
       club: ['4 x 16 oz', 13.49],
       nationals: [
         ["Land O'Lakes", 'Salted Butter Sticks', '16 oz', 5.28, ['4 sticks']],
@@ -111,6 +118,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
     }),
     k('Unsweetened Almond Milk', '64 fl oz', 2.68, ['Dairy free', 'Half gallon'], {
       keywords: ['plant milk', 'non dairy'],
+      heads: ['almond milk', 'oat milk', 'plant milk'],
       nationals: [
         ['Silk', 'Unsweetened Almond Milk', '64 fl oz', 3.78, ['Dairy free', 'Half gallon']],
         ['Almond Breeze', 'Original Almond Milk', '64 fl oz', 3.58, ['Dairy free', 'Half gallon']],
@@ -121,6 +129,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
   ],
   'Meat & Seafood': [
     k('Boneless Skinless Chicken Breasts', '3 lb', 8.94, ['Fresh', 'No added hormones'], {
+      heads: ['chicken', 'chicken breast'],
       target: false,
       club: ['6 lb', 15.99],
       nationals: [['Tyson', 'Boneless Skinless Chicken Breasts', '2.5 lb', 9.47, ['Fresh', 'All natural']]],
@@ -134,7 +143,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
         ['Wright', 'Thick Cut Hickory Smoked Bacon', '24 oz', 9.47, ['Thick cut']],
       ],
     }),
-    k('Atlantic Salmon Fillets', '1 lb', 9.97, ['Fresh', 'Skin on'], { target: false, keywords: ['fish'], club: ['3 lb', 26.99] }),
+    k('Atlantic Salmon Fillets', '1 lb', 9.97, ['Fresh', 'Skin on'], { heads: ['salmon', 'salmon fillet'],  target: false, keywords: ['fish'], club: ['3 lb', 26.99] }),
     k('Oven Roasted Turkey Breast Lunch Meat', '9 oz', 3.48, ['Sliced', 'Deli style'], {
       keywords: ['deli', 'cold cuts'],
       nationals: [
@@ -206,6 +215,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Creamy Peanut Butter', '16 oz', 1.94, ['Smooth'], {
+      heads: ['peanut butter'],
       club: ['48 oz', 5.98],
       nationals: [
         ['Jif', 'Creamy Peanut Butter', '16 oz', 3.16, ['Smooth']],
@@ -221,6 +231,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Macaroni & Cheese Dinner', '7.25 oz', 0.58, ['Box', 'Original'], {
+      heads: ['macaroni & cheese', 'mac and cheese', 'mac & cheese', 'macaroni and cheese'],
       keywords: ['mac and cheese'],
       nationals: [
         ['Kraft', 'Original Macaroni & Cheese Dinner', '7.25 oz', 1.24, ['Box']],
@@ -247,6 +258,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
     k('Canned Whole Kernel Corn', '15.25 oz', 0.64, ['Canned', 'Golden sweet'], { nationals: [['Del Monte', 'Canned Whole Kernel Corn', '15.25 oz', 1.38, ['Canned']]] }),
     k('Canned Cut Green Beans', '14.5 oz', 0.64, ['Canned'], { nationals: [['Del Monte', 'Canned Cut Green Beans', '14.5 oz', 1.38, ['Canned']]] }),
     k('Chunk Light Tuna in Water', '5 oz', 0.92, ['Canned', 'Wild caught'], {
+      heads: ['tuna'],
       keywords: ['fish'],
       club: ['8 x 5 oz', 6.98],
       nationals: [
@@ -314,6 +326,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       nationals: [['Dasani', 'Purified Water', '24 x 16.9 fl oz', 6.98, ['24 bottles']]],
     }),
     k('100% Orange Juice No Pulp', '52 fl oz', 3.12, ['Not from concentrate'], {
+      heads: ['orange juice', 'juice', 'oj'],
       keywords: ['oj'],
       club: ['2 x 59 fl oz', 8.99],
       nationals: [
@@ -332,6 +345,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Lime Sparkling Water', '12 x 12 fl oz', 3.68, ['12 cans', 'Zero calories'], {
+      heads: ['sparkling water', 'seltzer'],
       keywords: ['seltzer'],
       club: ['35 x 12 fl oz', 9.89],
       nationals: [['LaCroix', 'Lime Sparkling Water', '12 x 12 fl oz', 5.48, ['12 cans', 'Zero calories']]],
@@ -349,7 +363,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       club: ['120 ct', 34.99],
       nationals: [['Green Mountain Coffee Roasters', 'Breakfast Blend K-Cup Pods', '24 ct', 14.98, ['Light roast', 'Single serve']]],
     }),
-    k('Black Tea Bags', '100 ct', 2.24, ['Family size box'], { nationals: [['Lipton', 'Black Tea Bags', '100 ct', 4.98, ['Family size box']]] }),
+    k('Black Tea Bags', '100 ct', 2.24, ['Family size box'], { heads: ['tea', 'tea bag'],  nationals: [['Lipton', 'Black Tea Bags', '100 ct', 4.98, ['Family size box']]] }),
   ],
   Frozen: [
     k('Frozen Broccoli Florets', '12 oz', 1.16, ['Steamable bag'], { club: ['4 lb', 6.98], nationals: [['Birds Eye', 'Steamfresh Frozen Broccoli Florets', '10.8 oz', 2.48, ['Steamable bag']]] }),
@@ -402,6 +416,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
   ],
   Baby: [
     k('Diapers Size 3', '82 ct', 15.97, ['16-28 lb', 'Hypoallergenic'], {
+      heads: ['diaper'],
       keywords: ['nappies'],
       club: ['192 ct', 39.99],
       nationals: [
@@ -417,6 +432,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Infant Formula Powder with Iron', '35 oz', 21.98, ['Milk-based', '0-12 months'], {
+      heads: ['formula', 'infant formula', 'baby formula'],
       club: ['42 oz', 24.99],
       nationals: [
         ['Similac', '360 Total Care Infant Formula Powder', '30.8 oz', 46.98, ['Milk-based', '0-12 months']],
@@ -430,6 +446,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
   ],
   Household: [
     k('Paper Towels Double Rolls', '6 ct', 6.47, ['2-ply', 'Choose-a-size sheets'], {
+      heads: ['paper towel'],
       club: ['12 ct', 21.99],
       nationals: [
         ['Bounty', 'Select-A-Size Paper Towels Double Rolls', '6 ct', 15.97, ['2-ply']],
@@ -437,6 +454,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
       ],
     }),
     k('Ultra Soft Toilet Paper Mega Rolls', '12 ct', 6.74, ['2-ply', 'Septic safe'], {
+      heads: ['toilet paper', 'bath tissue', 'tp'],
       keywords: ['bath tissue', 'tp'],
       club: ['30 ct', 23.99],
       nationals: [
@@ -472,6 +490,7 @@ export const GROCERY: Record<string, GroceryKind[]> = {
     k('Facial Tissues', '160 ct', 1.48, ['2-ply', 'Flat box'], { nationals: [['Kleenex', 'Trusted Care Facial Tissues', '160 ct', 2.18, ['2-ply', 'Flat box']]] }),
     k('Gallon Storage Bags', '40 ct', 3.42, ['Double zipper'], { keywords: ['zip bags'], nationals: [['Ziploc', 'Gallon Storage Bags', '38 ct', 5.28, ['Grip n seal']]] }),
     k('Dishwasher Detergent Pacs', '60 ct', 9.98, ['Fresh scent'], {
+      heads: ['dishwasher detergent', 'dishwasher pod'],
       keywords: ['dishwasher pods'],
       club: ['115 ct', 17.99],
       nationals: [['Cascade', 'Platinum ActionPacs Dishwasher Detergent', '36 ct', 13.97, ['Fresh scent']]],

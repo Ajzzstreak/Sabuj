@@ -123,7 +123,14 @@ export default function SavedScreen() {
       />
       <View style={styles.notices}>
         <OfflineBanner />
-        {segment === 'saved' ? <DemoNotice products={items.map((i) => i.product)} /> : <PushStatus hasAlerts={alerts.length > 0} />}
+        {segment === 'saved' ? (
+          <DemoNotice products={items.map((i) => i.product)} />
+        ) : (
+          <>
+            <DemoNotice demo={alerts.some((a) => a.currentBestPriceSource === 'demo')} />
+            <PushStatus hasAlerts={alerts.length > 0} />
+          </>
+        )}
       </View>
     </View>
   );

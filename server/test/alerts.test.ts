@@ -63,6 +63,7 @@ describe('price alerts API', () => {
       priceAtCreation: cheapest.landedPrice,
       currentBestPrice: cheapest.landedPrice,
       currentBestRetailerId: cheapest.retailerId,
+      currentBestPriceSource: 'demo',
       status: 'active',
       triggeredAt: null,
     });
@@ -180,9 +181,10 @@ describe('alert checker', () => {
     // Exactly one push, only to the device that registered a token.
     expect(sent).toHaveLength(1);
     expect(sent[0]).toHaveLength(1);
-    expect(sent[0]![0]).toMatchObject({ to: PUSH_TOKEN, title: 'Price drop', data: { type: 'price_alert', alertId: mine.id, productId: PRODUCT } });
+    expect(sent[0]![0]).toMatchObject({ to: PUSH_TOKEN, title: 'Price drop (demo data)', data: { type: 'price_alert', alertId: mine.id, productId: PRODUCT } });
     expect(sent[0]![0]!.body).toContain('Dash Mini 2-Cup Rice Cooker');
     expect(sent[0]![0]!.body).toContain(`$${mine.currentBestPrice!.toFixed(2)}`);
+    expect(sent[0]![0]!.body).toContain('Demo prices for testing, not real store prices.');
 
     // A triggered alert does not fire again.
     expect(await app.checkAlerts()).toEqual({ checked: 1, triggered: 0, pushed: 0 });

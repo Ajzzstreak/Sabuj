@@ -1,5 +1,8 @@
-import type { Offer, Product, RetailerId } from '@/api/contract';
+import type { Offer, Product, RetailerId, SizeUnit } from '@/api/contract';
 import { unitWord } from './format';
+
+/** The server's unitLabel for each package unit (normalized within a dimension). */
+const UNIT_LABEL_OF: Record<SizeUnit, string> = { oz: 'per oz', lb: 'per oz', fl_oz: 'per fl oz', gal: 'per fl oz', ct: 'each', each: 'each' };
 
 export type SortKey = 'best' | 'price' | 'unit' | 'rating';
 
@@ -77,8 +80,10 @@ export function viewOffers(product: Product, filters: OfferFilters = NO_FILTERS)
   // Trust the server's answer unless a filter hid it or it is not something this user can buy at a known price.
   if (filtered || cheapestId == null || !serverPick || !rankable(serverPick)) {
     if (unitMode) {
-      // Only offers priced per the same unit can be compared.
-      const label = ranked.find((o) => o.unitPrice != null)?.unitLabel ?? null;
+      // Only offers priced per the same unit can be compared: the product's own unit when known
+      // (an equivalent sold in another dimension must not set the scale), else the first one priced.
+      const own = product.size ? UNIT_LABEL_OF[product.size.unit] : null;
+      const label = (own && ranked.some((o) => o.unitPrice != null && o.unitLabel === own) ? own : null) ?? ranked.find((o) => o.unitPrice != null)?.unitLabel ?? null;
       const pool = ranked.filter((o) => o.unitPrice != null && o.unitLabel === label);
       const min = pool.length ? Math.min(...pool.map((o) => o.unitPrice ?? 0)) : null;
       cheapestId = min == null ? null : (pool.find((o) => o.unitPrice === min)?.id ?? null);
@@ -151,13 +156,24 @@ export function applyResultsView(products: Product[], sort: SortKey, filters: Of
   const keyed = list.map((p, index) => {
     const view = viewOffers(p, filters);
     const best = view.offers.find((o) => o.id === view.cheapestId);
-    return { p, index, best: view.bestPrice, unit: best?.unitPrice ?? null };
+    const unit = best?.unitPrice ?? null;
+    return { p, index, best: view.bestPrice, unit, unitLabel: unit != null ? (best?.unitLabel ?? null) : null };
   });
+  // Unit prices are only comparable within one unit ("per oz" vs "per fl oz" vs "each"):
+  // sort within each unit group, groups in the order their first (most relevant) product
+  // appears, and products without a unit price last.
+  const groupRank = new Map<string, number>();
+  for (const k of keyed) if (k.unitLabel != null && !groupRank.has(k.unitLabel)) groupRank.set(k.unitLabel, groupRank.size);
+  const group = (k: (typeof keyed)[number]) => (k.unitLabel == null ? Number.POSITIVE_INFINITY : (groupRank.get(k.unitLabel) ?? 0));
   const asc = (a: number | null, b: number | null) => (a ?? Number.POSITIVE_INFINITY) - (b ?? Number.POSITIVE_INFINITY);
   keyed.sort((a, b) => {
     if (sort === 'price') return asc(a.best, b.best) || a.index - b.index;
-    // Unit prices across different units (per oz vs each) are not truly comparable; this is a plain numeric order.
-    if (sort === 'unit') return asc(a.unit, b.unit) || a.index - b.index;
+    if (sort === 'unit') {
+      const ga = group(a);
+      const gb = group(b);
+      if (ga !== gb) return ga < gb ? -1 : 1;
+      return asc(a.unit, b.unit) || a.index - b.index;
+    }
     const d = (b.p.rating ?? -1) - (a.p.rating ?? -1);
     return d !== 0 ? d : b.p.reviewCount - a.p.reviewCount || a.index - b.index;
   });

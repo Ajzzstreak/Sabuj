@@ -91,6 +91,10 @@ interface IndexedProduct {
   phrase: string;
   popularity: number;
   boost: number;
+  /** Tokenized head phrases. */
+  heads: string[][];
+  /** Title tokens, to tell an exact match in a modifier position. */
+  titleTokens: Set<string>;
 }
 
 export interface SearchExtras {
@@ -103,6 +107,27 @@ export interface SearchExtras {
   nounOnly?: boolean;
   /** Small additive relevance bonus (0..0.05) for staple items, applied to matches only. */
   boost?: number;
+  /**
+   * What the item IS, as phrases ("butter", "peanut butter", "chicken"). A
+   * query whose last words equal one of them is a head-noun match and ranks
+   * above products where the word is only a modifier ("butter" in "Butter
+   * Microwave Popcorn") or only a prefix/typo match ("eggs" vs "Eggo").
+   * Default: the last word of the product name (title before the first comma).
+   */
+  heads?: string[];
+}
+
+/** Relevance bonus for a head-noun match, and penalty for a match only in a modifier position. */
+export const HEAD_MATCH_BONUS = 0.1;
+export const MODIFIER_ONLY_PENALTY = 0.08;
+/** Upper bound of the raw score: (1 + phrase 0.15) x 0.9 + popularity 0.05 + boost 0.05 + head. */
+const MAX_SCORE = 1.15 * 0.9 + 0.05 + 0.05 + HEAD_MATCH_BONUS;
+
+/** Default head phrase: the last word of the product name ("Salted Butter Sticks, 16 oz" -> "stick"). */
+export function defaultHead(title: string): string[] {
+  const name = tokenize(title.split(',')[0] ?? title);
+  const last = name.at(-1);
+  return last ? [last] : [];
 }
 
 export class SearchIndex {
@@ -127,6 +152,8 @@ export class SearchIndex {
         phrase: ` ${[...title, ...category].join(' ')} `,
         popularity: Math.log10(reviews + 1) / Math.log10(maxReviews + 1),
         boost: x.boost ?? 0,
+        heads: (x.heads ?? defaultHead(product.title)).map((h) => tokenize(h)).filter((h) => h.length > 0),
+        titleTokens: new Set(title),
       };
     });
   }
@@ -157,7 +184,13 @@ export class SearchIndex {
       let score = (sum / tokens.length) * coverage * coverage;
       if (tokens.length > 1 && doc.phrase.includes(phrase)) score += 0.15;
       score = score * 0.9 + doc.popularity * 0.05 + doc.boost;
-      results.push({ product: doc.product, relevance: Math.min(1, Math.round(score * 10000) / 10000) });
+      // Head noun: "butter" is what Salted Butter Sticks ARE, but only a flavour of popcorn.
+      const head = doc.heads.some((h) => h.length <= tokens.length && h.every((t, i) => t === tokens[tokens.length - h.length + i]));
+      if (head) score += HEAD_MATCH_BONUS;
+      else if (doc.titleTokens.has(tokens[tokens.length - 1]!)) score -= MODIFIER_ONLY_PENALTY;
+      // Scaled so the best possible score (phrase + popularity + boost + head) stays under 1:
+      // clamping would make the strongest matches tie.
+      results.push({ product: doc.product, relevance: Math.max(0, Math.min(1, Math.round((score / MAX_SCORE) * 10000) / 10000)) });
     }
     results.sort((a, b) => b.relevance - a.relevance || (a.product.id < b.product.id ? -1 : 1));
     return results.slice(0, limit);

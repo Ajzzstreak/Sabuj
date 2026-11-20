@@ -6,11 +6,16 @@
 import type { Offer, RetailerId } from './contract.js';
 import type { ProviderOffer, StoreSelection } from './providers/types.js';
 import { unitPriceOf } from './size.js';
-import { estimatedTaxRateForZip } from './tax.js';
+import { estimatedTaxRateForZip, taxClassOf } from './tax.js';
 
 export interface ShopperContext {
-  /** Estimated sales-tax rate as a fraction; null = no ZIP given (or unmapped). */
+  /** Estimated general-merchandise sales-tax rate as a fraction; null = no ZIP given (or unmapped). */
   taxRate: number | null;
+  /**
+   * Estimated rate on food (the state's grocery treatment, see src/tax.ts);
+   * null = no ZIP. Absent: same as taxRate.
+   */
+  foodTaxRate?: number | null;
   /** Memberships the shopper STATED they hold; null = not answered. */
   memberships: readonly RetailerId[] | null;
   /** Store the shopper buys from at each retailer; absent retailers get the national price. */
@@ -32,7 +37,13 @@ export function shopperContext(
   stores?: StoreSelection,
   localize?: ShopperContext['localize'],
 ): ShopperContext {
-  return { taxRate: zip ? estimatedTaxRateForZip(zip) : null, memberships: memberships ?? null, stores, localize };
+  return {
+    taxRate: zip ? estimatedTaxRateForZip(zip, 'general') : null,
+    foodTaxRate: zip ? estimatedTaxRateForZip(zip, 'food') : null,
+    memberships: memberships ?? null,
+    stores,
+    localize,
+  };
 }
 
 export function isLinkOnly(o: { priceSource: Offer['priceSource'] }): boolean {
@@ -50,8 +61,16 @@ export function isRankable(o: Offer): boolean {
  *   2. fill estimatedTax, landedPrice and eligible,
  *   3. derive unitPrice / unitLabel from the item price and size.
  * Tax is estimated on the item price only (shipping taxability varies by state).
+ * `item` (the product's category and title) decides food vs general
+ * merchandise; without it every offer is taxed as general merchandise.
  */
-export function applyContext(offers: readonly ProviderOffer[], ctx: ShopperContext = NO_CONTEXT): Offer[] {
+export function applyContext(
+  offers: readonly ProviderOffer[],
+  ctx: ShopperContext = NO_CONTEXT,
+  item?: { category: string; title: string },
+): Offer[] {
+  const food = item ? taxClassOf(item.category, item.title) === 'food' : false;
+  const taxRate = food && ctx.foodTaxRate !== undefined ? ctx.foodTaxRate : ctx.taxRate;
   return offers.map((raw) => {
     const storeId = raw.storeId === null ? ctx.stores?.[raw.retailerId] : undefined;
     const o = storeId && ctx.localize ? ctx.localize(raw, storeId) : raw;
@@ -62,7 +81,7 @@ export function applyContext(offers: readonly ProviderOffer[], ctx: ShopperConte
         eligible: eligibleFor(o, ctx), unitPrice: null, unitLabel: null,
       };
     }
-    const estimatedTax = ctx.taxRate === null ? null : round2(o.price * ctx.taxRate);
+    const estimatedTax = taxRate === null ? null : round2(o.price * taxRate);
     const unit = unitPriceOf(o.price, o.size);
     return {
       ...o,
