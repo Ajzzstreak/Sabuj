@@ -2,5 +2,7 @@
   "name": "DealLens",
   "slug": "deallens",
   "scheme": "deallens",
-  "bundleId": "com.deallens.app"
+  "bundleId": "com.deallens.app",
+  "easOwner": null,
+  "easProjectId": null
 }

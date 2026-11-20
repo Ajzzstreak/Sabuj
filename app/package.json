@@ -48,7 +48,12 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "config:check": "expo config --type public",
+    "assets:placeholder": "node assets/brand/generate-placeholder-assets.js",
+    "eas:build:dev": "npx eas-cli@latest build --profile development --platform all",
+    "eas:build:preview": "npx eas-cli@latest build --profile preview --platform all",
+    "eas:build:production": "npx eas-cli@latest build --profile production --platform all"
   },
   "private": true
 }
